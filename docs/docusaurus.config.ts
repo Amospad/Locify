@@ -64,7 +64,7 @@ const config: Config = {
         },
       ],
     },
-    footer: {
+        footer: {
       style: 'dark',
       links: [
         {
@@ -73,6 +73,10 @@ const config: Config = {
             {
               label: 'Formativo (SENA)',
               to: '/docs/formativo/acta-constitucion',
+            },
+            {
+              label: 'Técnico',
+              to: '/docs/tecnico/arquitectura-hexagonal',
             },
           ],
         },
@@ -88,6 +92,7 @@ const config: Config = {
       ],
       copyright: `Copyright © ${new Date().getFullYear()} LOCIFY - SENA ADSO Ficha 3314811.`,
     },
+
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,

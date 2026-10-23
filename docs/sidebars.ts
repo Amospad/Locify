@@ -9,6 +9,12 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'formativo/historias-usuario', label: '05. Historias de Usuario' },
     { type: 'doc', id: 'formativo/antecedentes-justificacion', label: '06. Antecedentes y Justificación' },
   ],
+  
+  tecnicoSidebar: [
+    'tecnico/arquitectura-hexagonal', // <-- AQUÍ: sin "explicacion"
+    { type: 'doc', id: 'adr/ADR-001-arquitectura-hexagonal', label: 'ADR-001: Arquitectura Hexagonal' },
+    { type: 'doc', id: 'adr/ADR-002-modelo-hibrido-reservas', label: 'ADR-002: Modelo Híbrido' },
+  ],
 };
 
 export default sidebars;

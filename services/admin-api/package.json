@@ -1,6 +1,7 @@
 {
   "name": "admin-api",
   "version": "0.1.0",
+    "type": "module",
   "description": "Microservicio de administración, identidad y KYB para LOCIFY",
   "main": "dist/index.js",
   "scripts": {
@@ -10,5 +11,8 @@
   },
   "keywords": [],
   "author": "Andrés Mosquera, Lilia Torres, Denis Cuervo",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^26.6.5"
+  }
 }

@@ -1,6 +1,6 @@
-import { Usuario, RolUsuario, EstadoUsuario } from '../entities/Usuario';
-import { UsuarioRepository } from '../ports/UsuarioRepository';
-import { EmailService } from '../ports/EmailService';
+import { Usuario, RolUsuario, EstadoUsuario } from '../entities/Usuario.js';
+import { UsuarioRepository } from '../ports/UsuarioRepository.js';
+import { EmailService } from '../ports/EmailService.js';
 import { randomUUID } from 'crypto';
 
 interface RegistrarOperadorDTO {

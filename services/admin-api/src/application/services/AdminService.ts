@@ -1,6 +1,6 @@
-import { RegistrarOperadorUseCase } from '../../domain/use-cases/RegistrarOperador';
-import { UsuarioRepository } from '../../domain/ports/UsuarioRepository';
-import { EmailService } from '../../domain/ports/EmailService';
+import { RegistrarOperadorUseCase } from '../../domain/use-cases/RegistrarOperador.js';
+import { UsuarioRepository } from '../../domain/ports/UsuarioRepository.js';
+import { EmailService } from '../../domain/ports/EmailService.js';
 
 export class AdminService {
   private registrarOperadorUseCase: RegistrarOperadorUseCase;

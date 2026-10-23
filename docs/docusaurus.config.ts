@@ -2,29 +2,19 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
-
 const config: Config = {
   title: 'LOCIFY Docs',
   tagline: 'Documentación técnica y formativa del ecosistema de parqueaderos',
   favicon: 'img/favicon.ico',
 
-  // Set the production url of your site here
   url: 'https://amospad.github.io',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/Locify/',
 
-  // GitHub pages deployment config.
-  organizationName: 'Amospad', // Usually your GitHub org/user name.
-  projectName: 'Locify', // Usually your repo name.
+  organizationName: 'Amospad',
+  projectName: 'Locify',
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
 
-  // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'es',
     locales: ['es'],
@@ -36,11 +26,10 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          editUrl:
-            'https://github.com/Amospad/Locify/tree/main/docs/',
+          routeBasePath: 'docs', // Ruta para que la doc viva en /docs
+          editUrl: 'https://github.com/Amospad/Locify/tree/main/docs/',
         },
-        blog: false, // Desactivamos el blog, no lo necesitamos
+        blog: false, // Desactivamos el blog
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -54,7 +43,6 @@ const config: Config = {
   },
 
   themeConfig: {
-    // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: 'LOCIFY',
@@ -84,7 +72,7 @@ const config: Config = {
           items: [
             {
               label: 'Formativo (SENA)',
-              to: '/docs/formativo/01-acta-constitucion',
+              to: '/docs/formativo/acta-constitucion',
             },
           ],
         },

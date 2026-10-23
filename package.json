@@ -1,0 +1,17 @@
+{
+  "name": "locify-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ecosistema digital de gestión de parqueaderos urbanos",
+  "workspaces": [
+    "services/*",
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "docker compose up --build"
+  },
+  "keywords": ["parking", "microservices", "hexagonal-architecture"],
+  "author": "Andrés Mosquera, Lilia Torres, Denis Cuervo",
+  "license": "UNLICENSED"
+}

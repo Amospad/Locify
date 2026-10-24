@@ -7,6 +7,8 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'formativo/casos-uso', label: '04. Casos de Uso' },
     { type: 'doc', id: 'formativo/historias-usuario', label: '05. Historias de Usuario' },
     { type: 'doc', id: 'formativo/antecedentes-justificacion', label: '06. Antecedentes y Justificación' },
+    { type: 'doc', id: 'formativo/matriz-trazabilidad', label: '07. Matriz de Trazabilidad' }, // <-- NUEVO
+    { type: 'doc', id: 'formativo/manual-usuario', label: '08. Manual de Usuario' },
   ],
   
   tecnicoSidebar: [

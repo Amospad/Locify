@@ -1,5 +1,5 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
@@ -26,10 +26,10 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          routeBasePath: 'docs', // Ruta para que la doc viva en /docs
+          routeBasePath: 'docs',
           editUrl: 'https://github.com/Amospad/Locify/tree/main/docs/',
         },
-        blog: false, // Desactivamos el blog
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -58,13 +58,19 @@ const config: Config = {
           label: 'Formativo (SENA)',
         },
         {
+          type: 'docSidebar',
+          sidebarId: 'tecnicoSidebar',
+          position: 'left',
+          label: 'Técnico',
+        },
+        {
           href: 'https://github.com/Amospad/Locify',
           label: 'GitHub',
           position: 'right',
         },
       ],
     },
-        footer: {
+    footer: {
       style: 'dark',
       links: [
         {
@@ -72,17 +78,7 @@ const config: Config = {
           items: [
             {
               label: 'Formativo (SENA)',
-              to: '/docs/formativo/acta-constitucion',
-            },
-            {
-              label: 'Técnico',
-              to: '/docs/tecnico/arquitectura-hexagonal',
-            },
-          ],
-          items: [
-            {
-              label: 'Formativo (SENA)',
-              to: '/docs/formativo/acta-constitucion',
+              to: '/docs/formativo/formulacion-constitucion', // <-- Corregido
             },
             {
               label: 'Técnico',

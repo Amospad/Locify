@@ -2,7 +2,7 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
   formativoSidebar: [
-    { type: 'doc', id: 'formativo/acta-constitucion', label: '01. Acta de Constitución' },
+    { type: 'doc', id: 'formativo/formulacion-constitucion', label: '01. Formulación y Constitución' },
     { type: 'doc', id: 'formativo/stakeholders', label: '02. Stakeholders' },
     { type: 'doc', id: 'formativo/alcance-requerimientos', label: '03. Alcance y Requerimientos' },
     { type: 'doc', id: 'formativo/casos-uso', label: '04. Casos de Uso' },

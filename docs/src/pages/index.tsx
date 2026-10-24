@@ -15,8 +15,14 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/formativo/acta-constitucion">
-            Ir a la Documentación 📚
+            to="/docs/formativo/formulacion-constitucion">
+            📚 Ir a Documentación SENA
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            style={{marginLeft: '10px'}}
+            to="/docs/tecnico/arquitectura-hexagonal">
+            🛠️ Ir a Arquitectura Técnica
           </Link>
         </div>
       </div>
@@ -34,7 +40,7 @@ export default function Home(): JSX.Element {
       <main>
         <div className="container" style={{padding: '2rem 0', textAlign: 'center'}}>
           <h2>Bienvenido a la documentación de LOCIFY</h2>
-          <p>Selecciona una sección en el menú superior para comenzar.</p>
+          <p>Selecciona una sección en el menú superior o usa los botones para comenzar.</p>
         </div>
       </main>
     </Layout>

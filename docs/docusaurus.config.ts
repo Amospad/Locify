@@ -64,6 +64,12 @@ const config: Config = {
           label: 'Técnico',
         },
         {
+          type: 'docSidebar',
+          sidebarId: 'gestionSidebar', // <-- Nuevo menú de Gestión
+          position: 'left',
+          label: 'Gestión',
+        },
+        {
           href: 'https://github.com/Amospad/Locify',
           label: 'GitHub',
           position: 'right',
@@ -78,11 +84,15 @@ const config: Config = {
           items: [
             {
               label: 'Formativo (SENA)',
-              to: '/docs/formativo/formulacion-constitucion', // <-- Corregido
+              to: '/docs/formativo/formulacion-constitucion',
             },
             {
               label: 'Técnico',
               to: '/docs/tecnico/arquitectura-hexagonal',
+            },
+            {
+              label: 'Gestión',
+              to: '/docs/gestion/gestion-interesados-proyecto',
             },
           ],
         },

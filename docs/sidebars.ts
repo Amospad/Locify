@@ -3,7 +3,6 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 const sidebars: SidebarsConfig = {
   formativoSidebar: [
     { type: 'doc', id: 'formativo/formulacion-constitucion', label: '01. Formulación y Constitución' },
-    { type: 'doc', id: 'formativo/stakeholders', label: '02. Stakeholders' },
     { type: 'doc', id: 'formativo/alcance-requerimientos', label: '03. Alcance y Requerimientos' },
     { type: 'doc', id: 'formativo/casos-uso', label: '04. Casos de Uso' },
     { type: 'doc', id: 'formativo/historias-usuario', label: '05. Historias de Usuario' },
@@ -11,10 +10,14 @@ const sidebars: SidebarsConfig = {
   ],
   
   tecnicoSidebar: [
-    'tecnico/arquitectura-hexagonal', // <-- AQUÍ: sin "explicacion"
+    'tecnico/arquitectura-hexagonal',
     { type: 'doc', id: 'tecnico/referencia/modelo-datos', label: 'Modelo de Datos' },
     { type: 'doc', id: 'adr/ADR-001-arquitectura-hexagonal', label: 'ADR-001: Arquitectura Hexagonal' },
     { type: 'doc', id: 'adr/ADR-002-modelo-hibrido-reservas', label: 'ADR-002: Modelo Híbrido' },
+  ],
+  
+  gestionSidebar: [
+    { type: 'doc', id: 'gestion/gestion-interesados-proyecto', label: 'Gestión de Interesados y Proyecto' },
   ],
 };
 

@@ -12,6 +12,7 @@ const sidebars: SidebarsConfig = {
   
   tecnicoSidebar: [
     'tecnico/arquitectura-hexagonal', // <-- AQUÍ: sin "explicacion"
+    { type: 'doc', id: 'tecnico/referencia/modelo-datos', label: 'Modelo de Datos' },
     { type: 'doc', id: 'adr/ADR-001-arquitectura-hexagonal', label: 'ADR-001: Arquitectura Hexagonal' },
     { type: 'doc', id: 'adr/ADR-002-modelo-hibrido-reservas', label: 'ADR-002: Modelo Híbrido' },
   ],

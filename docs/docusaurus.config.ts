@@ -79,6 +79,16 @@ const config: Config = {
               to: '/docs/tecnico/arquitectura-hexagonal',
             },
           ],
+          items: [
+            {
+              label: 'Formativo (SENA)',
+              to: '/docs/formativo/acta-constitucion',
+            },
+            {
+              label: 'Técnico',
+              to: '/docs/tecnico/arquitectura-hexagonal',
+            },
+          ],
         },
         {
           title: 'Repositorio',

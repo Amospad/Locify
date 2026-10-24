@@ -1,6 +1,6 @@
-$contenido = @'
----
-sidebar_position: 3
+<!-- $contenido = @'
+--- -->
+<!-- sidebar_position: 3 -->
 title: 03. Alcance y Requerimientos
 ---
 

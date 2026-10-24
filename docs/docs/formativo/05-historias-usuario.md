@@ -1,56 +1,66 @@
 ---
 sidebar_position: 5
-title: 05. Historias de Usuario
+title: 05. Historias de Usuario (Product Backlog)
 ---
 
-# Historias de Usuario y Mapa AS-IS / TO-BE
+# Historias de Usuario y Product Backlog
 
-Este documento representa las necesidades funcionales desde la perspectiva del usuario y compara el proceso actual (AS-IS) con el proceso propuesto (TO-BE).
+Este documento contiene el Product Backlog completo del proyecto LOCIFY, organizado por épicas. Cada historia sigue el formato estándar y tiene sus criterios de aceptación.
 
-## 1. Estructura de las Historias
-**Como** [Rol], **Quiero** [Acción], **Para** [Beneficio].
+## Épica 1: Onboarding y Seguridad (Autenticación)
 
-## 2. Product Backlog Principal
+| ID | Historia de Usuario | Prioridad | Estimación |
+| :--- | :--- | :--- | :--- |
+| **HU-01** | Como usuario, quiero registrarme con mi correo y contraseña para acceder al sistema. | Alta | 3 |
+| **HU-02** | Como usuario, quiero recibir un correo de activación para validar mi cuenta. | Alta | 2 |
+| **HU-03** | Como usuario, quiero recuperar mi contraseña en caso de olvido para no perder mi cuenta. | Media | 2 |
+| **HU-04** | Como administrador, quiero asignar roles (RBAC) para controlar qué puede hacer cada usuario. | Alta | 3 |
+| **HU-05** | Como sistema, quiero bloquear el acceso a dashboards si el usuario no ha activado su cuenta. | Alta | 1 |
 
-| ID | Historia de Usuario | Módulo | Prioridad |
-|---|---|---|---|
-| **HU-001** | Como usuario, quiero completar el formulario de onboarding para registrarme en el sistema. | Autenticación | Alta |
-| **HU-P01** | Como operador, quiero cargar mis documentos legales para iniciar mi proceso de verificación KYB. | KYB | Alta |
-| **HU-A04** | Como administrador, quiero revisar los documentos legales para aprobar o rechazar el ticket de la sede. | KYB | Alta |
-| **HU-C04** | Como cliente, quiero elegir entre realizar pago anticipado o reservar sin pago, para asegurar mi celda bajo diferentes condiciones de tolerancia horaria. | Reservas | Alta |
-| **HU-C05** | Como cliente, quiero que el sistema valide mi tiempo por ingreso directo mediante QR para calcular mi tarifa. | Check-in | Alta |
-| **HU-P03** | Como operador, quiero ver un dashboard operativo en tiempo real para visualizar cupos totales, ocupados y disponibles. | Dashboard | Alta |
+## Épica 2: Gestión de Operadores (KYB)
 
-## 3. Criterios de Aceptación (Gherkin) - Ejemplos Clave
+| ID | Historia de Usuario | Prioridad | Estimación |
+| :--- | :--- | :--- | :--- |
+| **HU-06** | Como operador, quiero subir mis documentos legales (RUT, Cámara de Comercio) para solicitar verificación. | Alta | 3 |
+| **HU-07** | Como administrador, quiero auditar los documentos de los operadores para aprobar o rechazar su sede. | Alta | 3 |
+| **HU-08** | Como sistema, quiero ocultar las sedes no aprobadas en el mapa público para evitar fraudes. | Alta | 2 |
+| **HU-09** | Como operador, quiero configurar la capacidad de mi sede (número de celdas y tipos de vehículo). | Alta | 3 |
 
-### HU-C04: Reserva Híbrida
-- **Escenario 1 (Pago Anticipado):**
-  - **Dado** que estoy en la pantalla de reserva,
-  - **Cuando** selecciono "Pago Anticipado" y completo el pago en la pasarela,
-  - **Entonces** el sistema me muestra un QR garantizado y bloquea el cupo permanentemente.
-- **Escenario 2 (Reserva Exprés):**
-  - **Dado** que estoy en la pantalla de reserva,
-  - **Cuando** selecciono "Sin Pago",
-  - **Entonces** el sistema me muestra un QR con un temporizador visible de 5 minutos.
+## Épica 3: Reservas y Búsqueda (Cliente)
 
-### HU-A04: Validación Administrativa
-- **Escenario 1 (Aprobación):**
-  - **Dado** que reviso un ticket en estado "En Revisión",
-  - **Cuando** hago clic en "Aprobar",
-  - **Entonces** el sistema cambia el estado de la sede a "Activo" y la hace visible en el mapa.
-- **Escenario 2 (Rechazo):**
-  - **Dado** que hago clic en "Rechazar",
-  - **Cuando** intento guardar sin escribir un motivo,
-  - **Entonces** el sistema bloquea la acción y me exige una justificación.
+| ID | Historia de Usuario | Prioridad | Estimación |
+| :--- | :--- | :--- | :--- |
+| **HU-10** | Como cliente, quiero buscar parqueaderos en un mapa interactivo para ver disponibilidad en tiempo real. | Alta | 5 |
+| **HU-11** | Como cliente, quiero filtrar los parqueaderos por precio y tipo de vehículo para encontrar el que se ajuste a mi necesidad. | Media | 2 |
+| **HU-12** | Como cliente, quiero elegir entre Pago Anticipado o Reserva Exprés para tener flexibilidad al reservar. | Alta | 5 |
+| **HU-13** | Como cliente, quiero recibir un código QR único tras mi reserva para poder ingresar al parqueadero. | Alta | 3 |
+| **HU-14** | Como cliente, quiero cancelar mi reserva (con o sin reembolso) para no perder mi dinero si mis planes cambian. | Media | 3 |
+| **HU-15** | Como cliente, quiero registrar múltiples vehículos (placas) para poder reservar con cualquiera de ellos. | Media | 2 |
+| **HU-16** | Como sistema, quiero validar que un vehículo no tenga una reserva activa para evitar doble reserva. | Alta | 2 |
 
-## 4. Mapa AS-IS / TO-BE
+## Épica 4: Acceso y Uso (Check-in / Check-out)
 
-**Proceso Seleccionado:** Búsqueda, Reserva, Check-in y Check-out.
+| ID | Historia de Usuario | Prioridad | Estimación |
+| :--- | :--- | :--- | :--- |
+| **HU-17** | Como operador, quiero escanear el QR del cliente para registrar su ingreso (Check-in) y arrancar el cronómetro. | Alta | 5 |
+| **HU-18** | Como sistema, quiero rechazar QRs expirados o ya usados para garantizar la seguridad del acceso. | Alta | 3 |
+| **HU-19** | Como cliente, quiero ver un cronómetro en tiempo real de mi tiempo de uso para saber cuánto voy a pagar. | Alta | 2 |
+| **HU-20** | Como operador, quiero registrar salidas (Check-out) y que el sistema cobre automáticamente al cliente. | Alta | 5 |
+| **HU-21** | Como operador, quiero poder hacer Check-in/out manual (por placa) si el sistema o el internet fallan (contingencia). | Alta | 3 |
 
-| Paso | Proceso AS-IS (Actual y Manual) | Proceso TO-BE (LOCIFY Digital) |
-|---|---|---|
-| **1** | Búsqueda visual en la calle (dando vueltas). | Búsqueda en mapa interactivo con inventario en tiempo real. |
-| **2** | Incertidumbre de disponibilidad (llegar y no encontrar cupo). | Reserva garantizada (Híbrida: Pago 100% o 5 min de tolerancia). |
-| **3** | Emisión de ticket físico en papel térmico. | Generación de Código QR cifrado y dinámico. |
-| **4** | Fila en taquilla presencial para pagar en efectivo. | Cobro automatizado o prepago. Check-out sin contacto. |
-| **5** | Salida manual con validación del tiquete. | Validación de QR de salida y facturación digital. |
+## Épica 5: Administración y Soporte
+
+| ID | Historia de Usuario | Prioridad | Estimación |
+| :--- | :--- | :--- | :--- |
+| **HU-22** | Como administrador, quiero modificar las reglas del negocio (multas, tiempos de gracia) sin afectar las reservas en curso. | Alta | 5 |
+| **HU-23** | Como cliente, quiero abrir un ticket de soporte si el QR no funciona o si hay un cobro indebido. | Alta | 3 |
+| **HU-24** | Como administrador, quiero gestionar los tickets escalados y resolver disputas con evidencia. | Alta | 3 |
+| **HU-25** | Como operador, quiero ver reportes financieros (ingresos, multas) de mi sede para conciliar mis cuentas. | Media | 5 |
+
+## Formato de Criterios de Aceptación (Ejemplo HU-12)
+- **Dado** que estoy en la pantalla de reserva,
+- **Cuando** selecciono "Reserva Exprés",
+- **Entonces** el sistema me muestra un QR con un temporizador de 5 minutos.
+- **Dado** que la reserva expira a los 5 minutos,
+- **Cuando** el sistema evalúa el tiempo,
+- **Entonces** cancela la reserva y libera el cupo.

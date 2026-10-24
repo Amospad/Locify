@@ -1,30 +1,155 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * LOCIFY - Identidad Visual Moderna y Corporativa
  */
 
-/* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  /* Tipografía Principal */
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --ifm-heading-font-weight: 700; /* Títulos más gruesos */
+  --ifm-font-weight-semibold: 600;
+
+  /* Paleta de Colores LOCIFY */
+  --locify-primary: #2F5D9F;       /* Azul Acero */
+  --locify-accent: #244A80;        /* Azul Profundo */
+  --locify-bg-light: #E6EEF8;      /* Azul Muy Claro */
+  --locify-graphite: #1F2937;      /* Grafito (Texto principal) */
+  --locify-dark-gray: #4B5563;     /* Texto secundario */
+  --locify-bg-base: #FFFFFF;       /* Fondo Blanco Puro (Más limpio) */
+  --locify-border: #D9DEE5;        /* Gris para bordes */
+
+  /* Estados */
+  --locify-success: #2E7D5B;
+  --locify-warning: #C58A00;
+  --locify-error: #C23B3B;
+
+  /* Mapeo a Docusaurus (Modo Claro) */
+  --ifm-color-primary: var(--locify-primary);
+  --ifm-color-primary-dark: var(--locify-accent);
+  --ifm-color-primary-darker: #1c395f;
+  --ifm-color-primary-darkest: #142a47;
+  --ifm-color-primary-light: #3870c2;
+  --ifm-color-primary-lighter: #4079cf;
+  --ifm-color-primary-lightest: #5d8dda;
+  
+  --ifm-background-color: var(--locify-bg-base);
+  --ifm-background-surface-color: var(--locify-bg-light); /* Sidebar con azul muy claro */
+  --ifm-font-color-base: var(--locify-graphite);
+  --ifm-heading-color: var(--locify-graphite);
+  --ifm-toc-border-color: var(--locify-border);
+  
+  --ifm-code-font-size: 90%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.05);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* Modo Oscuro */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #5d8dda;
+  --ifm-color-primary-dark: #4079cf;
+  --ifm-color-primary-darker: #3870c2;
+  --ifm-color-primary-darkest: #2F5D9F;
+  --ifm-color-primary-light: #7aa3e3;
+  --ifm-color-primary-lighter: #88ade6;
+  --ifm-color-primary-lightest: #a3c0ec;
+  
+  --ifm-background-color: #111827;
+  --ifm-background-surface-color: #1F2937;
+  --ifm-font-color-base: #E6EEF8;
+  --ifm-heading-color: #FFFFFF;
+  --ifm-toc-border-color: #4B5563;
+}
+
+/* --- ESTILOS MODERNOS DE UI --- */
+
+/* Barra de Navegación Superior (Más limpia, sin sombra dura) */
+.navbar {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--locify-border);
+  box-shadow: none;
+}
+
+/* Barra Lateral (Sidebar) con fondo azul muy claro */
+.theme-doc-sidebar-container {
+  background-color: var(--locify-bg-light);
+  border-right: 1px solid var(--locify-border);
+}
+
+/* Enlaces del menú lateral */
+.menu__link {
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.menu__link:hover, .menu__link--active {
+  background-color: #FFFFFF;
+  color: var(--locify-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Títulos de la página */
+.markdown h1 {
+  font-size: 2.5rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  color: var(--locify-graphite);
+}
+
+.markdown h2 {
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+  margin-top: 2.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--locify-border);
+}
+
+/* Texto de párrafo más legible */
+.markdown p {
+  line-height: 1.7;
+  color: var(--locify-dark-gray);
+}
+
+/* Bloques de código más modernos */
+.theme-code-block {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--locify-border);
+}
+
+/* Tablas modernas */
+table {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--locify-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+th {
+  background-color: var(--locify-bg-light);
+  color: var(--locify-primary);
+  font-weight: 600;
+  border-bottom: 2px solid var(--locify-border);
+}
+
+/* Botones (Portada) */
+.button {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(47, 93, 159, 0.3);
+  color: #FFFFFF;
+}
+
+/* Resaltar los bloques de cita (Advertencias / Notas) */
+blockquote {
+  border-left: 4px solid var(--locify-primary);
+  background-color: var(--locify-bg-light);
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  color: var(--locify-graphite);
 }

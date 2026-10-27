@@ -1,0 +1,8 @@
+[harness]
+profile = "brownfield"
+flow = "standard"
+lang = "typescript"
+agents = ["cursor"]
+script_shell = "ps"
+presets = []
+output_lang = "zh"

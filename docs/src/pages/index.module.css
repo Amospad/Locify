@@ -1,18 +1,242 @@
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
+/**
+ * Landing de LOCIFY.
+ * Jerarquía: un solo mensaje principal (LOCIFY), una frase de apoyo,
+ * dos acciones y, debajo, el mapa de la documentación.
+ */
+
+.hero {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
+  padding: clamp(3.5rem, 8vw, 7rem) 0 clamp(3rem, 6vw, 5rem);
+  text-align: center;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      rgba(230, 238, 248, 0.9),
+      rgba(255, 255, 255, 0) 70%
+    ),
+    var(--locify-surface);
+  border-bottom: 1px solid var(--locify-border);
+}
+
+[data-theme='dark'] .hero {
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      rgba(27, 42, 66, 0.9),
+      rgba(15, 20, 25, 0) 70%
+    ),
+    var(--locify-surface);
+}
+
+/* Halo decorativo suave; no aporta información, se oculta a lectores */
+.heroGlow {
+  position: absolute;
+  inset: auto 0 -40% 0;
+  height: 60%;
+  z-index: -1;
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(47, 93, 159, 0.10),
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin: 0 0 1.25rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--locify-border-strong);
+  border-radius: var(--locify-radius-pill);
+  background-color: var(--locify-surface);
+  color: var(--locify-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  box-shadow: var(--locify-shadow-sm);
+}
+
+.title {
+  margin: 0;
+  color: var(--locify-ink);
+  font-size: clamp(3.2rem, 9vw, 5.5rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em; /* compensa el tracking de la última letra */
+}
+
+.subtitle {
+  max-width: 46ch;
+  margin: 1.5rem auto 0;
+  color: var(--locify-ink);
+  font-size: clamp(1.05rem, 0.6vw + 0.95rem, 1.3rem);
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.lead {
+  max-width: 52ch;
+  margin: 0.85rem auto 0;
+  color: var(--locify-ink-secondary);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  justify-content: center;
+  margin-top: 2.25rem;
+}
+
+.actions :global(.button--lg) {
+  font-size: 1rem;
+  padding: 0.85rem 1.75rem;
+}
+
+.meta {
+  margin: 2.5rem 0 0;
+  color: var(--locify-ink-secondary);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── Secciones ──────────────────────────────────────────────── */
+
+.secciones {
+  padding: clamp(3rem, 6vw, 5rem) 0 clamp(4rem, 8vw, 6rem);
+  background-color: var(--locify-surface);
+}
+
+.seccionesTitulo {
+  margin: 0;
+  color: var(--locify-ink);
+  font-size: clamp(1.5rem, 1rem + 1vw, 1.9rem);
+  letter-spacing: -0.02em;
+}
+
+.seccionesIntro {
+  margin: 0.5rem 0 2.25rem;
+  color: var(--locify-ink-secondary);
+  font-size: 1rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.75rem;
+  border: 1px solid var(--locify-border);
+  border-radius: var(--locify-radius-lg);
+  background-color: var(--locify-card);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--locify-shadow-sm);
+  transition: transform 200ms ease, box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+
+.card:hover,
+.card:focus-visible {
+  text-decoration: none;
+  color: inherit;
+  transform: translateY(-3px);
+  border-color: var(--locify-primary);
+  box-shadow: var(--locify-shadow-lg);
+}
+
+.cardNumero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-bottom: 0.75rem;
+  border-radius: var(--locify-radius-md);
+  background-color: var(--locify-surface);
+  color: var(--locify-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: var(--locify-shadow-sm);
+}
+
+.cardEtiqueta {
+  color: var(--locify-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.cardTitulo {
+  margin: 0.15rem 0 0;
+  color: var(--locify-ink);
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.cardTexto {
+  margin: 0.35rem 0 0;
+  color: var(--locify-ink-secondary);
+  font-size: 0.94rem;
+  line-height: 1.65;
+  flex-grow: 1;
+}
+
+.cardAccion {
+  margin-top: 1.1rem;
+  color: var(--locify-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 @media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
+  .hero {
+    padding: 3rem 0 2.5rem;
+    text-align: left;
+  }
+
+  .heroContent {
+    align-items: flex-start;
+  }
+
+  .subtitle,
+  .lead {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  .title {
+    letter-spacing: 0.08em;
+    text-indent: 0.08em;
   }
 }
 
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+@media screen and (prefers-reduced-motion: reduce) {
+  .card:hover,
+  .card:focus-visible {
+    transform: none;
+  }
 }

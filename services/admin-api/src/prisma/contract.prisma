@@ -1,0 +1,24 @@
+// use prisma-8
+enum RolUsuario {
+  CONDUCTOR
+  OPERADOR
+  ADMIN
+}
+
+enum EstadoUsuario {
+  PENDIENTE
+  ACTIVO
+  SUSPENDIDO
+}
+
+model Usuario {
+  id              String         @id @onCreate(uuid())
+  email           String         @unique
+  passwordHash    String         @map("password_hash")
+  rol             RolUsuario
+  estado          EstadoUsuario
+  tokenInvitacion String?        @map("token_invitacion")
+  tokenExpiracion TimestamptzJsDate? @map("token_expiracion")
+
+  @@map("usuario")
+}

@@ -1,0 +1,243 @@
+---
+name: hx-constitution
+phase: bootstrap
+flow: [quick, standard, full, epic]
+---
+# /hx-constitution
+
+## Purpose
+
+Create or update the project constitution **strictly per the GitHub
+spec-kit standard**: Core Principles + 2 generic sections + Governance
++ versioned amendment trail. Every later `/hx-` command reads the
+result.
+
+## Authoritative reference
+
+This playbook follows the canonical spec-kit constitution flow
+verbatim. Two upstream files define it:
+
+- `templates/constitution-template.md` — the 50-line skeleton with
+  placeholder tokens (`[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`,
+  `[CONSTITUTION_VERSION]`, …).
+- `templates/commands/constitution.md` — the 8-step execution flow
+  (collect placeholders → fill → propagate → emit Sync Impact Report
+  → version-bump → write).
+
+Do not invent fields. Do not add `[enforceable]` or `[inferential]`
+tags here — they are project-implementation concerns and live in
+`AGENTS.md` (`## Conventions`) and `.harness/knowledge/conventions.md`,
+not the constitution.
+
+## Prerequisites
+
+- Harness initialized (`.harness/config.toml` exists).
+- (Optional) `/hx-baseline` already produced `.harness/knowledge/` —
+  observed patterns become input candidates for principles.
+
+## Inputs
+
+- `.harness/principle-packs/*.md` — tech-stack-specific norm packs
+  (constitution synthesis source — material, not output structure).
+- `.harness/knowledge/` — observed patterns from `/hx-baseline`
+  (optional, recommended).
+- Existing `` if present (amendment path).
+
+## Steps
+
+Follow the spec-kit 8-step flow exactly.
+
+1. **Load or seed.** If `` does not exist,
+   create it from the seed in *Appendix A* (the spec-kit canonical
+   template). Otherwise load it. Identify every `[ALL_CAPS_TOKEN]`
+   placeholder still present.
+
+2. **Collect or derive values for placeholders.**
+   - User input takes priority.
+   - Otherwise infer from existing repo context: README, `docs/`,
+     prior constitution versions, principle packs, baseline output.
+   - `RATIFICATION_DATE`: the original adoption date — ask the user
+     or insert `TODO(RATIFICATION_DATE): explanation` if unknown.
+   - `LAST_AMENDED_DATE`: today (ISO `YYYY-MM-DD`) if changes are
+     made; otherwise unchanged.
+   - `CONSTITUTION_VERSION`: bump per spec-kit semver:
+     - **MAJOR**: backward-incompatible governance / principle removal
+       or redefinition (e.g. dropping a NON-NEGOTIABLE principle).
+     - **MINOR**: new principle / section added or materially expanded
+       guidance.
+     - **PATCH**: clarifications, wording, typo fixes, non-semantic
+       refinements.
+
+3. **Draft principles.** The user may supply fewer or more than 5;
+   respect the requested count, otherwise default to 5–7 principles.
+   Each principle:
+   - **Name**: roman numeral + succinct title. Append
+     `(NON-NEGOTIABLE)` to the title when the principle is a hard
+     gate the project will not waive — for example, `### III. Test-First (NON-NEGOTIABLE)`.
+   - **Description**: one paragraph or short bullet list capturing
+     non-negotiable rules and explicit rationale if not obvious.
+   - **Language**: declarative, testable. Replace vague "should"
+     with **MUST** / **SHOULD** + RFC 2119 rationale.
+   - **No GOOD/BAD pairs, no `[enforceable]`/`[inferential]` tags,
+     no Verifier field**: those are project-implementation concerns
+     belonging in AGENTS.md `## Conventions` and
+     `.harness/knowledge/conventions.md`.
+
+4. **Fill the two generic sections** (`SECTION_2`, `SECTION_3`).
+   Typical names:
+   - `SECTION_2`: `## Additional Constraints`, `## Security
+     Requirements`, `## Performance Standards`.
+   - `SECTION_3`: `## Development Workflow`, `## Review Process`,
+     `## Quality Gates`.
+   These hold project-level **implementation constraints** that ride
+   on top of the principles (e.g. supported stacks, deployment
+   policies, code-review requirements).
+
+5. **Fill Governance.** Three required pieces:
+   - **Amendment process**: how a principle changes (typically
+     `specs/<NNN>-amendment/` proposal → review → version bump).
+   - **Versioning policy**: spec-kit semver (above).
+   - **Compliance review**: when the team checks the codebase
+     against the constitution — at minimum during `/hx-review`,
+     drift caught by `/hx-doctor`.
+
+6. **Propagate.** Walk every dependent artifact and update for
+   consistency:
+   - `AGENTS.md` (does any `## Conventions` rule contradict an
+     amended principle?)
+   - `.harness/playbooks/*.md` — references to constitution clauses
+   - `.harness/knowledge/conventions.md` — implementation details of
+     amended principles
+   - `.specify/templates/*.md` if the project also uses spec-kit's
+     plan/spec/tasks templates directly
+
+7. **Emit Sync Impact Report.** Prepend an HTML comment at the top
+   of `` recording:
+   - Version change: `<old>` → `<new>` (with bump rationale)
+   - Modified principles (old title → new title if renamed)
+   - Added sections, Removed sections
+   - Templates requiring updates: ✅ updated / ⚠ pending (with paths)
+   - Follow-up TODOs (any deferred placeholders)
+
+8. **Validate before final write.**
+   - No remaining unexplained `[ALL_CAPS]` tokens.
+   - Version line matches the report.
+   - All dates ISO `YYYY-MM-DD`.
+   - Principles use **MUST/SHOULD/MAY** (RFC 2119) where appropriate.
+   - File length: target < 1500 words; far over → likely smuggling
+     implementation detail into Core Principles, push it to
+     `SECTION_2`/`SECTION_3` or `conventions.md`.
+
+   Then overwrite ``.
+
+## Outputs
+
+- `` — ratified, version-stamped, with Sync
+  Impact Report at the top.
+- A summary message including: new version + bump rationale, any
+  files flagged for manual follow-up, suggested commit message
+  (e.g. `docs: amend constitution to vX.Y.Z (principle additions +
+  governance update)`).
+
+## Exit Criteria
+
+- The file matches the spec-kit canonical structure: Core Principles
+  → SECTION_2 → SECTION_3 → Governance → version line.
+- No `[ALL_CAPS]` placeholders remain unfilled (or are explicitly
+  marked `TODO(...)` with rationale).
+- Version line agrees with the Sync Impact Report.
+- Every principle is declarative, testable, free of vague language.
+- Governance section names amendment process, versioning policy,
+  compliance review.
+
+## Gate
+
+No other `/hx-` command may run in this session until the agent has
+acknowledged the principle list.
+
+---
+
+## Appendix A — Constitution template (T1, strict spec-kit)
+
+> Provenance
+> - Authoritative paradigm: GitHub spec-kit `templates/constitution-template.md` (50-line canonical) + `templates/commands/constitution.md` (8-step flow with Sync Impact Report and semver-bumped versioning)
+> - Investigation protocol: load existing or seed from this template; collect / derive placeholder values from user input + repo context; draft 5–7 (or user-specified) principles with MUST/SHOULD language and rationale; fill the two generic sections with project-implementation constraints; emit Sync Impact Report; bump version per spec-kit semver; propagate changes to AGENTS.md and dependent playbooks; validate (no unfilled placeholders, ISO dates, version line agrees with report)
+> - Output form: spec-kit canonical structure — Core Principles (with optional `(NON-NEGOTIABLE)` suffix) → two generic sections → Governance → `**Version**: X.Y.Z | **Ratified**: YYYY-MM-DD | **Last Amended**: YYYY-MM-DD` line; HTML-comment Sync Impact Report at the top of the file
+
+Use the following template **verbatim** when bootstrapping
+``. Replace each `[BRACKETED_TOKEN]` with
+concrete values during step 2.
+
+```markdown
+<!--
+SYNC IMPACT REPORT
+Version: 0.0.0 → 1.0.0 (initial ratification)
+Modified principles: (none — initial)
+Added sections: Core Principles, Additional Constraints, Development Workflow, Governance
+Removed sections: (none)
+Templates requiring updates: ✅ AGENTS.md  ⚠ .harness/knowledge/conventions.md (pending /hx-baseline)
+Follow-up TODOs: (none)
+-->
+
+# Locify Constitution
+
+## Core Principles
+
+### I. [PRINCIPLE_1_NAME]
+[PRINCIPLE_1_DESCRIPTION]
+
+### II. [PRINCIPLE_2_NAME]
+[PRINCIPLE_2_DESCRIPTION]
+
+### III. [PRINCIPLE_3_NAME] (NON-NEGOTIABLE)
+[PRINCIPLE_3_DESCRIPTION]
+
+### IV. [PRINCIPLE_4_NAME]
+[PRINCIPLE_4_DESCRIPTION]
+
+### V. [PRINCIPLE_5_NAME]
+[PRINCIPLE_5_DESCRIPTION]
+
+## [SECTION_2_NAME]
+<!-- e.g. Additional Constraints / Security Requirements / Performance Standards -->
+
+[SECTION_2_CONTENT]
+
+## [SECTION_3_NAME]
+<!-- e.g. Development Workflow / Review Process / Quality Gates -->
+
+[SECTION_3_CONTENT]
+
+## Governance
+
+**Amendment process**: [AMENDMENT_PROCESS]
+<!-- typically: specs/<NNN>-amendment/ proposal → team review → version bump -->
+
+**Versioning policy**: This document follows MAJOR.MINOR.PATCH.
+- MAJOR: principle removed or NON-NEGOTIABLE downgrade
+- MINOR: new principle or section added; materially expanded guidance
+- PATCH: clarifications, wording, typo fixes
+
+**Compliance review**: [COMPLIANCE_REVIEW]
+<!-- e.g. every /hx-review checks; /hx-doctor catches drift; quarterly audit -->
+
+**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
+```
+
+## Appendix B — Where verifier / GOOD-BAD details live
+
+The constitution holds **principles**. The implementation details
+that prove a principle is being upheld live elsewhere — by design,
+to keep the constitution stable across implementation churn:
+
+| Concern | Lives in |
+|---|---|
+| Lint / format / type-check rules | tool config + `AGENTS.md` `## Conventions` |
+| GOOD/BAD code pairs | `.harness/knowledge/conventions.md` Reference Exemplars |
+| Verify gate command | `init.sh` calling `verify.sh` |
+| Test patterns / TDD details | `AGENTS.md` `## Testing` + `.harness/knowledge/conventions.md` |
+| Per-feature contract checks | `specs/<NNN>-<slug>/feature_list.json` `verification` field |
+
+If you find yourself wanting to add a `Verifier:` or `GOOD/BAD`
+field to a principle, put it in the table above's correct home
+instead. The principle stays clean; the implementation evolves freely.

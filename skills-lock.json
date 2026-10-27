@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "apple-hig": {
+      "source": "AyushRajSinghParihar/apple-human-interface-skills",
+      "sourceType": "github",
+      "skillPath": "skills/apple-hig/SKILL.md",
+      "computedHash": "8fc3d15b0ad8879c26ddff4c73594187964449c80f19a669dc3d9bbe9c7956a8"
+    },
+    "rig": {
+      "source": "slamb2k/mad-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rig/SKILL.md",
+      "computedHash": "49261d9371316f0a13af36919659fe700e311713a2313c3aee8d8ffb052af923"
+    }
+  }
+}

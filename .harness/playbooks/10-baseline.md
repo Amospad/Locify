@@ -1,0 +1,985 @@
+---
+name: hx-baseline
+phase: bootstrap
+flow: [standard, full, epic]
+---
+# /hx-baseline
+
+## Purpose
+
+Read the codebase and produce a **project knowledge base** — eight
+documents that together are the sufficient condition for a new
+contributor (human or AI) to start developing.
+
+## Prerequisites
+
+- `/hx-constitution` complete (or its seed file exists).
+
+## Inputs
+
+- The entire project source tree.
+- Build / CI configuration files.
+- `git log` (recent history reveals churn hotspots).
+- (Optional) PRD / domain documents to cross-validate inferred business model.
+- (Optional) Internal-framework registry, oncall runbooks, wiki pages,
+  postmortems — first-class sources for `business.md` and the
+  internal-frameworks section of `tech-stack.md`.
+
+## Argument — `--depth`
+
+`/hx-baseline` accepts a single optional argument that controls how deep
+the investigation goes. **Default is `L2`.** Invoke as
+`/hx-baseline --depth L3` to escalate.
+
+| Tier | Use when | Mandatory items beyond the previous tier |
+|------|----------|------------------------------------------|
+| `L1` survey | quick onboarding read; spike before deciding to invest | manifest scan · file inventory · top-level architecture sketch · all 7 doc skeletons present with Open Questions filled |
+| `L2` standard (default) | normal baseline for an active project | `git churn` heatmap · dependency surface · existing sensors mapped (lint / type / test / hook) · canonical exemplar per convention · internal-framework section with owner · runtime view for the **single most critical flow** |
+| `L3` deep | high-stakes (security · regulatory · taking over an unfamiliar legacy) | AST/LSP module-graph extraction · public-API surface enumerated (OpenAPI / proto / type exports) · DB schema reverse-engineered · IaC inventory · incident history & bus-factor analysis · arc42 quality scenarios filled · all how-to recipes completed |
+
+Each tier includes everything required by the lower tiers. The Exit
+criteria below gate per tier.
+
+## Investigation methodology — MEASURE → SYNTHESIZE → VERIFY
+
+The baseline pipeline runs in three phases. **Do not skip phase 1**:
+LLM left to "infer" from prose drifts into hallucination; tool output
+forces grounded citations.
+
+### Phase 1 — MEASURE (deterministic capture, runs at every tier)
+
+Run the matching command per stack. Save outputs into a scratch dir
+(`.harness/.baseline-cache/` is fine; `.gitignore`'d). LLM consumes
+these files later — it does not run the tools as a side effect of
+writing prose.
+
+| Concern | Tool (per stack) |
+|---|---|
+| Module / dependency graph (Python) | `pyreverse -o mmd src/` (pylint) |
+| Dependency graph (Node / TS) | `madge --json src/` or `dependency-cruiser src/` |
+| Module deps (Java) | `jdeps -summary` |
+| Module tree (Rust) | `cargo modules generate tree` |
+| Module tree (Go) | `go-callvis` |
+| Software bill of materials | `syft <repo> -o spdx-json=sbom.json` (Anchore) |
+| Lockfile native | `pip-licenses` / `npm ls --json` / `mvn dependency:tree` / `go list -m all` |
+| Hot files (`git churn`) | `git log --pretty=format: --name-only --since=12.months \| sort \| uniq -c \| sort -rn \| head -50` |
+| Risk hotspots | `git log --grep='fix\|revert\|hotfix\|incident' --since=12.months` |
+| Tech debt seeds | `git grep -nE 'TODO\|FIXME\|HACK\|XXX'` |
+| Hot path coverage | `coverage run -m pytest && coverage report --skip-covered` (or stack-equivalent) |
+| Public API surface | `openapi-cli bundle` / `protoc --descriptor` / type exports tooling |
+
+### Phase 2 — SYNTHESIZE (LLM organizes, never invents)
+
+For each of the 7 docs, the LLM does two things:
+
+- **Organize**: take the matching MEASURE outputs and shape them into
+  the doc's authoritative form (the 7 forms are listed below).
+- **Cite**: every non-trivial sentence carries `path:line`,
+  `command output`, `git SHA`, or a named non-code source (`PRD §3.2`,
+  `runbook: payments-oncall.md`).
+
+Forbidden during SYNTHESIZE: writing any sentence that the MEASURE
+outputs do not support. If MEASURE produced no evidence for a claim,
+park it in `## Open Questions` instead.
+
+### Phase 3 — VERIFY (doctor checks the artifact)
+
+`harness doctor` runs content-quality checks under the **Scope** row:
+
+- **Cite-density floor**: every doc averages ≥ 1 `path:line`-style
+  cite per 200 words (sampled across 3 paragraphs).
+- **Cite-validity**: a sample of 5 cites are checked — file exists,
+  line within range.
+- **Required-sections-present**: each of the 7 templates declares
+  required headings; missing headings → WARN.
+- **Structure-form**: tables and numbered steps actually appear where
+  the template requires them.
+
+Below threshold → WARN; far below → FAIL with a hint to rerun
+`/hx-baseline --refresh <doc>`.
+
+## Investigation protocol — the five-lens toolbelt
+
+A knowledge base is only as accurate as its sources. **Triangulate** —
+no single lens sees the whole system. Use multiple categories before
+writing each section.
+
+| Lens | Tools / techniques | What it reveals | Used by |
+|------|--------------------|-----------------|---------|
+| **Static structure** | manifest / lockfile · AST / LSP module graph · public-API enumeration (OpenAPI / proto / type exports) · DB schema scan (`information_schema`, migration replay) · IaC / k8s manifest inventory | shape: modules, contracts, persistent state, deployment topology | `architecture.md` · `tech-stack.md` · `conventions.md` |
+| **Historical** | `git log --since=…` · `git churn` heatmap (Tornhill *Software Design X-Rays*) · `git blame` on critical paths · release tags · CHANGELOG | hotspots · churn↔quality correlation · bus-factor and code ownership | `architecture.md` · `conventions.md` · `setup-and-verify.md` |
+| **Quality** | linters · type-checkers · test coverage · mutation samples · CI history · incident postmortems · open issues with severity labels | weakest points · where the system has actually failed in production | `architecture.md` (quality scenarios) · `conventions.md` (pitfalls) · `how-to/*` |
+| **Domain triangulation** | PRD · landing page · sales / support decks · support-ticket clusters · user interviews · domain-expert sessions | business invariants no code can prove on its own | `product.md` · `business.md` · `glossary.md` |
+| **Non-code triangulation** | wiki · ADRs · runbooks · oncall channel pin-boards · internal-framework registry · architecture review minutes | tribal knowledge — **the only valid source for `business.md` claims** | `business.md` · `tech-stack.md` (internal frameworks) · `architecture.md` (deployment) |
+
+**Citation rule.** Every non-trivial claim cites either a `path:line` (or
+command output) **or** a named non-code source (e.g. `PRD §3.2`,
+`runbook: payments-oncall.md`, `interview: 2026-06-04 @owner`). Claims
+without a source are forbidden — park them in *Open Questions* instead.
+
+## Steps
+
+1. **Resolve depth.** If `--depth` was passed, use it; otherwise default
+   `L2`. Record the chosen tier at the top of every doc (`> depth: L2`).
+2. **Deterministic capture** (always — runs at every tier). Run via
+   scripts where possible: languages / framework versions, file
+   inventory, dependency surface, existing sensors (lint / type / test /
+   hook / CI). At `L2`+ also compute `git churn` hotspots; at `L3`
+   additionally extract the AST / LSP module graph, enumerate the public
+   API surface, reverse-engineer the DB schema, and inventory IaC.
+3. **Bootstrap knowledge base.** If `.harness/knowledge/` is empty,
+   write each of the eight files with the skeleton in *Appendix A* —
+   keep their `> Provenance` blocks intact; they tell the next
+   contributor which authority shaped the doc and which protocol to
+   follow.
+4. **Per-doc investigation.** For each of the 7 docs, run the protocol
+   in *§ Per-doc investigation methodology* below. Iterate the doc until
+   it meets its own Provenance contract. Every non-trivial claim cites
+   `path:line` or a named non-code source.
+5. **Mandatory exemplars.** For every convention / tech pattern, link to
+   a canonical example file in this repo. AI relies on pattern matching
+   — without exemplars, the knowledge base is theoretical.
+6. **`business.md` is high-risk inference.** Default every business
+   claim to *to be confirmed*. Cross-validate against a non-code source
+   (PRD, domain expert, runbook) before clearing the tag. The doc is
+   **architecture-neutral** — do not assume DDD or microservices.
+7. **Internal frameworks.** Internal company frameworks **must** have
+   their own section in `tech-stack.md` with owner, internal-docs link,
+   and known pitfalls. Cross-validate with the framework owner — public
+   docs are not enough.
+8. **Open Questions** at the bottom of every doc captures what cannot be
+   verified from any of the five lenses. **Do not fabricate.**
+9. **Promote patterns.** Flag 1–3 recurring good patterns for
+   `/hx-constitution` to consider on its next run.
+10. **Coverage self-audit.** Before declaring exit, fill the
+    *Coverage self-audit* table in *§ Coverage self-audit* and resolve
+    any row that does not meet the chosen depth tier.
+
+## Per-doc investigation methodology
+
+Run the matching protocol per file. Tier requirements are cumulative.
+
+### `product.md`
+
+- Lenses: domain triangulation (primary) · non-code triangulation.
+- L1: extract problem / users / value from README, landing page, top
+  GitHub issues, README badges.
+- L2: + interview PM or product owner; capture core capabilities with
+  entry `path:line`; document key journeys with system-supported steps.
+- L3: + success metrics (north-star + guardrails) cross-validated with
+  analytics dashboard; scope / non-goals signed off by owner.
+
+### `architecture.md`
+
+- Lenses: static structure (primary) · historical · quality.
+- L1: L1 C4 context diagram from README + manifest scan.
+- L2: + L2 container diagram with each container's tech, entry, owner;
+  runtime view for the **single most critical flow**; cross-cutting
+  (errors / logging / config / auth) with `path:line`.
+- L3: + L3 component diagrams for high-traffic / high-risk containers;
+  arc42 quality scenarios (perf · availability · security · modifiability);
+  intended-vs-accidental boundary list extracted from the module graph;
+  ADR chain backfilled for irreversible decisions discovered in
+  `git log`.
+
+### `tech-stack.md`
+
+- Lenses: static structure · historical (release tags, version churn) ·
+  non-code (internal-framework registry).
+- L1: top-level dependencies with version and role.
+- L2: + per-tech Radar card (role · how-we-use-it `path:line` · best
+  practice · pitfalls · version · maturity ring + rationale); internal
+  frameworks section with owner and pitfalls.
+- L3: + every public-API dependency mapped to a Radar ring with
+  recorded rationale; deprecated usage tagged Hold with a removal plan;
+  ADR cross-links for every Adopt / Hold ring.
+
+### `business.md`
+
+- Methodology: BIZBOK (OMG) capability + BABOK v3 (IIBA) stakeholder
+  + rules taxonomy + OKR/SLO. **Architecture-neutral** — do not
+  assume DDD, microservices, layered MVC, CRUD, or any specific style.
+- Lenses: domain triangulation (primary, mandatory) · non-code
+  triangulation. **Static structure alone is never sufficient.**
+- L1: Business Context + Stakeholders table + Domain Glossary
+  with all entries `to-be-confirmed`.
+- L2: + Business Rules table with at least one non-code source per
+  rule (PRD §, regulation, contract, interview); + Key Workflows
+  for the 1-2 most critical user-visible flows in **business
+  vocabulary** (no system / API / event terms).
+- L3: + complete Constraints & Compliance table cross-validated with
+  legal / compliance / SRE; + Metrics That Matter aligned with
+  current OKRs / SLOs; every entry either cleared or explicitly
+  parked in Open Questions.
+
+> Forbidden in business.md: domain events, aggregates, bounded
+> contexts, sagas, CQRS, command handlers. If the project uses any
+> of these, document them in `architecture.md` instead.
+
+### `conventions.md`
+
+- Lenses: static structure (lint / type config) · historical (`git
+  churn` to find live conventions) · quality (incident postmortems for
+  pitfalls).
+- L1: list mandatory section headings even if empty; link to tool config
+  for everything tool-enforceable.
+- L2: + each section has a Project practice line + Industry paradigm
+  citation + canonical `path:line` + a GOOD / BAD pair sampled from a
+  churn hotspot.
+- L3: + concurrency / transactions / distributed locks (with
+  fencing-token caveat) / caching / MQ / middleware / config / API /
+  observability / security all completed; each with one anti-pattern
+  drawn from project incident history.
+
+### `glossary.md`
+
+- Lenses: domain triangulation · static structure.
+- L1: top 10 domain terms ⇄ code names.
+- L2: + every code name in `business.md` ubiquitous-language table
+  mapped to its `path:line` definition site; synonyms-to-avoid list.
+- L3: + glossary cross-validated by domain expert; forbidden-term list
+  enforceable via a lint rule.
+
+### `setup-and-verify.md`
+
+- Lenses: static structure · historical (CHANGELOG of setup commands).
+- L1: install + run-tests commands tested on a clean checkout.
+- L2: + full install → build → test → run-dev chain tested; end-to-end
+  user-visible verification path documented and matches `verify.sh`
+  full mode.
+- L3: + happy-path screencast or terminal log committed; cold-start
+  time measured; common failure modes & remediation listed.
+
+### `how-to/*`
+
+- Lenses: static structure (find canonical anchor) · quality (postmortems
+  for anti-patterns).
+- L1: README index + the three highest-leverage recipes (`add-endpoint`,
+  `add-migration`, `write-test`).
+- L2: + the six middleware recipes (`transactions`, `concurrency-locks`,
+  `distributed-lock`, `caching`, `messaging-mq`, `middleware`).
+- L3: + all nine recipes complete with project `path:line` anchors and
+  anti-patterns drawn from real incidents.
+
+## Outputs
+
+The 7 knowledge documents under `.harness/knowledge/`:
+
+- `product.md` — Working Backwards: problem · users · value proposition · core
+  capabilities · key journeys · success metrics · scope / non-goals.
+- `architecture.md` — C4 (Context / Container / Component) + arc42 (runtime /
+  deployment / cross-cutting / quality scenarios) + ADR chain + diagrams-as-code.
+- `tech-stack.md` — Thoughtworks Tech Radar cards (per tech: role · how we use it
+  with `path:line` · best practice · pitfalls · version · maturity ring) **+
+  mandatory section for internal company frameworks**.
+- `business.md` — BIZBOK + BABOK + OKR/SLO; **architecture-neutral**: 7
+  fixed sections (Business Context · Stakeholders · Domain Glossary ·
+  Business Rules · Key Workflows · Constraints & Compliance · Metrics
+  That Matter); default *to be confirmed* until cross-validated with
+  a non-code source.
+- `conventions.md` — Google Style + Alibaba Java Development Manual + cloud-native:
+  code style / naming · error handling · logging · testing · **concurrency &
+  locks · transactions (local + Saga / Outbox / TCC) · distributed locks
+  (Redlock + fencing token caveat / ZK · etcd) · caching (cache-aside /
+  read-write + TTL / invalidation + penetration · breakdown · avalanche) ·
+  messaging / MQ (idempotency · Outbox · ordering · DLQ · at-least-once) ·
+  middleware · config & secrets · API design · observability · security**.
+- `glossary.md` — domain term ⇄ code name mapping (linked to ubiquitous language).
+- `setup-and-verify.md` — how to run / build / test, end-to-end verify path.
+- `how-to/` — Diátaxis recipes: `transactions.md` · `concurrency-locks.md` ·
+  `distributed-lock.md` · `caching.md` · `messaging-mq.md` · `middleware.md` ·
+  `add-endpoint.md` · `add-migration.md` · `write-test.md`.
+
+## Exit Criteria
+
+Common to every depth tier:
+
+- Every non-trivial claim cites `path:line`, command output, or a named
+  non-code source. No unsourced claims.
+- `business.md` items not cross-validated are marked *to be confirmed*.
+- Open Questions present where applicable; no fabrication.
+- The chosen depth tier is recorded at the top of each doc.
+- The *Coverage self-audit* table is filled in and every row meets the
+  chosen tier.
+
+Tier-specific:
+
+- **L1**: all 7 doc skeletons exist with at least Problem / Users /
+  Top-level architecture / Top dependencies / Install command filled.
+- **L2** (default): everything above **+** internal-framework section
+  present in `tech-stack.md` with owner · runtime view for the most
+  critical flow in `architecture.md` · canonical exemplar per
+  `conventions.md` section · the six middleware how-to recipes present ·
+  end-to-end verify path tested.
+- **L3**: everything above **+** AST / LSP module graph reflected in
+  `architecture.md` · public-API surface enumerated · DB schema
+  reverse-engineered · IaC inventory documented · arc42 quality
+  scenarios filled · incident history / bus-factor analysis present ·
+  all nine how-to recipes complete with project anchors.
+
+## Gate
+
+A new contributor handed the knowledge base must be able to start
+development without asking the original author. If not, iterate at a
+higher `--depth` and rerun.
+
+## Anti-patterns (forbidden)
+
+- **Fabrication.** Inventing facts, file paths, owners, or invariants
+  that no source supports.
+- **Transcription.** Restating manifest, code, or README verbatim
+  without synthesis — adds no information beyond `cat`.
+- **Unsourced architecture diagrams.** Boxes that match no real module
+  in the codebase. If you cannot point at the module, do not draw it.
+- **Business invariants from code alone.** `business.md` rules without
+  a non-code source are guesses; mark them *to be confirmed* until
+  cross-validated.
+- **"Best practice" without project example.** A convention without a
+  canonical `path:line` is theoretical and gets ignored.
+- **Skipping the internal-frameworks section.** Internal frameworks
+  silently corrupt every downstream agent answer.
+- **Single-source claims for high-impact facts.** Production behavior,
+  auth model, money-handling logic — these need triangulation across at
+  least two lenses.
+- **Promoting a `to-be-confirmed` business item by removing the tag
+  without recording the source.** The tag exists precisely so this is
+  traceable.
+
+## Coverage self-audit
+
+Fill before exit. Every row must meet or exceed the chosen tier — any
+row below the tier blocks completion and routes to a deeper investigation
+pass.
+
+| Lens / Coverage area | Required at L1 | Required at L2 | Required at L3 | Met? (cite evidence) |
+|----------------------|----------------|----------------|----------------|----------------------|
+| Static structure — manifest & dependencies | listed | + versions & roles | + full Radar ring per dep | ⟨…⟩ |
+| Static structure — module graph | top-level only | + container diagram | + AST / LSP component graph | ⟨…⟩ |
+| Static structure — public API surface | n/a | enumerated names | + full contracts (OpenAPI / proto) | ⟨…⟩ |
+| Static structure — persistent state | n/a | tables listed | + schema + migration history | ⟨…⟩ |
+| Static structure — deployment / IaC | n/a | n/a | + inventory documented | ⟨…⟩ |
+| Historical — churn hotspots | n/a | top 10 cited | + churn ↔ incident correlation | ⟨…⟩ |
+| Historical — bus factor | n/a | n/a | + owners per critical module | ⟨…⟩ |
+| Quality — sensors mapped | listed | + thresholds | + mutation / critical-path coverage | ⟨…⟩ |
+| Quality — incident history | n/a | top 3 referenced in pitfalls | + per-module incident timeline | ⟨…⟩ |
+| Domain — business invariants | parked as Open Questions | ≥ 1 non-code source per L2 capability | + every invariant cleared or parked with rationale | ⟨…⟩ |
+| Domain — ubiquitous language | top 10 mapped | full coverage of business.md terms | + lint-enforced forbidden-term list | ⟨…⟩ |
+| Non-code — internal frameworks | named only | + owner + pitfalls | + owner cross-validation recorded | ⟨…⟩ |
+| Non-code — runbooks / oncall | n/a | linked | + cited in `architecture.md` quality scenarios | ⟨…⟩ |
+
+---
+
+## Appendix A — Knowledge base seed (T2)
+
+Use the following templates verbatim when bootstrapping the 7 files. All
+headings stay in English; body text follows the project language. Every
+seed carries a `> Provenance` block — keep it; it tells the next contributor
+which authority shaped the doc and which investigation protocol to follow.
+
+### `.harness/knowledge/product.md`
+```markdown
+# Product — Locify
+
+> Provenance
+> - Authoritative paradigm: Amazon Working Backwards / PR-FAQ + Marty Cagan four-risk discovery (value · usability · feasibility · viability) + Cohn user-story (`As a X, I want Y, so that Z`) + Christensen Jobs-to-be-Done for Key Journeys
+> - Investigation protocol: read README / landing page / customer scenarios; interview PM and business stakeholders; evidence-or-silence — every business claim cross-validated against a non-code source; Out-of-Scope is mandatory (omitting it implies "all of the above")
+> - Output form: 8 fixed sections — Problem & Users · Value Proposition · Core Capabilities (user-story) · Key Journeys (JTBD) · Performance Targets (concrete numbers) · Constraints · Scope / Non-goals · Open Questions
+
+## Problem & Users
+⟨one paragraph: what painful problem, for whom; who suffers most⟩
+
+## Value Proposition (Press-Release style)
+⟨headline · sub-headline · one quote from a representative user⟩
+
+## Core Capabilities (Cohn user-story format)
+- **As a** ⟨persona⟩ **I want** ⟨capability⟩ **so that** ⟨outcome⟩.
+  Entry: ⟨path:line⟩.
+- ⟨…⟩
+
+## Key Journeys (Jobs-to-be-Done lens)
+1. **When** ⟨trigger / situation⟩ **I want to** ⟨job-to-be-done⟩
+   **so I can** ⟨desired progress⟩.
+   Steps the system supports: ⟨numbered, with path:line where useful⟩.
+2. ⟨…⟩
+
+## Performance Targets
+| Target | Value | Owner | How measured |
+| ------ | ----- | ----- | ------------ |
+| ⟨P95 query latency⟩ | ⟨< 500 ms⟩ | ⟨team⟩ | ⟨metric / dashboard⟩ |
+
+## Constraints
+- ⟨e.g. supported file size · supported formats · offline-first⟩
+
+## Scope / Non-goals
+- In: ⟨…⟩
+- Out (for now): ⟨…⟩
+
+## Open Questions (FAQ)
+⟨items still ambiguous; cite who can answer⟩
+```
+
+### `.harness/knowledge/architecture.md`
+```markdown
+# Architecture (as-is) — every claim cites path:line
+
+> Provenance
+> - Authoritative paradigm: C4 model (L1 Context / L2 Container / L3 Component) + arc42 (runtime · deployment · cross-cutting · quality scenarios) + ADR chain (MADR / Nygard)
+> - Investigation protocol: read manifest / lockfile; reconstruct the module graph via AST or LSP; read IaC / deployment manifests; cross-reference `git churn` hotspots; evidence-or-silence — render the *as-is*, not an aspirational architecture
+> - Output form: diagrams-as-code (Mermaid / Structurizr) with narrative + back-links to ADRs; "intended vs accidental" boundaries called out explicitly
+
+## L1 — System Context (C4)
+```mermaid
+C4Context
+  Person(user, "End user")
+  System(this, "Locify", "what it does in one line")
+  System_Ext(ext, "External system", "purpose")
+  Rel(user, this, "uses")
+  Rel(this, ext, "calls")
+```
+⟨narrative: who talks to the system; what crosses the trust boundary⟩
+
+## L2 — Containers
+```mermaid
+C4Container
+  Container(api, "API", "framework", "responsibility")
+  ContainerDb(db, "DB", "engine", "data owned")
+```
+⟨per container: responsibility · tech · entry path:line · ownership⟩
+
+## L3 — Components (only for high-traffic / high-risk containers)
+⟨component — responsibility — interfaces — path:line⟩
+
+## Runtime view (arc42)
+⟨sequence for the most critical flow: request → … → response, with cite⟩
+
+## Deployment view (arc42)
+⟨environments · topology · replicas · scaling triggers; cite IaC files⟩
+
+## Cross-cutting (arc42)
+- Error handling: ⟨pattern⟩ — path:line
+- Logging / tracing: ⟨pattern⟩ — path:line
+- Config / secrets: ⟨pattern⟩ — path:line
+- Auth / authz: ⟨pattern⟩ — path:line
+
+## Quality scenarios (arc42)
+- Performance: ⟨stimulus → response → measure⟩
+- Availability: ⟨…⟩
+- Security: ⟨…⟩
+- Modifiability: ⟨…⟩
+
+## Boundaries (intended vs accidental)
+⟨A → B [intended | accidental] — evidence path:line⟩
+
+## Where new code goes
+⟨change of type X → put it in module Y because …⟩
+
+## ADR chain
+- [ADR-0001] ⟨title⟩ — status — link `.harness/knowledge/adr/0001-*.md`
+- ⟨…⟩
+
+## Invariants
+| Invariant (system-wide MUST hold) | Proof (path:line) | Test (path) |
+| --------------------------------- | ----------------- | ----------- |
+| ⟨e.g. "every order has a unique id"⟩ | ⟨src/services/order.py:48⟩ | ⟨tests/test_order_invariants.py⟩ |
+
+## Open Questions
+⟨unverifiable from code; to confirm with humans⟩
+```
+
+### `.harness/knowledge/tech-stack.md`
+```markdown
+# Tech Stack — Thoughtworks Tech Radar cards
+
+> Provenance
+> - Authoritative paradigm: Thoughtworks Tech Radar (Adopt / Trial / Assess / Hold) + ADR (MADR) — every tech choice is positioned on the ring with reasoning
+> - Investigation protocol: read manifest / lockfile / IaC / internal-framework registry; calibrate the ring against `git churn` and incident history; evidence-or-silence; **internal company frameworks are a first-class section** because their behavior is rarely publicly documented
+> - Output form: one Radar card per tech (Role · How we use it with `path:line` · Best practice · Pitfalls · Version · Maturity ring); ADR cross-links at the bottom
+
+## ⟨Tech / Component⟩
+- Role here:        ⟨what it is used for in this repo⟩
+- How we use it:    ⟨project-specific usage⟩ — example: ⟨path:line⟩
+- Best practice:    ⟨canonical norm for this tech (link to authority)⟩
+- Pitfalls:         ⟨known gotchas in this repo · failure history⟩
+- Version:          v⟨x.y.z⟩  · pinned at ⟨path:line in lockfile⟩
+- Maturity ring:    Adopt | Trial | Assess | Hold  — rationale: ⟨…⟩
+
+⟨repeat per tech⟩
+
+## Internal company frameworks (mandatory section)
+
+> Internal frameworks are first-class citizens. Their behavior is usually
+> not publicly documented — getting this section wrong silently corrupts
+> every downstream agent answer. Cross-validate with the framework owner.
+
+## ⟨Internal framework name⟩
+- Role here:        ⟨…⟩
+- How we use it:    ⟨…⟩ — example: ⟨path:line⟩
+- Owner / contact:  ⟨team / channel⟩
+- Internal docs:    ⟨wiki link / repo⟩
+- Pitfalls:         ⟨non-obvious behaviour, version-specific quirks⟩
+- Version:          v⟨x.y.z⟩
+- Maturity ring:    Adopt | Trial | Assess | Hold
+
+## ADR cross-links
+- ⟨tech choice⟩ ← `adr/⟨NNNN⟩-⟨title⟩.md`
+```
+
+### `.harness/knowledge/business.md`
+```markdown
+# Business — architecture-neutral
+
+> Provenance
+> - Authoritative paradigm: BIZBOK (OMG Business Architecture Body of Knowledge) capability map + BABOK v3 (IIBA Business Analysis) stakeholder + rules taxonomy + OKR/SLO for metrics — **architecture-neutral**: makes no assumption about DDD, microservices, layered MVC, CRUD, data pipeline, monolith, or any specific software architecture style
+> - Investigation protocol: read PRD / business wiki / sales decks / support clusters; interview domain experts and PM; evidence-or-silence; **every business claim defaults to *to be confirmed*** and can be cleared only after cross-validation against a non-code source; do not import architecture vocabulary (no events / aggregates / bounded contexts / sagas) into this doc — those belong in `architecture.md` if and only if the project uses that style
+> - Output form: 7 fixed sections (Business Context · Stakeholders · Domain Glossary · Business Rules · Key Workflows · Constraints & Compliance · Metrics That Matter); the 7 sections are filled the same way for traditional CRUD, layered MVC, microservices, data pipelines, ML systems
+
+> Everything below defaults to *to be confirmed* until cross-validated
+> with a non-code source (PRD, domain expert, regulation, contract).
+
+## Business Context
+⟨≤2 paragraphs: who runs this business, who pays for it, what
+problem it solves, against what cost. No software vocabulary.⟩
+
+## Stakeholders
+| Role | Concerns | Touch-points (system or process) |
+| ---- | -------- | -------------------------------- |
+| ⟨e.g. Customer / Ops / Compliance / Vendor / Internal team⟩ | ⟨what they want or worry about⟩ | ⟨where they interact: feature, report, support channel⟩ |
+
+## Domain Glossary
+| Term | Plain-language definition | First-mentioned-at | Status |
+| ---- | ------------------------- | ------------------ | ------ |
+| ⟨…⟩ | ⟨definition without code-internal jargon⟩ | ⟨PRD §… / contract / interview / path:line⟩ | to-be-confirmed |
+
+## Business Rules
+| Rule-id | Statement (declarative) | Source |
+| ------- | ----------------------- | ------ |
+| BR-001  | ⟨"A user MUST be of legal age before purchasing X"⟩ | ⟨PRD §… / regulation / policy / DEC-NNN⟩ |
+
+## Key Workflows
+1. ⟨actor⟩ ⟨business action⟩ ⟨object⟩ → ⟨downstream outcome⟩.
+   ⟨Describe in business terms — "submit application", "approve refund",
+   "ship order" — not in system terms ("call API", "write to queue").
+   The same workflow is filled the same way regardless of whether the
+   system is monolith, microservices, ETL pipeline, or batch job.⟩
+
+## Constraints & Compliance
+| Constraint | Value / Boundary | Source / Authority |
+| ---------- | ---------------- | ------------------ |
+| ⟨e.g. GDPR data retention⟩ | ⟨7 years for billing records⟩ | ⟨GDPR Art. 5(1)(e), legal advisory⟩ |
+| ⟨SLA / contract⟩ | ⟨99.5% monthly availability⟩ | ⟨Master Services Agreement §4⟩ |
+| ⟨Industry standard⟩ | ⟨PCI-DSS Level 1⟩ | ⟨Acquirer requirement⟩ |
+
+## Metrics That Matter
+| Metric | Target | Owner | How measured |
+| ------ | ------ | ----- | ------------ |
+| ⟨e.g. Activation rate⟩ | ⟨≥40% within 7 days⟩ | ⟨PM⟩ | ⟨analytics dashboard / SQL⟩ |
+| ⟨SLO: API success rate⟩ | ⟨99.9% / 30d⟩ | ⟨SRE⟩ | ⟨error-budget burn alert⟩ |
+
+## Open Questions
+⟨items requiring domain expert input; cite who can answer⟩
+```
+
+### `.harness/knowledge/conventions.md`
+```markdown
+# Conventions — Google Style + 阿里巴巴开发手册 + Cloud-Native
+
+> Provenance
+> - Authoritative paradigm: Thoughtworks "Anchoring AI to a reference application" (every layer has a canonical exemplar file) + Google Style Guides (GOOD / BAD pair format) + Alibaba Java Development Manual + 12-Factor / Cloud-Native + Chris Richardson's microservices patterns
+> - Investigation protocol: sample `git churn` hotspots and incident history; every convention must be backed by an in-repo `path:line` example and a citation to its industry source; tool-enforceable rules link to tool config rather than duplicating prose; only document style choices the toolchain does NOT already enforce
+> - Output form: Reference Exemplars table at the top (one canonical file per layer) + one section per concern with Project practice + Industry paradigm + canonical `path:line` + GOOD / BAD pair; mandatory sections include concurrency / transactions / distributed locks (with fencing-token caveat) / caching / MQ / middleware / config / API / observability / security
+
+## Reference Exemplars (anchor files)
+
+> When AI is asked to write new code in any layer below, it copies
+> the canonical file's structure as the starting point — not invents
+> a new shape. This single table is the most important convention
+> the project ships.
+
+| Layer | Canonical file | Why canonical |
+| ----- | -------------- | ------------- |
+| ⟨e.g. CLI command⟩ | ⟨src/⟨area⟩/⟨file⟩.py⟩ | ⟨"shows: arg parsing + structured logging + error handling"⟩ |
+| ⟨domain service⟩ | ⟨…⟩ | ⟨…⟩ |
+| ⟨HTTP handler⟩ | ⟨…⟩ | ⟨…⟩ |
+| ⟨unit test⟩ | ⟨…⟩ | ⟨…⟩ |
+| ⟨integration test⟩ | ⟨…⟩ | ⟨…⟩ |
+| ⟨migration⟩ | ⟨…⟩ | ⟨…⟩ |
+
+## Code Style & Naming
+- Project practice: ⟨…⟩
+- Industry paradigm: ⟨e.g. Google Java Style §5⟩
+- Canonical example: ⟨path:line⟩
+- GOOD: ⟨snippet⟩ · BAD: ⟨snippet⟩
+
+## Error Handling
+- Project practice: ⟨…⟩  · Industry: 阿里 §异常日志
+- GOOD / BAD · path:line
+
+## Logging
+- Project practice: ⟨structured logger · request_id · level policy⟩
+- Industry: 12-Factor §XI Logs
+- GOOD / BAD · path:line
+
+## Testing
+- Project practice: ⟨pyramid / contract / golden tests⟩
+- Industry: Google Testing on the Toilet · 阿里 §单元测试
+- GOOD / BAD · path:line
+
+## Concurrency & Locks
+- Project practice: ⟨thread / coroutine model · shared-state policy⟩
+- Industry: 阿里 §并发处理 · Java Concurrency in Practice
+- Pitfalls: deadlock order · livelock · false-sharing
+- GOOD / BAD · path:line
+
+## Transactions (local + Saga / Outbox / TCC)
+- Project practice: ⟨local TX boundary; long-running compensation pattern used⟩
+- Industry: Chris Richardson "Microservices Patterns" §Saga / Transactional Outbox / TCC
+- Pitfalls: dual-write inconsistency · non-idempotent compensation
+- GOOD / BAD · path:line
+
+## Distributed Locks
+- Project practice: ⟨Redis Redlock / ZooKeeper / etcd lease⟩
+- Industry: Martin Kleppmann "How to do distributed locking" · ZK / etcd recipes
+- **Fencing token caveat**: Redlock alone cannot prevent GC-pause-induced
+  stale-lock writes; **always pair with a monotonically increasing fencing
+  token enforced at the resource side**.
+- GOOD / BAD · path:line
+
+## Caching
+- Project practice: ⟨cache-aside / read-through / write-through⟩
+- TTL & invalidation: ⟨policy · stampede protection⟩
+- Pitfalls: penetration (空值缓存 + 布隆过滤) · breakdown (互斥重建 / 提前刷新) ·
+  avalanche (TTL 抖动 / 多级缓存)
+- GOOD / BAD · path:line
+
+## Messaging / MQ
+- Project practice: ⟨broker · topic / queue layout · consumer group strategy⟩
+- Patterns: idempotency keys · Transactional Outbox · ordering (partition key) ·
+  DLQ · at-least-once + 幂等消费
+- Industry: Richardson §Messaging Patterns
+- GOOD / BAD · path:line
+
+## Middleware
+- Project practice: ⟨Redis · MQ · Search · Object store⟩ — per item: usage
+  shape + failure mode + path:line
+- Industry: 12-Factor §IV Backing services
+- GOOD / BAD · path:line
+
+## Config & Secrets
+- Project practice: ⟨env / vault / config service · rotation policy⟩
+- Industry: 12-Factor §III Config · OWASP secret management
+- GOOD / BAD · path:line
+
+## API Design
+- Project practice: ⟨REST / RPC / GraphQL conventions · versioning · pagination⟩
+- Industry: Google API Improvement Proposals (AIP) · Microsoft REST guidelines
+- GOOD / BAD · path:line
+
+## Observability
+- Project practice: ⟨metrics · logs · traces · SLO / SLI⟩
+- Industry: Google SRE Book · OpenTelemetry semantic conventions
+- GOOD / BAD · path:line
+
+## Security
+- Project practice: ⟨authn / authz · input validation · output encoding⟩
+- Industry: OWASP Top 10 · 阿里 §安全规约
+- GOOD / BAD · path:line
+```
+
+### `.harness/knowledge/glossary.md`
+```markdown
+# Glossary — term ⇄ code name
+
+> Provenance
+> - Authoritative paradigm: ISO/IEC 11179 (Metadata Registries) — every term is a registered entry with definition, source, and synonym set; complementary to `business.md` Domain Glossary (which limits scope to business-domain terms; this file covers all project-internal terms including technical names)
+> - Investigation protocol: keep aligned with `business.md` Domain Glossary; for code-internal terms, cite the `path:line` of the definition site (class / type / constant); list synonyms-to-avoid explicitly to prevent drift; **no prose paragraphs** — the file is a single authoritative table
+> - Output form: single ISO/IEC 11179 table — Term · Definition · First-mentioned-at · Synonyms-to-avoid; no narrative; no headings beyond the file title
+
+| Term | Definition | First-mentioned-at | Synonyms (avoid) |
+| ---- | ---------- | ------------------ | ---------------- |
+| ⟨…⟩ | ⟨one-sentence canonical definition⟩ | ⟨path:line / PRD §… / contract⟩ | ⟨…⟩ |
+```
+
+### `.harness/knowledge/setup-and-verify.md`
+```markdown
+# Setup and Verify
+
+> Provenance
+> - Authoritative paradigm: Google SRE Handbook §8 (Release Engineering) + §14 (Postmortem culture) + 12-Factor §V Build / Release / Run + spec-kit single-source-of-truth verify (`verify.sh` is the only sensor)
+> - Investigation protocol: derive the command chain from `.harness/scripts/ps/verify.sh` and the project CI; actually run install → build → test → run on a clean checkout to confirm; mine `git log --grep "fix\|hotfix"` and incident reports for Common Failures; no aspirational commands
+> - Output form: 5 fixed sections — First Run Sequence (numbered, expected outputs) · Verification Targets table · Common Failures table (symptom-cause-fix) · Environment Matrix (per-env vars and dependency versions) · End-to-end verify path mirroring `verify.sh` full mode
+
+## First Run Sequence
+1. ⟨exact install command⟩ — expected: ⟨…⟩
+2. ⟨exact build command⟩ — expected: ⟨…⟩
+3. ⟨exact test command⟩ — expected: ⟨…⟩
+4. ⟨exact run-dev command⟩ — expected: ⟨…⟩
+
+## Verification Targets
+| Command | What it checks | Typical runtime |
+| ------- | -------------- | --------------- |
+| ⟨e.g. `./init.sh`⟩ | ⟨env health + verify.sh full mode⟩ | ⟨~8s⟩ |
+| ⟨`verify.sh lint`⟩ | ⟨lint only⟩ | ⟨~1s⟩ |
+| ⟨`verify.sh test`⟩ | ⟨tests only⟩ | ⟨~3s⟩ |
+
+## Common Failures
+| Symptom | Likely cause | Fix |
+| ------- | ------------ | --- |
+| ⟨e.g. "module X not found on import"⟩ | ⟨venv not active⟩ | ⟨`source .venv/bin/activate` or use `uv run`⟩ |
+| ⟨"port already in use"⟩ | ⟨previous dev server still running⟩ | ⟨`lsof -i:<port>` and kill, or change port⟩ |
+| ⟨"verify.sh exits 1 on lint"⟩ | ⟨auto-fixable⟩ | ⟨`ruff check --fix` then re-run⟩ |
+
+## Environment Matrix
+| Env | Required vars | Pinned dep versions | Notes |
+| --- | ------------- | ------------------- | ----- |
+| dev | ⟨…⟩ | ⟨pyproject lock / package-lock⟩ | ⟨local-only secrets via `.env`⟩ |
+| CI | ⟨…⟩ | ⟨same as dev⟩ | ⟨secrets via CI vault⟩ |
+| prod | ⟨…⟩ | ⟨…⟩ | ⟨secrets via runtime vault⟩ |
+
+## How to verify a change end-to-end
+⟨step-by-step user-visible verification path; mirrors `verify.sh` full mode⟩
+```
+
+### `.harness/knowledge/how-to/README.md`
+```markdown
+# How-to recipes — Diátaxis
+
+> Provenance
+> - Authoritative paradigm: Diátaxis (How-to guides quadrant) + spec-kit recipe culture — recipes are task-oriented, not tutorial or reference
+> - Investigation protocol: every recipe decomposes as Goal → Prerequisites → Steps (with `path:line` anchors) → Verify → Anti-patterns; keep each recipe under one screen; link back to `conventions.md` and `architecture.md` anchors instead of restating them
+> - Output form: short · copy-pasteable · cross-linked recipes; the mandatory baseline set is enumerated below
+
+Recipes (mandatory baseline):
+- `transactions.md` — local TX boundary · Saga / Outbox / TCC selection
+- `concurrency-locks.md` — in-process locking · atomics · lock-ordering
+- `distributed-lock.md` — Redlock / ZK / etcd with **fencing token**
+- `caching.md` — cache-aside template · stampede / penetration / breakdown / avalanche
+- `messaging-mq.md` — produce-once-via-Outbox · idempotent consumer · DLQ
+- `middleware.md` — adding / replacing a backing service safely
+- `add-endpoint.md` — new endpoint scaffold + tests + observability
+- `add-migration.md` — backward-compatible schema migration
+- `write-test.md` — choosing test level · faking vs. integration
+```
+
+### `.harness/knowledge/how-to/transactions.md`
+```markdown
+# How-to — Transactions (local + Saga / Outbox / TCC)
+
+> Provenance
+> - Authoritative paradigm: Chris Richardson "Microservices Patterns" §Saga / Transactional Outbox / TCC — pick the lightest pattern that satisfies the consistency requirement
+> - Investigation protocol: classify the write (single-resource / dual-write / cross-service long-running / strong reservation); decision tree → local TX → Outbox → Saga → TCC; idempotency is non-negotiable
+> - Output form: decision tree + skeleton with `path:line` anchor + anti-patterns (dual-write without Outbox · Saga step without idempotency key · non-idempotent compensation)
+
+## When to use what
+- Single DB, single service → **local transaction**.
+- DB + message broker (dual write) → **Transactional Outbox**.
+- Long-running cross-service flow → **Saga** (orchestration or choreography).
+- Strong consistency with reservation semantics → **TCC** (Try-Confirm-Cancel).
+
+## Skeleton
+⟨code snippet with path:line anchor in this repo⟩
+
+## Anti-patterns
+- Dual write to DB and broker without Outbox.
+- Saga step without idempotency key.
+- Compensation that is not itself idempotent.
+```
+
+### `.harness/knowledge/how-to/concurrency-locks.md`
+```markdown
+# How-to — Concurrency & in-process locks
+
+> Provenance
+> - Authoritative paradigm: Java Concurrency in Practice + Alibaba Java Development Manual §Concurrency — prefer immutability and lock-free over synchronization
+> - Investigation protocol: identify shared mutable state; tune lock granularity / order / fairness; favor immutable or thread-local data, then atomics, then mutex with documented lock order
+> - Output form: decision tree + project-wide lock-order convention + `path:line` anchors + anti-patterns (lock across I/O · inconsistent nested order · synchronize on a public object)
+
+## Decision order
+1. Can the state be immutable / thread-local? → no lock.
+2. Single hot field? → atomic.
+3. Multiple fields, short critical section? → mutex with **documented lock order**.
+4. Read-heavy? → RW-lock or copy-on-write.
+
+## Lock order convention
+⟨project-wide ordering; cite the canonical declaration site⟩
+
+## Anti-patterns
+- Holding a lock across I/O.
+- Nested locks taken in inconsistent order.
+- `synchronized` on a public object.
+```
+
+### `.harness/knowledge/how-to/distributed-lock.md`
+```markdown
+# How-to — Distributed locks (with fencing token)
+
+> Provenance
+> - Authoritative paradigm: Martin Kleppmann "How to do distributed locking" + ZooKeeper / etcd lease recipes — Redlock-style advisory locks are not safe for correctness without a fencing token
+> - Investigation protocol: ask whether GC pauses / clock drift are tolerable; if not, a coordination service (ZK / etcd) with leases is the default and **a fencing token enforced at the resource side is mandatory**
+> - Output form: fencing-token sequence + resource-side validation skeleton + anti-patterns (Redlock alone for correctness · `==` token comparison · lease renewal coupled to guarded I/O)
+
+## Default choice
+- **Use a coordination service with leases (ZooKeeper / etcd) when correctness
+  matters.** Redis Redlock is acceptable for advisory locks but **must** be
+  paired with a fencing token enforced at the resource side.
+
+## Fencing token flow
+1. Acquire lock → broker returns monotonically increasing token N.
+2. Every protected write attaches token N.
+3. Resource rejects writes with token < latest seen.
+
+## Skeleton
+⟨code snippet with path:line⟩
+
+## Anti-patterns
+- Redlock alone protecting a critical resource (GC pause → stale writer wins).
+- Token compared with `==` instead of `>=`.
+- Lease renewal coupled to the same I/O the lock guards.
+```
+
+### `.harness/knowledge/how-to/caching.md`
+```markdown
+# How-to — Caching (cache-aside + the three failure modes)
+
+> Provenance
+> - Authoritative paradigm: cache-aside / read-through / write-through + Alibaba §Cache — explicit handling for the three classic failure modes (penetration · breakdown · avalanche)
+> - Investigation protocol: classify read-heavy vs write-heavy; cache-aside is the default unless write-through is justified; for every cache deployment, name the mitigation for each of the three failure modes (TTL jitter, mutex / lease rebuild, null-caching + bloom filter, L1+L2)
+> - Output form: pattern skeleton + per-failure-mode mitigation checklist + `path:line` + anti-patterns (identical TTLs · no rebuild mutex on hot keys · forever-cache without invalidation hook)
+
+## Pattern
+Cache-aside is the default unless write-through is justified.
+
+## Three failure modes
+- **Penetration (穿透)**: invalid keys hit DB → cache null with short TTL +
+  optional bloom filter.
+- **Breakdown (击穿)**: hot key expires → mutex / lease rebuild · early refresh.
+- **Avalanche (雪崩)**: many keys expire together → TTL jitter · L1+L2 cache ·
+  graceful degradation.
+
+## Skeleton
+⟨code snippet with path:line⟩
+
+## Anti-patterns
+- TTL identical across keys (avalanche).
+- No mutex on rebuild for hot keys (breakdown).
+- Forever-cache without invalidation hooks.
+```
+
+### `.harness/knowledge/how-to/messaging-mq.md`
+```markdown
+# How-to — Messaging / MQ (produce-once · idempotent consume · DLQ)
+
+> Provenance
+> - Authoritative paradigm: Chris Richardson §Messaging Patterns — at-least-once delivery + idempotent consumers; "exactly-once" across systems is a fiction without end-to-end idempotency
+> - Investigation protocol: weigh at-most-once vs at-least-once vs claimed exactly-once delivery costs; default to at-least-once + idempotent consumer + DLQ; produce via Transactional Outbox to avoid dual-write
+> - Output form: produce-side Outbox flow + consume-side idempotency-key + DLQ path + anti-patterns (cross-system exactly-once claim · swallowed consumer exception · single partition = no parallelism)
+
+## Produce side
+- Write event to **Outbox table** inside the same DB transaction as the state
+  change. A relay publishes to the broker. Never dual-write directly.
+
+## Consume side
+- Use an **idempotency key** (event id) and a dedup store.
+- **Ordering** comes from partition key — do not rely on broker-global order.
+- Poison messages go to **DLQ** with the exception trace and retry count.
+
+## Skeleton
+⟨code snippet with path:line⟩
+
+## Anti-patterns
+- "Exactly-once" promises across systems without end-to-end idempotency.
+- Catching and swallowing the consumer exception (silent loss).
+- Single partition per topic = no parallelism.
+```
+
+### `.harness/knowledge/how-to/middleware.md`
+```markdown
+# How-to — Add / replace a backing service safely
+
+> Provenance
+> - Authoritative paradigm: 12-Factor §IV Backing services + Strangler Fig — backing services are pluggable; no big-bang swaps
+> - Investigation protocol: insert an abstraction layer; roll out behind a config flag with canary; for replacements run dual-write + shadow-read until parity is proven; retain a rollback path for one release cycle
+> - Output form: numbered steps + config-change points + rollback path + anti-patterns (SDK leaking into domain · replace without parity proof · no documented rollback)
+
+## Steps
+1. Document role + read/write shape in `tech-stack.md`.
+2. Add behind an interface; never call the SDK from business code.
+3. Roll out behind a config flag; canary in one environment.
+4. For replacements, run dual-write + shadow read until parity holds.
+5. Cut over; **retain rollback path for one release cycle**.
+
+## Anti-patterns
+- SDK leaking into domain layer.
+- Replacing without dual-write / shadow read parity proof.
+- No documented rollback.
+```
+
+### `.harness/knowledge/how-to/add-endpoint.md`
+```markdown
+# How-to — Add a new endpoint
+
+> Provenance
+> - Authoritative paradigm: Google API Improvement Proposals (AIP) + project `conventions.md` §API Design — consistency with the nearest in-repo precedent beats pure spec compliance
+> - Investigation protocol: copy the most recent endpoint of the same shape as the canonical anchor; TDD-first (contract test + edge cases before handler); wire authn / authz / validation / logging / metrics / tracing as a single pass
+> - Output form: numbered steps + anchor `path:line` + test & observability checklist + anti-patterns (test after the fact · skipping authz on "internal" routes · hand-rolled validation when a pipeline exists)
+
+## Steps
+1. Pick the canonical example: ⟨path:line⟩.
+2. Write the failing test first (contract + edge cases).
+3. Add the handler + request / response types.
+4. Wire authn / authz · validation · logging · metrics · tracing span.
+5. Update OpenAPI / proto / GraphQL schema.
+6. End-to-end verify; run `verify.sh` full mode.
+
+## Anti-patterns
+- No test or test added after the fact.
+- Skipping authz because "internal endpoint".
+- Hand-rolling validation when project has a validation pipeline.
+```
+
+### `.harness/knowledge/how-to/add-migration.md`
+```markdown
+# How-to — Add a backward-compatible migration
+
+> Provenance
+> - Authoritative paradigm: Expand / Contract migration pattern + Alibaba §MySQL — schema changes ship as a sequence of backward-compatible steps, never one destructive cut
+> - Investigation protocol: decompose every change into five phases — Expand (nullable add) → Dual-write → Backfill (chunked, throttled, idempotent) → Switch read → Contract (drop old after one safe release); use online DDL tooling on hot tables
+> - Output form: five-step checklist + project-specific migration tool commands + anti-patterns (NOT NULL + no default on hot table · locking DDL without online tool · non-idempotent partial backfill)
+
+## Steps (Expand → Contract)
+1. **Expand**: add new nullable column / table / index online.
+2. **Dual-write**: code writes both old and new shape.
+3. **Backfill**: chunked, throttled; idempotent.
+4. **Switch read**: consumers move to new shape behind flag.
+5. **Contract**: drop old shape after one safe release.
+
+## Anti-patterns
+- Single migration that adds NOT NULL with no default on a hot table.
+- Locking DDL on a large table without online tooling.
+- Rolling back a partially-applied backfill without idempotency.
+```
+
+### `.harness/knowledge/how-to/write-test.md`
+```markdown
+# How-to — Write a test
+
+> Provenance
+> - Authoritative paradigm: Google Testing on the Toilet + test pyramid + Alibaba §Unit testing — pick the cheapest level that proves the behavior
+> - Investigation protocol: write at the smallest level that exercises the behavior end-to-end (pure logic → unit · adapter / IO → integration with real service or testcontainers · full flow → e2e); the four scenario classes (boundary · error · timing · concurrency) must each be considered
+> - Output form: level-choice rule + naming convention + AAA (Arrange · Act · Assert) structure + anti-patterns (mocking the type under test · asserting on log strings · multi-concern assertions in one test)
+
+## Test level choice
+- Pure logic → unit.
+- Adapter / IO → integration with real service or testcontainers.
+- Full flow / regression → end-to-end (rare; expensive).
+
+## Naming
+- `test_<unit>__<scenario>__<expected>` (or project equivalent).
+
+## Structure
+- Arrange · Act · Assert. No hidden assertions in helpers.
+
+## Anti-patterns
+- Mocking the type under test.
+- Asserting on log strings instead of behavior.
+- One test asserting many unrelated things.
+```

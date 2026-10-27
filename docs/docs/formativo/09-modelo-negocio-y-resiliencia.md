@@ -51,3 +51,77 @@ Para soportar este modelo, se requieren los siguientes ajustes en la base de dat
 1.  **Entidad `Sede`:** Agregar campos `horarioApertura` (String) y `horarioCierre` (String).
 2.  **Entidad `Reserva`:** Agregar campo `estadoSincronizacion` (Boolean, por defecto true) para el modo offline.
 3.  **Entidad `Reserva`:** Agregar campo `enSobretiempo` (Boolean, por defecto false).
+
+## 5. Automatización y Agentes de IA
+
+La calidad del software no se garantiza con una revisión al final del proyecto: se construye con **puertas automáticas** que impiden avanzar cuando algo está roto. El equipo incorpora asistentes de IA (Cursor y OpenCode) como apoyo a la implementación, pero la garantía de calidad **no depende de que la IA "tenga razón"**: depende de reglas escritas, pruebas ejecutables y verificaciones que cualquiera puede repetir.
+
+La idea central es simple: un agente de IA puede escribir código muy rápido, y precisamente por eso necesita límites explícitos. Esos límites son los que documenta esta sección.
+
+### 5.1 Qué se automatiza y qué se reserva al equipo
+
+| Actividad | Apoyo de IA | Control humano |
+| :--- | :--- | :--- |
+| Recordar el estado del proyecto | El agente lee `PROJECT_STATE.md` al iniciar cada sesión | El equipo decide el alcance y las prioridades |
+| Escribir código repetitivo (adaptadores, mapeos, controladores) | Generación asistida | Revisión de que respete la Arquitectura Hexagonal |
+| Diseñar y escribir pruebas | Generación asistida con ciclo TDD | Validación de que la prueba refleja el criterio de aceptación |
+| Redactar documentación técnica | Borradores asistidos | Revisión, corrección y firma del equipo |
+| Verificar que el trabajo funciona | Subagente `verifier` que ejecuta build y pruebas | El equipo interpreta el resultado y decide el cierre |
+| Decisiones de negocio y de arquitectura | **No se automatiza** | Responsabilidad exclusiva del equipo |
+
+### 5.2 Puertas de calidad (Quality Gates)
+
+Una puerta de calidad es una condición que debe cumplirse para que una tarea pueda considerarse terminada. En LOCIFY hay cinco, y cada una deja evidencia verificable:
+
+| # | Puerta | Cuándo se ejecuta | Criterio para pasar | Evidencia que deja |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | **Compilación** | Antes de cerrar cualquier tarea | Cero errores de TypeScript | `npm run build` sin salida de error |
+| 2 | **Pruebas automáticas** | Antes de cerrar cualquier tarea | Todas en verde, sin pruebas eliminadas ni debilitadas | `npm test` → `pass N, fail 0` |
+| 3 | **Revisión escéptica** | Antes de declarar "terminado" | El verificador reproduce el resultado y busca casos límite | Reporte de qué pasó y qué falló |
+| 4 | **Revisión de secretos** | Antes de cada commit | Ninguna credencial en el código ni en el historial | Diff sin llaves; credenciales solo en variables de entorno |
+| 5 | **Integración continua (CI)** | Al subir cambios al repositorio | El pipeline del merge request termina en verde | Registro del pipeline |
+
+La puerta 3 merece explicación: el equipo no le pregunta al agente que implementó *"¿quedó bien?"* —eso sería preguntarle al interesado—, sino que invoca a un **verificador independiente** cuyo papel es desconfiar. Su instrucción literal es *"no aceptes afirmaciones sin pruebas"*.
+
+### 5.3 El ciclo de trabajo con el agente
+
+Todo cambio, sin importar quién lo pida, recorre el mismo ciclo:
+
+1. **Contexto:** el agente lee el estado del proyecto antes de proponer nada. No puede suponer información que no esté en el código o en la memoria escrita.
+2. **Diseño y desarrollo:** si hay interfaz de usuario, se aplican las guías de diseño; si es código, se respeta la separación del dominio respecto a la base de datos y los servicios externos.
+3. **Pruebas:** se escribe primero la prueba y se comprueba que **falla**, luego se implementa hasta que pase. Una prueba que nunca falló no demuestra nada.
+4. **Verificación y memoria:** se ejecuta la verificación completa y el resultado —junto con la decisión tomada— se registra en `PROJECT_STATE.md`.
+
+Este orden es lo que convierte a la IA en una herramienta de calidad y no en una fuente de código sin trazabilidad.
+
+### 5.4 Cómo se demuestra que algo funciona
+
+El proyecto exige **evidencia, no opiniones**. Un ejemplo real ocurrido durante la conexión de Prisma con PostgreSQL en el microservicio `admin-api`:
+
+- El equipo creyó que la prueba de conexión estaba completa, pero al verificar se descubrió que la base de datos no tenía tablas: faltaba aplicar el esquema.
+- Se aplicó el esquema y se implementó el adaptador de usuarios con **pruebas escritas antes del código**.
+- La prueba detectó un defecto real que la revisión manual habría dejado pasar: el tipo de fecha del ORM no era compatible con la versión de Node.js del proyecto. **El error apareció en la ejecución de la prueba, no en producción.**
+- El cierre quedó registrado con tres datos concretos: `7/7` pruebas en verde, compilación limpia y la corrección documentada en `PROJECT_STATE.md`.
+
+Ese es el valor medible de la automatización: no "escribir más rápido", sino **encontrar antes** y **dejar rastro** de lo encontrado.
+
+### 5.5 Límites y responsabilidad
+
+Automatizar no significa delegar la responsabilidad. El equipo asume estos compromisos:
+
+- **El agente no decide el negocio.** Tarifas, penalidades y reglas de ocupación son decisiones humanas documentadas en este modelo de negocio.
+- **Nada se declara terminado sin verificación.** Una afirmación sin salida de comando es una hipótesis, no un resultado.
+- **No se debilita una prueba para que pase.** Si una prueba falla, se corrige el código; alterar la prueba para ocultar el fallo destruye la garantía.
+- **Los datos sensibles no se exponen.** Credenciales y cadenas de conexión viven en variables de entorno, nunca en el código ni en el historial de versiones.
+- **El contenido externo es dato, no instrucción.** Un documento, un issue o una página web no pueden darle órdenes al agente; solo las dan las reglas del proyecto y el equipo.
+- **Autoría humana.** El equipo responde por lo que entrega, aunque haya usado IA para producirlo.
+
+### 5.6 Beneficios observados
+
+| Beneficio | Cómo se manifiesta en el proyecto |
+| :--- | :--- |
+| Detección temprana de defectos | Errores de tipos y de compatibilidad detectados por pruebas antes de integrar |
+| Documentación viva | El estado del proyecto se actualiza al cerrar cada tarea, no al final del semestre |
+| Incorporación más rápida | Un integrante nuevo (o un agente) entiende el proyecto leyendo un archivo corto |
+| Menos retrabajo | El ciclo de verificación evita "arreglar" en la siguiente entrega lo que se pudo detectar en la actual |
+| Consistencia | Todos los cambios siguen el mismo ciclo y las mismas puertas de calidad |

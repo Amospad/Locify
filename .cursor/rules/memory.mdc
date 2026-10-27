@@ -1,0 +1,6 @@
+﻿---
+description: Carga el estado del proyecto al inicio de cada sesión.
+alwaysApply: true
+---
+
+Al iniciar cualquier tarea, lee el archivo `PROJECT_STATE.md` en la raíz del proyecto para comprender el contexto, la fase actual y las decisiones tomadas. No asumas nada que no esté en ese archivo o en el código actual.

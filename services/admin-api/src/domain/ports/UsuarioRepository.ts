@@ -1,4 +1,4 @@
-import { Usuario } from '../entities/Usuario';
+import { Usuario } from '../entities/Usuario.js';
 
 export interface UsuarioRepository {
   guardar(usuario: Usuario): Promise<void>;

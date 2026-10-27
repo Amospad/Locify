@@ -1,18 +1,32 @@
 {
   "name": "admin-api",
   "version": "0.1.0",
-    "type": "module",
+  "type": "module",
   "description": "Microservicio de administración, identidad y KYB para LOCIFY",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "db:emit": "prisma contract emit",
+    "db:init": "prisma db init",
+    "test": "node --import tsx --test tests/unit/*.test.ts tests/integration/*.test.ts",
+    "test:unit": "node --import tsx --test tests/unit/*.test.ts",
+    "test:repo": "node --import tsx --test tests/integration/PostgresUsuarioRepository.test.ts",
+    "test:db": "tsx src/infrastructure/persistence/test-connection.ts",
+    "postinstall": "prisma skills sync || exit 0"
   },
   "keywords": [],
   "author": "Andrés Mosquera, Lilia Torres, Denis Cuervo",
   "license": "UNLICENSED",
   "devDependencies": {
-    "@types/node": "^26.6.5"
+    "@types/node": "^26.6.5",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/orm-postgres": "^8.0.0-rc.20",
+    "dotenv": "^17.2.3",
+    "prisma": "^8.0.0-rc.27"
   }
 }

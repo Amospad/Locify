@@ -7,8 +7,8 @@ const config: Config = {
   tagline: 'Documentación técnica y formativa del ecosistema de parqueaderos',
   favicon: 'img/favicon.ico',
 
-  url: 'https://amospad.github.io',
-  baseUrl: '/Locify/',
+  url: 'https://locify-wheat.vercel.app',
+  baseUrl: '/',
 
   organizationName: 'Amospad',
   projectName: 'Locify',

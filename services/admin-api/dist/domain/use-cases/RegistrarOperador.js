@@ -1,9 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RegistrarOperadorUseCase = void 0;
-const Usuario_1 = require("../entities/Usuario");
-const crypto_1 = require("crypto");
-class RegistrarOperadorUseCase {
+import { Usuario, RolUsuario, EstadoUsuario } from '../entities/Usuario.js';
+import { randomUUID } from 'crypto';
+export class RegistrarOperadorUseCase {
     usuarioRepository;
     emailService;
     constructor(usuarioRepository, emailService) {
@@ -17,16 +14,16 @@ class RegistrarOperadorUseCase {
             throw new Error('El correo ya está registrado en el sistema.');
         }
         // 2. Generar token de invitación (24 horas)
-        const tokenInvitacion = (0, crypto_1.randomUUID)();
+        const tokenInvitacion = randomUUID();
         const tokenExpiracion = new Date();
         tokenExpiracion.setHours(tokenExpiracion.getHours() + 24);
         // 3. Crear la entidad (aquí se aplican las reglas de negocio)
-        const nuevoOperador = Usuario_1.Usuario.crear({
-            id: (0, crypto_1.randomUUID)(),
+        const nuevoOperador = Usuario.crear({
+            id: randomUUID(),
             email: dto.email,
             passwordHash: dto.passwordHash,
-            rol: Usuario_1.RolUsuario.OPERADOR,
-            estado: Usuario_1.EstadoUsuario.PENDIENTE,
+            rol: RolUsuario.OPERADOR,
+            estado: EstadoUsuario.PENDIENTE,
             tokenInvitacion,
             tokenExpiracion,
         });
@@ -36,4 +33,3 @@ class RegistrarOperadorUseCase {
         await this.emailService.enviarInvitacion(nuevoOperador.email, tokenInvitacion);
     }
 }
-exports.RegistrarOperadorUseCase = RegistrarOperadorUseCase;

@@ -1,155 +1,546 @@
 /**
- * LOCIFY - Identidad Visual Moderna y Corporativa
+ * LOCIFY — Sistema de diseño
+ *
+ * Principios aplicados (Apple HIG):
+ *  1. Color con significado: cada token tiene un rol (texto, superficie, acento,
+ *     estado), no solo un valor.
+ *  2. Jerarquía tipográfica por roles: título, cuerpo, detalle y acción.
+ *  3. Espaciado generoso y superficies suaves (radios y sombras en dos capas).
+ *  4. Accesibilidad: contraste AA, foco visible y respeto por reduced-motion.
  */
 
 :root {
-  /* Tipografía Principal */
-  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --ifm-heading-font-weight: 700; /* Títulos más gruesos */
+  /* ── Tipografía ─────────────────────────────────────────────── */
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ifm-font-family-monospace: 'SF Mono', ui-monospace, 'Cascadia Code',
+    'Segoe UI Mono', Menlo, Consolas, monospace;
+  --ifm-line-height-base: 1.65;
+  --ifm-heading-font-weight: 700;
   --ifm-font-weight-semibold: 600;
+  --ifm-font-size-base: 16px;
 
-  /* Paleta de Colores LOCIFY */
-  --locify-primary: #2F5D9F;       /* Azul Acero */
-  --locify-accent: #244A80;        /* Azul Profundo */
-  --locify-bg-light: #E6EEF8;      /* Azul Muy Claro */
-  --locify-graphite: #1F2937;      /* Grafito (Texto principal) */
-  --locify-dark-gray: #4B5563;     /* Texto secundario */
-  --locify-bg-base: #FFFFFF;       /* Fondo Blanco Puro (Más limpio) */
-  --locify-border: #D9DEE5;        /* Gris para bordes */
+  /* ── Roles de color (marca LOCIFY) ──────────────────────────── */
+  --locify-primary: #2F5D9F;        /* Azul Acero — acento interactivo */
+  --locify-primary-hover: #244A80;  /* Azul Profundo — hover/pressed */
+  --locify-primary-soft: #E6EEF8;   /* Azul Muy Claro — tarjetas */
+  --locify-ink: #1F2937;            /* Grafito — texto principal */
+  --locify-ink-secondary: #4B5563;  /* Texto de apoyo */
+  --locify-surface: #FFFFFF;        /* Fondo base */
+  --locify-surface-subtle: #F7F9FC; /* Fondo secundario (sidebar) */
+  --locify-card: #E6EEF8;           /* Tarjetas destacadas */
+  --locify-border: #E2E7EF;         /* Separadores (decorativos) */
+  --locify-border-strong: #CFD8E6;  /* Énfasis decorativo */
+  /* Borde de control interactivo: ≥ 3:1 sobre el fondo (WCAG 1.4.11) */
+  --locify-border-control: #7C8CA3;
 
-  /* Estados */
+  /* Acción: se separa del acento de enlace porque el color de fondo y el
+     de texto tienen su propio par de contraste (≥ 4.5:1) en cada tema. */
+  --locify-action-bg: #2F5D9F;
+  --locify-action-bg-hover: #244A80;
+  --locify-action-fg: #FFFFFF;
+
+  /* Estados: siempre acompañados de texto, nunca solo color */
   --locify-success: #2E7D5B;
   --locify-warning: #C58A00;
   --locify-error: #C23B3B;
 
-  /* Mapeo a Docusaurus (Modo Claro) */
+  /* ── Radios ─────────────────────────────────────────────────── */
+  --locify-radius-sm: 8px;
+  --locify-radius-md: 12px;
+  --locify-radius-lg: 20px;
+  --locify-radius-pill: 999px;
+
+  /* ── Sombras suaves en dos capas (contacto + ambiente) ───────── */
+  --locify-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05),
+    0 1px 3px rgba(16, 24, 40, 0.04);
+  --locify-shadow-md: 0 2px 6px rgba(16, 24, 40, 0.05),
+    0 12px 28px rgba(16, 24, 40, 0.07);
+  --locify-shadow-lg: 0 8px 20px rgba(16, 24, 40, 0.08),
+    0 24px 48px rgba(16, 24, 40, 0.10);
+
+  /* ── Espaciado (escala de 8 px) ─────────────────────────────── */
+  --locify-space-1: 0.5rem;
+  --locify-space-2: 0.75rem;
+  --locify-space-3: 1rem;
+  --locify-space-4: 1.5rem;
+  --locify-space-5: 2rem;
+  --locify-space-6: 3rem;
+  --locify-space-7: 4.5rem;
+
+  /* Foco visible para teclado */
+  --locify-focus-ring: 0 0 0 3px rgba(47, 93, 159, 0.35);
+
+  /* ── Mapeo a Infima / Docusaurus ────────────────────────────── */
   --ifm-color-primary: var(--locify-primary);
-  --ifm-color-primary-dark: var(--locify-accent);
-  --ifm-color-primary-darker: #1c395f;
-  --ifm-color-primary-darkest: #142a47;
-  --ifm-color-primary-light: #3870c2;
-  --ifm-color-primary-lighter: #4079cf;
-  --ifm-color-primary-lightest: #5d8dda;
-  
-  --ifm-background-color: var(--locify-bg-base);
-  --ifm-background-surface-color: var(--locify-bg-light); /* Sidebar con azul muy claro */
-  --ifm-font-color-base: var(--locify-graphite);
-  --ifm-heading-color: var(--locify-graphite);
+  --ifm-color-primary-dark: var(--locify-primary-hover);
+  --ifm-color-primary-darker: #1E3F6D;
+  --ifm-color-primary-darkest: #162F52;
+  --ifm-color-primary-light: #3E6FB5;
+  --ifm-color-primary-lighter: #4C7BC0;
+  --ifm-color-primary-lightest: #7AA3E3;
+
+  --ifm-background-color: var(--locify-surface);
+  --ifm-background-surface-color: var(--locify-surface-subtle);
+  --ifm-font-color-base: var(--locify-ink);
+  --ifm-heading-color: var(--locify-ink);
+  --ifm-link-color: var(--locify-primary);
+  --ifm-link-hover-color: var(--locify-primary-hover);
   --ifm-toc-border-color: var(--locify-border);
-  
-  --ifm-code-font-size: 90%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.05);
+  --ifm-global-radius: var(--locify-radius-md);
+  --ifm-card-border-radius: var(--locify-radius-lg);
+  --ifm-button-border-radius: var(--locify-radius-md);
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.85);
+  --ifm-navbar-shadow: none;
+  --ifm-footer-background-color: var(--locify-ink);
+  --ifm-code-font-size: 88%;
+  --ifm-code-background: #F1F5FA;
+  --ifm-pre-background: #F8FAFD;
+  --docusaurus-highlighted-code-line-bg: rgba(47, 93, 159, 0.08);
 }
 
-/* Modo Oscuro */
+/* Modo oscuro: mismos roles, valores equivalentes.
+   El acento se aclara para conservar el contraste sobre fondo oscuro. */
 [data-theme='dark'] {
-  --ifm-color-primary: #5d8dda;
-  --ifm-color-primary-dark: #4079cf;
-  --ifm-color-primary-darker: #3870c2;
-  --ifm-color-primary-darkest: #2F5D9F;
-  --ifm-color-primary-light: #7aa3e3;
-  --ifm-color-primary-lighter: #88ade6;
-  --ifm-color-primary-lightest: #a3c0ec;
-  
-  --ifm-background-color: #111827;
-  --ifm-background-surface-color: #1F2937;
-  --ifm-font-color-base: #E6EEF8;
+  --locify-primary: #7AA3E3;
+  --locify-primary-hover: #A3C0EC;
+  --locify-primary-soft: #1B2A42;
+  --locify-ink: #E6EEF8;
+  --locify-ink-secondary: #AEB9C9;
+  --locify-surface: #0F1419;
+  --locify-surface-subtle: #151C25;
+  --locify-card: #1B2A42;
+  --locify-border: #26313F;
+  --locify-border-strong: #35455A;
+  --locify-border-control: #5A6B80;
+
+  /* En oscuro el acento se aclara (para enlaces), pero la acción usa un azul
+     intermedio con texto blanco: blanco sobre #3E6FB5 = 5.07:1. */
+  --locify-action-bg: #3E6FB5;
+  --locify-action-bg-hover: #2F5D9F;
+  --locify-action-fg: #FFFFFF;
+
+  --ifm-color-primary: var(--locify-primary);
+  --ifm-color-primary-dark: #6A93D3;
+  --ifm-color-primary-darker: #5A83C3;
+  --ifm-color-primary-darkest: #4079CF;
+  --ifm-color-primary-light: #8AAFE8;
+  --ifm-color-primary-lighter: #9ABAEC;
+  --ifm-color-primary-lightest: #C2D5F4;
+
+  --ifm-background-color: var(--locify-surface);
+  --ifm-background-surface-color: var(--locify-surface-subtle);
+  --ifm-font-color-base: var(--locify-ink);
   --ifm-heading-color: #FFFFFF;
-  --ifm-toc-border-color: #4B5563;
+  --ifm-link-color: var(--locify-primary);
+  --ifm-link-hover-color: var(--locify-primary-hover);
+  --ifm-toc-border-color: var(--locify-border);
+  --ifm-navbar-background-color: rgba(15, 20, 25, 0.85);
+  --ifm-footer-background-color: #0A0F14;
+  --ifm-code-background: #1B222C;
+  --ifm-pre-background: #131A22;
+  --docusaurus-highlighted-code-line-bg: rgba(122, 163, 227, 0.15);
+  --locify-focus-ring: 0 0 0 3px rgba(122, 163, 227, 0.45);
 }
 
-/* --- ESTILOS MODERNOS DE UI --- */
+/* ── Base ─────────────────────────────────────────────────────── */
 
-/* Barra de Navegación Superior (Más limpia, sin sombra dura) */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--locify-surface);
+  color: var(--locify-ink);
+}
+
+::selection {
+  background: rgba(47, 93, 159, 0.18);
+}
+
+/* Foco visible y consistente en toda la interfaz (teclado) */
+a:focus-visible,
+button:focus-visible,
+.menu__link:focus-visible,
+.pagination-nav__link:focus-visible,
+.navbar__link:focus-visible {
+  outline: none;
+  box-shadow: var(--locify-focus-ring);
+  border-radius: var(--locify-radius-sm);
+}
+
+/* ── Navegación superior (barra translúcida, estilo Apple) ───── */
+
 .navbar {
-  background-color: #FFFFFF;
+  background-color: var(--ifm-navbar-background-color);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid var(--locify-border);
   box-shadow: none;
+  padding: 0.6rem 1rem;
 }
 
-/* Barra Lateral (Sidebar) con fondo azul muy claro */
+.navbar__title {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--locify-ink);
+}
+
+.navbar__link {
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: var(--locify-ink-secondary);
+  border-radius: var(--locify-radius-sm);
+  padding: 0.35rem 0.6rem;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.navbar__link:hover,
+.navbar__link--active {
+  color: var(--locify-primary);
+  background-color: rgba(47, 93, 159, 0.08);
+}
+
+[data-theme='dark'] .navbar__link:hover,
+[data-theme='dark'] .navbar__link--active {
+  background-color: rgba(122, 163, 227, 0.14);
+}
+
+.navbar__toggle {
+  color: var(--locify-ink);
+}
+
+/* ── Barra lateral ───────────────────────────────────────────── */
+
 .theme-doc-sidebar-container {
-  background-color: var(--locify-bg-light);
+  background-color: var(--locify-surface-subtle);
   border-right: 1px solid var(--locify-border);
 }
 
-/* Enlaces del menú lateral */
+.menu {
+  padding: 1rem 0.75rem;
+}
+
 .menu__link {
-  border-radius: 6px;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
+  border-radius: var(--locify-radius-sm);
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: var(--locify-ink-secondary);
+  padding: 0.5rem 0.75rem;
+  transition: background-color 160ms ease, color 160ms ease,
+    box-shadow 160ms ease;
 }
 
-.menu__link:hover, .menu__link--active {
-  background-color: #FFFFFF;
+.menu__link:hover {
+  background-color: var(--locify-surface);
   color: var(--locify-primary);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: var(--locify-shadow-sm);
 }
 
-/* Títulos de la página */
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: var(--locify-surface);
+  color: var(--locify-primary);
+  font-weight: 600;
+  box-shadow: var(--locify-shadow-sm);
+}
+
+.menu__list-item-collapsible:hover {
+  background-color: transparent;
+}
+
+/* Índice de la derecha */
+.table-of-contents__link {
+  color: var(--locify-ink-secondary);
+  border-left: 2px solid transparent;
+  padding-left: 0.6rem;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--locify-primary);
+  border-left-color: var(--locify-primary);
+}
+
+/* ── Tipografía de contenido por roles ───────────────────────── */
+
 .markdown h1 {
-  font-size: 2.5rem;
-  letter-spacing: -0.02em;
-  margin-bottom: 1.5rem;
-  color: var(--locify-graphite);
+  font-size: clamp(2rem, 1.4rem + 2vw, 2.6rem);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  margin-bottom: var(--locify-space-4);
+  color: var(--ifm-heading-color);
 }
 
 .markdown h2 {
-  font-size: 1.75rem;
-  letter-spacing: -0.01em;
-  margin-top: 2.5rem;
-  padding-bottom: 0.5rem;
+  font-size: clamp(1.4rem, 1.15rem + 1vw, 1.7rem);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  margin-top: var(--locify-space-6);
+  margin-bottom: var(--locify-space-3);
+  padding-bottom: var(--locify-space-1);
   border-bottom: 1px solid var(--locify-border);
+  color: var(--ifm-heading-color);
 }
 
-/* Texto de párrafo más legible */
-.markdown p {
-  line-height: 1.7;
-  color: var(--locify-dark-gray);
+.markdown h3 {
+  font-size: 1.2rem;
+  line-height: 1.35;
+  margin-top: var(--locify-space-5);
+  color: var(--ifm-heading-color);
 }
 
-/* Bloques de código más modernos */
+.markdown h4 {
+  font-size: 1rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ifm-heading-color);
+}
+
+.markdown p,
+.markdown li {
+  line-height: 1.75;
+  color: var(--locify-ink-secondary);
+}
+
+.markdown strong {
+  color: var(--locify-ink);
+}
+
+.markdown a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* ── Código ──────────────────────────────────────────────────── */
+
+.markdown code {
+  background-color: var(--ifm-code-background);
+  border: 1px solid var(--locify-border);
+  border-radius: 6px;
+  padding: 0.12em 0.38em;
+  font-size: var(--ifm-code-font-size);
+  color: var(--locify-ink);
+}
+
 .theme-code-block {
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border-radius: var(--locify-radius-md);
   border: 1px solid var(--locify-border);
-}
-
-/* Tablas modernas */
-table {
-  border-radius: 8px;
+  box-shadow: var(--locify-shadow-sm);
   overflow: hidden;
-  border: 1px solid var(--locify-border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
-th {
-  background-color: var(--locify-bg-light);
+.theme-code-block pre {
+  background-color: var(--ifm-pre-background);
+}
+
+/* ── Tablas: superficie limpia, encabezado con rol de color ──── */
+
+.markdown table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  border: 1px solid var(--locify-border);
+  border-radius: var(--locify-radius-md);
+  box-shadow: var(--locify-shadow-sm);
+  font-size: 0.94rem;
+}
+
+.markdown th {
+  background-color: var(--locify-card);
   color: var(--locify-primary);
   font-weight: 600;
-  border-bottom: 2px solid var(--locify-border);
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--locify-border-strong);
 }
 
-/* Botones (Portada) */
+.markdown td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--locify-border);
+  vertical-align: top;
+}
+
+.markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.markdown tbody tr:nth-child(even) {
+  background-color: rgba(230, 238, 248, 0.35);
+}
+
+[data-theme='dark'] .markdown tbody tr:nth-child(even) {
+  background-color: rgba(122, 163, 227, 0.06);
+}
+
+.markdown tbody tr:hover {
+  background-color: rgba(47, 93, 159, 0.06);
+}
+
+/* ── Botones (acción claramente diferenciada del texto) ──────── */
+
 .button {
-  border-radius: 8px;
+  border-radius: var(--locify-radius-md);
   font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  letter-spacing: 0.01em;
+  padding: 0.7rem 1.4rem;
+  transition: background-color 160ms ease, color 160ms ease,
+    border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  box-shadow: none;
+}
+
+.button.button--primary {
+  background-color: var(--locify-action-bg);
+  border: 1px solid var(--locify-action-bg);
+  color: var(--locify-action-fg);
+  box-shadow: var(--locify-shadow-sm);
+}
+
+.button.button--primary:hover,
+.button.button--primary:active {
+  background-color: var(--locify-action-bg-hover);
+  border-color: var(--locify-action-bg-hover);
+  color: var(--locify-action-fg);
+}
+
+/* Infima define `.button.button--secondary` (mayor especificidad): se replica
+   el selector para que el texto use el grafito de la marca y no su gris. */
+.button.button--secondary {
+  background-color: var(--locify-surface);
+  border: 1px solid var(--locify-border-control);
+  color: var(--locify-ink);
+  box-shadow: var(--locify-shadow-sm);
+}
+
+.button.button--secondary:hover,
+.button.button--secondary:active {
+  background-color: var(--locify-surface);
+  border-color: var(--locify-primary);
+  color: var(--locify-primary);
 }
 
 .button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(47, 93, 159, 0.3);
-  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: var(--locify-shadow-md);
 }
 
-/* Resaltar los bloques de cita (Advertencias / Notas) */
+.button:active {
+  transform: translateY(0);
+  box-shadow: var(--locify-shadow-sm);
+}
+
+/* ── Avisos y citas ──────────────────────────────────────────── */
+
 blockquote {
-  border-left: 4px solid var(--locify-primary);
-  background-color: var(--locify-bg-light);
-  border-radius: 0 8px 8px 0;
-  padding: 1rem 1.5rem;
-  margin: 1.5rem 0;
-  color: var(--locify-graphite);
+  border-left: 3px solid var(--locify-primary);
+  background-color: var(--locify-primary-soft);
+  border-radius: 0 var(--locify-radius-md) var(--locify-radius-md) 0;
+  padding: var(--locify-space-3) var(--locify-space-4);
+  margin: var(--locify-space-4) 0;
+  color: var(--locify-ink);
+}
+
+blockquote p {
+  color: var(--locify-ink);
+  margin-bottom: 0;
+}
+
+.theme-admonition {
+  border-radius: var(--locify-radius-md);
+  box-shadow: var(--locify-shadow-sm);
+  border: 1px solid var(--locify-border);
+}
+
+/* ── Paginación y migas ──────────────────────────────────────── */
+
+.pagination-nav__link {
+  border: 1px solid var(--locify-border);
+  border-radius: var(--locify-radius-md);
+  padding: var(--locify-space-3) var(--locify-space-4);
+  transition: border-color 160ms ease, box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--locify-primary);
+  box-shadow: var(--locify-shadow-md);
+  transform: translateY(-1px);
+}
+
+.pagination-nav__label {
+  font-weight: 600;
+  color: var(--locify-primary);
+}
+
+/* ── Pie de página ───────────────────────────────────────────── */
+
+.footer {
+  background-color: var(--ifm-footer-background-color);
+  color: #E6EEF8;
+  padding: var(--locify-space-6) 0;
+}
+
+.footer__title {
+  color: #FFFFFF;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--locify-space-2);
+}
+
+.footer__link-item {
+  color: #C7D5E8;
+  font-size: 0.92rem;
+  line-height: 2;
+}
+
+.footer__link-item:hover {
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.footer__copyright {
+  color: #9FB0C6;
+  font-size: 0.85rem;
+}
+
+/* ── Movimiento reducido: se conserva el estado, no la animación ─ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .button:hover,
+  .pagination-nav__link:hover {
+    transform: none;
+  }
+}
+
+/* ── Pantallas pequeñas: menos relleno, misma jerarquía ──────── */
+
+@media screen and (max-width: 996px) {
+  .navbar {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .menu {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .markdown h1 {
+    letter-spacing: -0.015em;
+  }
+
+  .markdown table {
+    font-size: 0.88rem;
+  }
 }

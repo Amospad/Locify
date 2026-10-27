@@ -1,0 +1,207 @@
+---
+name: hx-implement
+phase: change
+flow: [quick, standard, full, epic]
+---
+# /hx-implement
+
+## Purpose
+
+Execute the tasks in `specs/<NNN>-<slug>/tasks.md` one at a time, with
+TDD-first ordering and end-to-end self-verification. Each task is fully
+working (red → green → refactor → verify) before the next begins. If
+implementation reveals a flaw upstream (spec, design, plan), flow back
+to the right command rather than patching forward.
+
+## Prerequisites
+
+- `quick` flow: `proposal.md` (and optional `clarify.md`) exist.
+- `standard`+: `tasks.md` exists; for `full`+ `analyze.md` had no
+  unresolved CONFLICT/GAP.
+- `.harness/memory/constitution.md` loaded.
+- `.harness/scripts/ps/verify.sh` is functional.
+
+## Inputs
+
+- `specs/<NNN>-<slug>/tasks.md` — ordered task breakdown.
+- `specs/<NNN>-<slug>/design.md` — interfaces, REQ-NNN IDs, traceability.
+- `specs/<NNN>-<slug>/plan.md` — sequencing and decisions.
+- `AGENTS.md` — boundaries (Always / Ask / Never).
+- `.harness/memory/constitution.md` — `[enforceable]` clauses are gates.
+- `.agent/progress.md` — cross-session progress log (created on first run).
+
+## Steps
+
+1. **Bootstrap progress log on first run.** If `.agent/progress.md` does
+   not exist, create it (with parent dir) using the seed in
+   *Appendix A — Progress log seed*.
+2. **Resume.** Run `pwd` and `./init.sh`; read `AGENTS.md`,
+   `specs/<NNN>-<slug>/feature_list.json`, and (if it exists)
+   `specs/<NNN>-<slug>/session-handoff.md`. This is the
+   Subsystem 5 Resume contract.
+3. **Pick one feature.** From `feature_list.json`, choose the next
+   feature with `status != "passing"` and all `depends_on` `passing`
+   (or run `harness state next`). Resolve any `[P]` parallel marker on
+   a per-task basis (only safe when files / modules don't overlap).
+4. **Implement.** TDD ordering: write the failing test first when the
+   task is behavioral; then make it pass; then refactor.
+   Respect `AGENTS.md` and constitution `[enforceable]` clauses.
+5. **End-to-end verify.** Exercise the feature through its real entry
+   point — not unit tests alone. Then run `./init.sh` (which calls
+   `.harness/scripts/ps/verify.sh`). Only mark the
+   feature passing when init.sh is genuinely green; this also
+   refreshes `.harness/.last-verify.json` so `harness state pass`
+   will accept the claim.
+6. **Flip status.** Run
+   `harness state pass <feat-id> --evidence <commit-sha-or-path:line>`.
+   The CLI rejects stale or red verify; if it rejects, re-run
+   `./init.sh` rather than fighting the tool.
+7. **Commit.** Descriptive message (what + why, link REQ-NNN where
+   relevant). Append a row to `.agent/progress.md` with date, command,
+   flow, summary, gate.
+8. **Never delete or weaken tests** to make verify pass. If tests fail,
+   fix the implementation. The only exception is an intentional behavior
+   change called out by a task (and that case must update the test
+   deliberately, not silently).
+
+### Handoff (run at session end, even mid-feature)
+
+9. **Update session-handoff.md.** Overwrite
+   `specs/<NNN>-<slug>/session-handoff.md` from *Appendix B*. This is
+   the Subsystem 5 Handoff contract — the next agent's Resume reads
+   exactly this file.
+
+### Rollback / circuit-breaker (§14.6)
+
+10. **Upstream-flaw rollback.** If implementation reveals that the
+    design, plan, or proposal is wrong (impossible interface, missing
+    requirement, contradiction), STOP coding. Flow back to the right
+    command:
+    - missing or ambiguous requirement → `/hx-clarify`,
+    - wrong interface / data model / decision → `/hx-design`,
+    - sequencing wrong / blocked → `/hx-plan`,
+    - task list incomplete or mis-ordered → `/hx-tasks`.
+    Record the rollback as a row in `.agent/progress.md` and as a note in
+    the affected artifact. **Do not** patch around a broken spec inside
+    the implementation.
+11. **Verify-failure circuit-breaker.** If `/hx-verify` fails ≥ 3
+    consecutive times on the same task with no progress on the actual
+    error signature, HALT. Don't burn budget on speculative retries.
+    Write a short diagnostic to `session-handoff.md` Blockers section
+    AND `.agent/progress.md` (what failed, what you tried, current
+    hypothesis) and request human input — by an explicit clarify pass or
+    by surfacing the blocker in the playbook output. The goal is to
+    avoid the cycle "tweak → verify → tweak → verify" without
+    root-cause understanding.
+
+## Outputs
+
+- Source code changes committed to the working branch.
+- Updated `feature_list.json` — `status` flipped on completed features
+  with `evidence` populated.
+- Overwritten `specs/<NNN>-<slug>/session-handoff.md` (Subsystem 5).
+- Appended `.agent/progress.md` — one row per completed feature or
+  rollback (cross-spec timeline).
+
+## Exit Criteria
+
+- The current feature has `status = "passing"` in `feature_list.json`
+  with `evidence` populated.
+- `./init.sh` is green at session end.
+- A commit exists with a descriptive message.
+- `session-handoff.md` updated for the next session's Resume.
+- `.agent/progress.md` reflects the new state.
+- No existing tests were deleted or weakened.
+
+## Gate
+
+A task MUST NOT be marked complete without a green `/hx-verify` on a
+clean working tree. `/hx-review` MUST NOT run until every task in
+`tasks.md` is either complete or explicitly deferred with a recorded
+rationale.
+
+---
+
+## Appendix A — Progress log seed (T9)
+
+> Provenance
+> - Authoritative paradigm: Anthropic cross-session progress + end-to-end self-verify + upstream-flaw rollback / verify-failure circuit-breaker (§14.6)
+> - Investigation protocol: append a row per `/hx-*` invocation or rollback (date · command · flow · spec · summary · gate); never mutate prior rows — the log is the cross-session memory and audit trail
+> - Output form: append-only timeline table with state-transition rows (task complete · rollback · circuit-breaker halt) — the file a clean-context agent reads first to orient
+
+Use the following template verbatim when bootstrapping
+`.agent/progress.md`.
+
+```markdown
+# Progress Log — Locify
+
+> Cross-session record of completed phases, rollbacks, and state
+> transitions. Append-only.
+
+---
+
+## How to Use
+
+After completing any `/hx-*` command (or on a rollback), append a row
+below with:
+
+- **Date** — when the entry was made.
+- **Command** — which `/hx-*` ran (or `rollback → /hx-clarify` etc.).
+- **Flow** — `quick` / `standard` / `full` / `epic`.
+- **Spec** — `specs/<NNN>-<slug>/` if applicable.
+- **Summary** — one line: what happened.
+- **Gate** — `pass` / `fail` / `n/a`.
+
+---
+
+## Log
+
+| Date | Command | Flow | Spec | Summary | Gate |
+| ---- | ------- | ---- | ---- | ------- | ---- |
+```
+
+---
+
+## Appendix B — session-handoff.md template (Subsystem 5 — Lifecycle)
+
+> Provenance
+> - Authoritative paradigm: walkinglabs harness-creator `templates/session-handoff.md` (six fixed sections); Anthropic *Effective Harnesses for Long-Running Agents* (2026) — every session ends by writing the kind of code the next session can resume from in 60 seconds
+> - Investigation protocol: overwrite (do NOT append) at session end; six fixed sections — Current Objective · Completed This Session · Verification Evidence · Files Changed · Decisions Made · Blockers / Risks · Next Session Startup; the next agent's Resume reads exactly this file plus `feature_list.json`
+> - Output form: one file per spec at `specs/<NNN>-<slug>/session-handoff.md`; mirrors AGENTS.md § 5.2
+
+Use the following template verbatim when writing
+`specs/<NNN>-<slug>/session-handoff.md`. Replace each `⟨…⟩` with the
+session's specifics. Keep section names verbatim — `/hx-next` and
+human readers pattern-match on them.
+
+```markdown
+# Session Handoff — spec ⟨NNN-slug⟩
+
+## Current Objective
+- Goal: ⟨one sentence — what this spec is supposed to deliver⟩
+- Active feat-id: ⟨T1.2 etc., or "none — between features"⟩
+- Branch / commit: ⟨branch name⟩ @ ⟨short SHA⟩
+
+## Completed This Session
+- ⟨feat-id⟩ — ⟨one-line summary, with `path:line` evidence⟩
+
+## Verification Evidence
+| Check | Command | Result | Notes |
+|---|---|---|---|
+| ⟨lint⟩ | `./init.sh lint` | ⟨green⟩ | ⟨optional context⟩ |
+| ⟨tests⟩ | `./init.sh test` | ⟨green⟩ | ⟨n tests passed⟩ |
+
+## Files Changed
+- ⟨path/to/file.ext⟩ — ⟨one-line reason⟩
+
+## Decisions Made
+- ⟨decision⟩ — ⟨why; alternatives considered if relevant⟩
+
+## Blockers / Risks
+- ⟨open question / hypothesis / external dependency⟩
+
+## Next Session Startup
+1. Run `./init.sh`
+2. Read `feature_list.json` — next feature: ⟨feat-id⟩
+3. ⟨specific instruction: file to open first, hypothesis to test, etc.⟩
+```

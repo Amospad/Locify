@@ -1,0 +1,149 @@
+# Azure Pipelines CI template for Node.js projects
+#
+# NOTE: Azure Pipelines does not have a built-in concurrency control equivalent
+# to GitHub Actions' `concurrency` key. To cancel redundant runs on the same
+# branch/PR, configure "Run number" or use the Azure DevOps UI/REST API to
+# cancel superseded builds. For PR triggers, enable "Cancel running CI builds
+# for a push" in the pipeline settings.
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Validate
+    jobs:
+      - job: Lint
+        displayName: Lint
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Setup Node.js'
+
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
+          - script: npm ci
+            displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
+
+          - script: npm run lint --if-present
+            displayName: 'Run linter'
+
+      - job: Format
+        displayName: Format Check
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Setup Node.js'
+
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
+          - script: npm ci
+            displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
+
+          - script: npm run format:check --if-present || npx prettier --check .
+            displayName: 'Check formatting'
+
+      - job: TypeCheck
+        displayName: Type Check
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Setup Node.js'
+
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
+          - script: npm ci
+            displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
+
+          - script: npm run typecheck --if-present || npm run type-check --if-present || npx tsc --noEmit
+            displayName: 'Run type check'
+
+  - stage: Build
+    dependsOn: Validate
+    jobs:
+      - job: Build
+        displayName: Build
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Setup Node.js'
+
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
+          - script: npm ci
+            displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
+
+          - script: npm run build
+            displayName: 'Build'
+
+  - stage: Test
+    dependsOn: Build
+    jobs:
+      - job: Test
+        displayName: Test
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Setup Node.js'
+
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
+          - script: npm ci
+            displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
+
+          - script: npm test --if-present
+            displayName: 'Run tests'

@@ -26,6 +26,7 @@ export class Usuario {
   // Getters
   get id() { return this.props.id; }
   get email() { return this.props.email; }
+  get passwordHash() { return this.props.passwordHash; }
   get rol() { return this.props.rol; }
   get estado() { return this.props.estado; }
   get tokenInvitacion() { return this.props.tokenInvitacion; }
@@ -50,6 +51,12 @@ export class Usuario {
     if (!props.email.includes('@')) {
       throw new Error('El email no es válido');
     }
+    return new Usuario(props);
+  }
+
+  // Rehidrata un usuario que ya existe en persistencia. No revalida los datos:
+  // son un hecho consumado, validarlos aquí impediría leer registros históricos.
+  public static reconstituir(props: UsuarioProps): Usuario {
     return new Usuario(props);
   }
 }

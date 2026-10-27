@@ -14,6 +14,7 @@ const sidebars: SidebarsConfig = {
   
   tecnicoSidebar: [
     'tecnico/arquitectura-hexagonal',
+    { type: 'doc', id: 'tecnico/arquitectura-agentes', label: 'Arquitectura de Agentes IA' },
     { type: 'doc', id: 'tecnico/referencia/modelo-datos', label: 'Modelo de Datos' },
     { type: 'doc', id: 'tecnico/referencia/glosario', label: 'Glosario' },
     { type: 'doc', id: 'tecnico/referencia/guia-diseno-ui', label: 'Guía de Diseño UI/UX' },

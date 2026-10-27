@@ -1,0 +1,16 @@
+﻿---
+description: Flujo de trabajo estándar para desarrollo en LOCIFY.
+alwaysApply: true
+---
+
+# Workflow de Desarrollo LOCIFY
+
+Cuando el usuario te pida implementar una nueva funcionalidad o corregir un bug, DEBES seguir estrictamente estos pasos:
+
+1. **Contexto:** Lee `PROJECT_STATE.md` para recordar el estado.
+2. **Diseño (Si aplica):** Si es una tarea de interfaz de usuario, invoca internamente los patrones de la skill `apple-hig`.
+3. **Desarrollo:** Escribe el código respetando la Arquitectura Hexagonal (el dominio no importa infraestructura).
+4. **QA (Pruebas):** Invoca la skill de testing (`agentic-qe` o `qa-skills`) y genera los tests unitarios correspondientes.
+5. **CI/CD:** Si se modificó el `package.json` o la estructura de Docker, asegúrate de actualizar los archivos de despliegue generados por `mad-skills`.
+6. **Verificación Final:** Antes de dar una tarea por terminada, invoca al subagente `verifier` para que ejecute `npm run build` y valide que todo compila y pasa.
+7. **Memoria:** Si se tomó una decisión arquitectónica nueva, actualiza el archivo `PROJECT_STATE.md`.

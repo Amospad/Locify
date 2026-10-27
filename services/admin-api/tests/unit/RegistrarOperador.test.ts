@@ -166,6 +166,30 @@ describe('RegistrarOperadorUseCase', () => {
     assert.equal(hasher.hasheados.length, 0);
   });
 
+  it('rechaza una contraseña que no cumple la política sin hashear ni persistir', async () => {
+    const { repositorio, hasher, caso } = crearCaso();
+
+    await assert.rejects(
+      () => caso.ejecutar({ email: 'operador@locify.co', password: 'corta1!' }),
+      /al menos 12/,
+    );
+
+    assert.equal(repositorio.guardados.length, 0);
+    assert.equal(hasher.hasheados.length, 0, 'no debe gastar Argon2 en una contraseña inválida');
+  });
+
+  it('rechaza una contraseña común aunque cumpla la complejidad', async () => {
+    const { repositorio, hasher, caso } = crearCaso();
+
+    await assert.rejects(
+      () => caso.ejecutar({ email: 'operador@locify.co', password: 'Welcome12345!' }),
+      /común/,
+    );
+
+    assert.equal(repositorio.guardados.length, 0);
+    assert.equal(hasher.hasheados.length, 0);
+  });
+
   it('propaga el fallo del hasher y no persiste ni envía correo', async () => {
     const { repositorio, email, hasher, caso } = crearCaso();
     hasher.fallar = true;

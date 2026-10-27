@@ -33,6 +33,7 @@
 - [x] Capa HTTP mínima: `buildServer()` sin `listen`, `GET /health` con `SELECT 1`, helmet, CORS y rate limit. (`npm test` → 27/27; `curl /health` → 200 contra PostgreSQL real)
 - [x] Cerrar la trazabilidad RF→HU: **32/32** requerimientos con historia (HU-27…HU-30) y matriz actualizada.
 - [x] Hashing de contraseñas con Argon2id: puerto `PasswordHasher`, adaptador `Argon2Hasher` y `RegistrarOperador` hasheando antes de persistir. (`npm test` → 33/33)
+- [x] Política de complejidad de contraseñas (RF-06): 12–128 caracteres, 4 categorías, 100 contraseñas comunes rechazadas, validada antes del hasher. (`npm test` → 53/53)
 
 ## Auditoría Técnica (2026-10-27)
 
@@ -104,8 +105,20 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 **Pendiente de este bloqueante**
 
-- Política de complejidad de contraseñas (RF-06): hoy se hashea cualquier cadena, incluida una vacía.
 - Flujo de activación/login que use `compare` (RF-07): el adaptador está listo, no hay ruta HTTP que lo consuma.
+
+## Política de contraseñas (RF-06) — 2026-10-27
+
+- **`src/domain/value-objects/PoliticaPassword.ts`**: `validar(password): void` con 12–128 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial (Unicode: `Ñ`, `á` y otros alfabetos cuentan), y rechazo de 100 contraseñas comunes comparadas en minúsculas.
+- **Dónde se valida:** en `RegistrarOperador.ejecutar`, **antes** del chequeo de duplicados y del hasher. No se puso en `Usuario.crear` porque la entidad recibe un hash, no la contraseña: validar complejidad allí es imposible sin romper la regla de que el dominio nunca ve texto plano.
+- **Conteo de longitud por puntos de código** (`Array.from`), no por unidades UTF-16: un emoji ocupa 2 unidades pero es 1 carácter y no debe contar doble.
+- **Efecto buscado:** una contraseña débil no gasta 64 MiB de Argon2 ni llega a la base; hay pruebas que lo verifican contando invocaciones del hasher.
+
+**Evidencia**
+
+- `npm test` → **53/53** (46 unitarios + 4 HTTP + 3 de integración), 0 fallos.
+- `tests/unit/PoliticaPassword.test.ts`: 18 casos (válidas, bordes 11/12/128/129, cada categoría, lista de comunes y variante de mayúsculas).
+- `tests/unit/RegistrarOperador.test.ts`: 9 casos, incluidos "contraseña inválida sin hashear" y "contraseña común aunque cumpla complejidad".
 
 ## Trazabilidad RF → HU cerrada (2026-10-27)
 

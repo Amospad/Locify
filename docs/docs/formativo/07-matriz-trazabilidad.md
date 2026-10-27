@@ -23,7 +23,7 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-03** | Token de invitación con 24 h de vigencia | CU-01 | HU-02 | Alta | **Implementado (dominio)** — `RegistrarOperador.ejecutar` |
 | **RF-04** | Correo automatizado con enlace de activación | CU-01 | HU-02 | Alta | **Parcial** — puerto `EmailService` definido; sin adaptador real |
 | **RF-05** | Validar token no expirado ni usado | CU-01 | HU-02, HU-05 | Alta | **Parcial** — `Usuario.tokenHaExpirado`; no hay marca de "usado" |
-| **RF-06** | Contraseña con política de complejidad | CU-01 | HU-01 | Alta | **Parcial** — Argon2id implementado (`Argon2Hasher`); falta la política de complejidad |
+| **RF-06** | Contraseña con política de complejidad | CU-01 | HU-01 | Alta | **Implementado** — `PoliticaPassword` (12–128, 4 categorías, 100 comunes) + Argon2id; validada antes del hasher |
 | **RF-07** | Activación: guardar contraseña y pasar a ACTIVO | CU-01 | HU-02 | Alta | **No implementado** — no existe caso de uso de activación |
 | **RF-08** | Bloquear dashboard si la cuenta no está activa | CU-01 | HU-05 | Alta | **Parcial** — `Usuario.puedeAccederAlDashboard`; no hay capa de acceso que lo aplique |
 | **RF-09** | Dashboard del cliente con reserva o check-in activo | — | HU-27 | Alta | **No implementado** |
@@ -57,7 +57,7 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 
 | ID | Requerimiento | Gate o evidencia verificable | Estado |
 | :--- | :--- | :--- | :--- |
-| **RNF-01** | HTTPS/TLS 1.3 y hashing BCrypt/Argon2 | Hashing: `Argon2Hasher` con Argon2id m=65536 t=3 p=4 y 6 pruebas. TLS: no hay terminación TLS ni proxy configurado | **Parcial** |
+| **RNF-01** | HTTPS/TLS 1.3 y hashing BCrypt/Argon2 | Hashing: `Argon2Hasher` con Argon2id m=65536 t=3 p=4 y `PoliticaPassword` (24 pruebas). TLS: no hay terminación TLS ni proxy configurado | **Parcial** |
 | **RNF-02** | Logs de auditoría inmutables | No existe tabla ni escritor de eventos | **No implementado** |
 | **RNF-03** | Ley 1581: consentimiento antes de persistir | No existe entidad de aceptación ni validación | **No implementado** |
 | **RNF-04** | Peticiones críticas ≤ 3 s | Sin pruebas de carga ni métricas | **Sin medición** |

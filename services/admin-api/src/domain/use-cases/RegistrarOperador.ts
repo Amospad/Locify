@@ -1,4 +1,5 @@
 import { Usuario, RolUsuario, EstadoUsuario } from '../entities/Usuario.js';
+import { PoliticaPassword } from '../value-objects/PoliticaPassword.js';
 import type { UsuarioRepository } from '../ports/UsuarioRepository.js';
 import type { EmailService } from '../ports/EmailService.js';
 import type { GeneradorId } from '../ports/GeneradorId.js';
@@ -29,23 +30,26 @@ export class RegistrarOperadorUseCase {
     // consumir 64 MiB de Argon2.
     const email = Usuario.validarEmail(dto.email);
 
-    // 1. Validar que el correo no exista
+    // 1. Validar la contraseña antes de cualquier trabajo costoso (RF-06).
+    PoliticaPassword.validar(dto.password);
+
+    // 2. Validar que el correo no exista
     const usuarioExistente = await this.usuarioRepository.buscarPorEmail(email);
     if (usuarioExistente) {
       throw new Error('El correo ya está registrado en el sistema.');
     }
 
-    // 2. Hashear la contraseña. Argon2 es deliberadamente costoso, por eso se
-    //    ejecuta después del chequeo de duplicados y nunca se registra en logs.
+    // 3. Hashear la contraseña. Argon2 es deliberadamente costoso, por eso se
+    //    ejecuta después de las validaciones y nunca se registra en logs.
     const passwordHash = await this.passwordHasher.hash(dto.password);
 
-    // 3. Generar token de invitación (24 horas)
+    // 4. Generar token de invitación (24 horas)
     const tokenInvitacion = this.generadorId.generar();
     const tokenExpiracion = new Date(
       this.reloj.ahora().getTime() + HORAS_VIGENCIA_INVITACION * 60 * 60 * 1000,
     );
 
-    // 4. Crear la entidad (aquí se aplican las reglas de negocio)
+    // 5. Crear la entidad (aquí se aplican las reglas de negocio)
     const nuevoOperador = Usuario.crear({
       id: this.generadorId.generar(),
       email,
@@ -56,16 +60,16 @@ export class RegistrarOperadorUseCase {
       tokenExpiracion,
     });
 
-    // 5. Persistir en base de datos (a través del puerto)
+    // 6. Persistir en base de datos (a través del puerto)
     //
     // Riesgo conocido: el guardado y el envío del correo son dos escrituras
     // independientes. Si el correo falla, el usuario queda PENDIENTE; el error
     // se propaga para que el llamador reintente la invitación (o para que un
     // outbox lo haga). El índice UNIQUE de email en la base es la última
-    // barrera ante dos peticiones concurrentes que pasen el paso 1.
+    // barrera ante dos peticiones concurrentes que pasen el paso 2.
     await this.usuarioRepository.guardar(nuevoOperador);
 
-    // 6. Enviar correo de invitación (a través del puerto)
+    // 7. Enviar correo de invitación (a través del puerto)
     await this.emailService.enviarInvitacion(nuevoOperador.email, tokenInvitacion);
   }
 }

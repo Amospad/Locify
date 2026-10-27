@@ -54,15 +54,7 @@ export class Usuario {
 
   // Fábrica estática para crear usuarios de forma controlada
   public static crear(props: UsuarioProps): Usuario {
-    const email = props.email.trim().toLowerCase();
-
-    if (
-      email.length === 0 ||
-      email.length > LONGITUD_MAXIMA_EMAIL ||
-      !PATRON_EMAIL.test(email)
-    ) {
-      throw new Error('El email no es válido');
-    }
+    const email = Usuario.validarEmail(props.email);
 
     if (!PATRON_HASH.test(props.passwordHash)) {
       throw new Error(
@@ -76,6 +68,25 @@ export class Usuario {
 
     // Copia defensiva: el llamador no puede mutar el estado interno de la entidad.
     return new Usuario({ ...props, email });
+  }
+
+  /**
+   * Normaliza y valida un email antes de cualquier trabajo costoso. El caso de
+   * uso la llama antes de hashear: hashear un email inválido gastaría 64 MiB
+   * de Argon2 para luego rechazarlo en `crear`.
+   */
+  public static validarEmail(email: string): string {
+    const normalizado = email.trim().toLowerCase();
+
+    if (
+      normalizado.length === 0 ||
+      normalizado.length > LONGITUD_MAXIMA_EMAIL ||
+      !PATRON_EMAIL.test(normalizado)
+    ) {
+      throw new Error('El email no es válido');
+    }
+
+    return normalizado;
   }
 
   // Rehidrata un usuario que ya existe en persistencia. No revalida los datos:

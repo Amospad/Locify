@@ -11,8 +11,15 @@ import type { UsuarioRepository } from '../../src/domain/ports/UsuarioRepository
 import type { EmailService } from '../../src/domain/ports/EmailService.js';
 import type { GeneradorId } from '../../src/domain/ports/GeneradorId.js';
 import type { Reloj } from '../../src/domain/ports/Reloj.js';
+import type { PasswordHasher } from '../../src/domain/ports/PasswordHasher.js';
 
-const HASH_BCRYPT = '$2b$12$hashDePruebaConLongitudSuficiente';
+const PASSWORD = 'ContraseñaSegura123!';
+
+/**
+ * Hash ficticio pero con el formato que exige `Usuario.crear`
+ * (`$argon2id$...`): así el doble no relaja la validación del dominio.
+ */
+const HASH_FALSO = '$argon2id$v=19$m=65536,p=4,t=3$c2FsZGUtZmFrZQ$hash_falso';
 
 class RepositorioEnMemoria implements UsuarioRepository {
   readonly guardados: Usuario[] = [];
@@ -42,6 +49,21 @@ class EmailFalso implements EmailService {
   }
 }
 
+class FakePasswordHasher implements PasswordHasher {
+  readonly hasheados: string[] = [];
+  fallar = false;
+
+  async hash(password: string): Promise<string> {
+    if (this.fallar) throw new Error('Argon2 no disponible');
+    this.hasheados.push(password);
+    return HASH_FALSO;
+  }
+
+  async compare(password: string, hash: string): Promise<boolean> {
+    return password === PASSWORD && hash === HASH_FALSO;
+  }
+}
+
 /** Genera ids deterministas: id-1, id-2, id-3... */
 class IdSecuencial implements GeneradorId {
   private secuencia = 0;
@@ -59,24 +81,27 @@ const RELOJ_FIJO: Reloj = {
 function crearCaso(): {
   repositorio: RepositorioEnMemoria;
   email: EmailFalso;
+  hasher: FakePasswordHasher;
   caso: RegistrarOperadorUseCase;
 } {
   const repositorio = new RepositorioEnMemoria();
   const email = new EmailFalso();
+  const hasher = new FakePasswordHasher();
   const caso = new RegistrarOperadorUseCase(
     repositorio,
     email,
     new IdSecuencial(),
     RELOJ_FIJO,
+    hasher,
   );
-  return { repositorio, email, caso };
+  return { repositorio, email, hasher, caso };
 }
 
 describe('RegistrarOperadorUseCase', () => {
   it('crea un operador PENDIENTE con invitación válida por 24 horas', async () => {
     const { repositorio, email, caso } = crearCaso();
 
-    await caso.ejecutar({ email: 'operador@locify.co', passwordHash: HASH_BCRYPT });
+    await caso.ejecutar({ email: 'operador@locify.co', password: PASSWORD });
 
     assert.equal(repositorio.guardados.length, 1);
     const guardado = repositorio.guardados[0]!;
@@ -97,56 +122,61 @@ describe('RegistrarOperadorUseCase', () => {
   it('normaliza el email antes de buscar duplicados y de persistir', async () => {
     const { repositorio, email, caso } = crearCaso();
 
-    await caso.ejecutar({ email: '  Operador@LOCIFY.CO  ', passwordHash: HASH_BCRYPT });
+    await caso.ejecutar({ email: '  Operador@LOCIFY.CO  ', password: PASSWORD });
 
     assert.equal(repositorio.guardados[0]?.email, 'operador@locify.co');
     assert.equal(email.enviados[0]?.destino, 'operador@locify.co');
   });
 
-  it('rechaza un email ya registrado sin volver a guardar ni enviar correo', async () => {
-    const { repositorio, email, caso } = crearCaso();
-    await caso.ejecutar({ email: 'operador@locify.co', passwordHash: HASH_BCRYPT });
+  it('hashea la contraseña una sola vez y nunca guarda el texto plano', async () => {
+    const { repositorio, hasher, caso } = crearCaso();
+
+    await caso.ejecutar({ email: 'operador@locify.co', password: PASSWORD });
+
+    assert.deepEqual(hasher.hasheados, [PASSWORD]);
+    assert.equal(repositorio.guardados[0]?.passwordHash, HASH_FALSO);
+    assert.notEqual(repositorio.guardados[0]?.passwordHash, PASSWORD);
+  });
+
+  it('rechaza un email ya registrado sin hashear, guardar ni enviar correo', async () => {
+    const { repositorio, email, hasher, caso } = crearCaso();
+    await caso.ejecutar({ email: 'operador@locify.co', password: PASSWORD });
     email.enviados.length = 0;
+    hasher.hasheados.length = 0;
 
     await assert.rejects(
-      () => caso.ejecutar({ email: 'OPERADOR@locify.co', passwordHash: HASH_BCRYPT }),
+      () => caso.ejecutar({ email: 'OPERADOR@locify.co', password: PASSWORD }),
       /ya está registrado/,
     );
 
     assert.equal(repositorio.guardados.length, 1);
     assert.equal(email.enviados.length, 0);
-  });
-
-  it('no persiste nada si el passwordHash es una contraseña en claro', async () => {
-    const { repositorio, email, caso } = crearCaso();
-
-    await assert.rejects(
-      () => caso.ejecutar({ email: 'operador@locify.co', passwordHash: 'MiClave123!' }),
-      /hash BCrypt o Argon2/,
-    );
-
-    assert.equal(repositorio.guardados.length, 0);
-    assert.equal(email.enviados.length, 0);
+    assert.equal(hasher.hasheados.length, 0, 'no debe gastar cómputo de Argon2 en un duplicado');
   });
 
   it('no persiste nada si el email es inválido', async () => {
-    const { repositorio, caso } = crearCaso();
+    const { repositorio, hasher, caso } = crearCaso();
 
     await assert.rejects(
-      () => caso.ejecutar({ email: 'sin-arroba', passwordHash: HASH_BCRYPT }),
+      () => caso.ejecutar({ email: 'sin-arroba', password: PASSWORD }),
       /El email no es válido/,
     );
 
     assert.equal(repositorio.guardados.length, 0);
+    assert.equal(hasher.hasheados.length, 0);
   });
 
-  it('conserva el hash recibido sin rehashearlo', async () => {
-    const { repositorio, caso } = crearCaso();
-    const hashArgon2 = '$argon2id$v=19$m=65536,t=3,p=4$abc$def';
+  it('propaga el fallo del hasher y no persiste ni envía correo', async () => {
+    const { repositorio, email, hasher, caso } = crearCaso();
+    hasher.fallar = true;
 
-    await caso.ejecutar({ email: 'operador@locify.co', passwordHash: hashArgon2 });
+    await assert.rejects(
+      () => caso.ejecutar({ email: 'operador@locify.co', password: PASSWORD }),
+      /Argon2 no disponible/,
+    );
 
-    assert.equal(repositorio.guardados[0]?.passwordHash, hashArgon2);
+    assert.equal(repositorio.guardados.length, 0);
+    assert.equal(email.enviados.length, 0);
   });
 
   it('propaga el fallo del correo: el usuario queda guardado y el error se informa', async () => {
@@ -154,7 +184,7 @@ describe('RegistrarOperadorUseCase', () => {
     email.fallar = true;
 
     await assert.rejects(
-      () => caso.ejecutar({ email: 'operador@locify.co', passwordHash: HASH_BCRYPT }),
+      () => caso.ejecutar({ email: 'operador@locify.co', password: PASSWORD }),
       /SMTP caído/,
     );
 

@@ -3,6 +3,7 @@ import type { UsuarioRepository } from '../../domain/ports/UsuarioRepository.js'
 import type { EmailService } from '../../domain/ports/EmailService.js';
 import type { GeneradorId } from '../../domain/ports/GeneradorId.js';
 import type { Reloj } from '../../domain/ports/Reloj.js';
+import type { PasswordHasher } from '../../domain/ports/PasswordHasher.js';
 
 export class AdminService {
   private registrarOperadorUseCase: RegistrarOperadorUseCase;
@@ -12,16 +13,19 @@ export class AdminService {
     emailService: EmailService,
     generadorId: GeneradorId,
     reloj: Reloj,
+    passwordHasher: PasswordHasher,
   ) {
     this.registrarOperadorUseCase = new RegistrarOperadorUseCase(
       usuarioRepository,
       emailService,
       generadorId,
       reloj,
+      passwordHasher,
     );
   }
 
-  public async registrarOperador(email: string, passwordHash: string) {
-    return this.registrarOperadorUseCase.ejecutar({ email, passwordHash });
+  /** Recibe la contraseña en claro; el caso de uso la hashea antes de persistir. */
+  public async registrarOperador(email: string, password: string) {
+    return this.registrarOperadorUseCase.ejecutar({ email, password });
   }
 }

@@ -32,6 +32,7 @@
 - [x] Ratificar el ADR-003 y marcar `modelo-datos.md` y `arquitectura-hexagonal.md` como módulos de un monolito modular.
 - [x] Capa HTTP mínima: `buildServer()` sin `listen`, `GET /health` con `SELECT 1`, helmet, CORS y rate limit. (`npm test` → 27/27; `curl /health` → 200 contra PostgreSQL real)
 - [x] Cerrar la trazabilidad RF→HU: **32/32** requerimientos con historia (HU-27…HU-30) y matriz actualizada.
+- [x] Hashing de contraseñas con Argon2id: puerto `PasswordHasher`, adaptador `Argon2Hasher` y `RegistrarOperador` hasheando antes de persistir. (`npm test` → 33/33)
 
 ## Auditoría Técnica (2026-10-27)
 
@@ -64,7 +65,7 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 | Bloqueante | Evidencia | Motivo |
 | :--- | :--- | :--- |
 | Sin capa HTTP ni autenticación | `src/interfaces/http/` (antes inexistente) | **Parcial:** `GET /health` en 200 contra PostgreSQL real; faltan `POST /api/operadores`, autenticación y pruebas de rate limit/CORS |
-| Sin hashing real de contraseñas | `package.json` no incluye bcrypt/argon2 | Añadir dependencia de runtime exige aprobación |
+| Sin hashing real de contraseñas | `package.json` no incluía bcrypt/argon2 | **Resuelto (2026-10-27):** puerto `PasswordHasher` + `Argon2Hasher` (Argon2id, m=65536 t=3 p=4) + `RegistrarOperador` hashea antes de persistir |
 | Sin adaptador de correo | `EmailService` sin implementación | Requiere proveedor y credenciales |
 | CI roto | `.gitlab-ci.yml:20-40`: imagen `ubuntu:24.04` sin Node y `verify.sh` inexistente | Requiere reescribir el pipeline completo |
 | `init.ps1` no parsea | Error en la línea 30 (`—` mal codificado) | Rompe el paso "Resume" del harness |
@@ -86,6 +87,25 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 - `src/index.ts`: valida `PORT` (1–65535) y `DATABASE_URL`, construye el servidor, escucha en `PORT` (3000 por defecto) y cierra ordenadamente con `SIGINT`/`SIGTERM`.
 - **Evidencia:** `npm run test:http` → **4/4**; `npm test` → **27/27**; `node dist/index.js` en el puerto 3100 + `Invoke-WebRequest /health` → `200 {"status":"ok","db":"up"}` con `x-content-type-options: nosniff`.
 - **Pendiente de este bloqueante:** `POST /api/operadores`, autenticación/RBAC y pruebas de 429 y de allowlist CORS.
+
+## Hashing con Argon2id (2026-10-27)
+
+- **Puerto:** `src/domain/ports/PasswordHasher.ts` con `hash(password)` y `compare(password, hash)`. El dominio no conoce Argon2.
+- **Adaptador:** `src/infrastructure/security/Argon2Hasher.ts` sobre `argon2@0.45.1`, con Argon2id y parámetros OWASP explícitos (`memoryCost 65536`, `timeCost 3`, `parallelism 4`). `compare` devuelve `false` ante un hash malformado en lugar de lanzar: un fallo de formato no puede convertirse en una autenticación exitosa.
+- **Caso de uso:** `RegistrarOperador` recibe `PasswordHasher` y un DTO `{ email, password }`; valida el email con `Usuario.validarEmail` **antes** de hashear (un email inválido no debe gastar 64 MiB de Argon2) y hashea después del chequeo de duplicados. La contraseña en claro nunca se guarda ni se registra.
+- **Entidad:** `Usuario.validarEmail` se extrajo de `crear` para reutilizar la misma validación sin duplicar la regex.
+- **Pruebas:** `tests/unit/HasherPassword.test.ts` (6) — prefijo `$argon2id$`, ausencia del texto plano, `compare` correcto/incorrecto, sal distinta en cada hash, parámetros en el hash; `tests/unit/RegistrarOperador.test.ts` (7) — hashing único, texto plano nunca persistido, duplicado sin gastar Argon2, fallo del hasher sin persistir.
+
+**Evidencia ejecutada**
+
+- `npm test` → **33/33** (23 unitarios + 4 HTTP + 3 de integración contra PostgreSQL).
+- `npm run build` → `tsc` sin errores.
+- `import('argon2')` en Node 24.22.1 → `OK $argon2id$v=19$m=65536,p=4,t=3` (binding precompilado; el *install script* quedó bloqueado por `allowScripts` de npm y **no** hizo falta).
+
+**Pendiente de este bloqueante**
+
+- Política de complejidad de contraseñas (RF-06): hoy se hashea cualquier cadena, incluida una vacía.
+- Flujo de activación/login que use `compare` (RF-07): el adaptador está listo, no hay ruta HTTP que lo consuma.
 
 ## Trazabilidad RF → HU cerrada (2026-10-27)
 
@@ -152,6 +172,8 @@ El negocio pidió que la App del Cliente (conductores) deje de plantearse como a
 **Criterio de aceptación:** `npm test` verde sin abrir puertos; `npm start` + `curl -X POST /api/operadores` → 201 y en la base solo hay un hash; `/health` → 200; `curl` con email inválido → 400.
 
 ### Bloqueante 2 — Hashing (2–3 días, paralelizable)
+
+**Estado: cerrado el 2026-10-27.** Ver "Hashing con Argon2id" más arriba para la evidencia. Queda pendiente la política de complejidad (RF-06), que este bloqueante no cubría.
 
 1. *Spike* de 30 min: `npm i argon2` en Node 24 / Windows. Si no hay binario precompilado, usar `bcryptjs` (JS puro) y registrar el cambio de algoritmo en el ADR-004.
 2. `src/domain/ports/PasswordHasher.ts`: `hashear(password: string): Promise<string>` y `verificar(hash: string, password: string): Promise<boolean>`.

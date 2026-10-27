@@ -3,12 +3,14 @@ import type { UsuarioRepository } from '../ports/UsuarioRepository.js';
 import type { EmailService } from '../ports/EmailService.js';
 import type { GeneradorId } from '../ports/GeneradorId.js';
 import type { Reloj } from '../ports/Reloj.js';
+import type { PasswordHasher } from '../ports/PasswordHasher.js';
 
 const HORAS_VIGENCIA_INVITACION = 24;
 
 interface RegistrarOperadorDTO {
   email: string;
-  passwordHash: string;
+  /** Contraseña en claro; sólo vive en memoria hasta que se hashea. */
+  password: string;
 }
 
 export class RegistrarOperadorUseCase {
@@ -17,12 +19,15 @@ export class RegistrarOperadorUseCase {
     private readonly emailService: EmailService,
     private readonly generadorId: GeneradorId,
     private readonly reloj: Reloj,
+    private readonly passwordHasher: PasswordHasher,
   ) {}
 
   public async ejecutar(dto: RegistrarOperadorDTO): Promise<void> {
-    // Se normaliza antes de consultar: PostgreSQL compara emails distinguiendo
-    // mayúsculas, así que "Admin@X.co" y "admin@x.co" serían cuentas distintas.
-    const email = dto.email.trim().toLowerCase();
+    // Se normaliza y valida antes de consultar y antes de hashear: PostgreSQL
+    // compara emails distinguiendo mayúsculas, así que "Admin@X.co" y
+    // "admin@x.co" serían cuentas distintas, y un email inválido no debe
+    // consumir 64 MiB de Argon2.
+    const email = Usuario.validarEmail(dto.email);
 
     // 1. Validar que el correo no exista
     const usuarioExistente = await this.usuarioRepository.buscarPorEmail(email);
@@ -30,24 +35,28 @@ export class RegistrarOperadorUseCase {
       throw new Error('El correo ya está registrado en el sistema.');
     }
 
-    // 2. Generar token de invitación (24 horas)
+    // 2. Hashear la contraseña. Argon2 es deliberadamente costoso, por eso se
+    //    ejecuta después del chequeo de duplicados y nunca se registra en logs.
+    const passwordHash = await this.passwordHasher.hash(dto.password);
+
+    // 3. Generar token de invitación (24 horas)
     const tokenInvitacion = this.generadorId.generar();
     const tokenExpiracion = new Date(
       this.reloj.ahora().getTime() + HORAS_VIGENCIA_INVITACION * 60 * 60 * 1000,
     );
 
-    // 3. Crear la entidad (aquí se aplican las reglas de negocio)
+    // 4. Crear la entidad (aquí se aplican las reglas de negocio)
     const nuevoOperador = Usuario.crear({
       id: this.generadorId.generar(),
       email,
-      passwordHash: dto.passwordHash,
+      passwordHash,
       rol: RolUsuario.OPERADOR,
       estado: EstadoUsuario.PENDIENTE,
       tokenInvitacion,
       tokenExpiracion,
     });
 
-    // 4. Persistir en base de datos (a través del puerto)
+    // 5. Persistir en base de datos (a través del puerto)
     //
     // Riesgo conocido: el guardado y el envío del correo son dos escrituras
     // independientes. Si el correo falla, el usuario queda PENDIENTE; el error
@@ -56,7 +65,7 @@ export class RegistrarOperadorUseCase {
     // barrera ante dos peticiones concurrentes que pasen el paso 1.
     await this.usuarioRepository.guardar(nuevoOperador);
 
-    // 5. Enviar correo de invitación (a través del puerto)
+    // 6. Enviar correo de invitación (a través del puerto)
     await this.emailService.enviarInvitacion(nuevoOperador.email, tokenInvitacion);
   }
 }

@@ -1,3 +1,5 @@
+import { ErrorDeValidacion } from '../errors/ErrorDeValidacion.js';
+
 export enum RolUsuario {
   CONDUCTOR = 'CONDUCTOR',
   OPERADOR = 'OPERADOR',
@@ -83,7 +85,7 @@ export class Usuario {
       normalizado.length > LONGITUD_MAXIMA_EMAIL ||
       !PATRON_EMAIL.test(normalizado)
     ) {
-      throw new Error('El email no es válido');
+      throw new ErrorDeValidacion('El email no es válido');
     }
 
     return normalizado;

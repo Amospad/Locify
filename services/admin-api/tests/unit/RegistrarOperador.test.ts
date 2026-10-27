@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { RegistrarOperadorUseCase } from '../../src/domain/use-cases/RegistrarOperador.js';
+import { ErrorEnvioDeInvitacion } from '../../src/domain/errors/ErrorEnvioDeInvitacion.js';
 import {
   Usuario,
   RolUsuario,
@@ -101,10 +102,12 @@ describe('RegistrarOperadorUseCase', () => {
   it('crea un operador PENDIENTE con invitación válida por 24 horas', async () => {
     const { repositorio, email, caso } = crearCaso();
 
-    await caso.ejecutar({ email: 'operador@locify.co', password: PASSWORD });
+    const resultado = await caso.ejecutar({ email: 'operador@locify.co', password: PASSWORD });
 
     assert.equal(repositorio.guardados.length, 1);
     const guardado = repositorio.guardados[0]!;
+    // Sólo id y email salen del caso de uso: ni hash, ni token, ni contraseña.
+    assert.deepEqual(resultado, { id: guardado.id, email: 'operador@locify.co' });
     assert.equal(guardado.rol, RolUsuario.OPERADOR);
     assert.equal(guardado.estado, EstadoUsuario.PENDIENTE);
     assert.equal(guardado.email, 'operador@locify.co');
@@ -203,13 +206,19 @@ describe('RegistrarOperadorUseCase', () => {
     assert.equal(email.enviados.length, 0);
   });
 
-  it('propaga el fallo del correo: el usuario queda guardado y el error se informa', async () => {
+  it('propaga un error de envío identificable: el usuario queda guardado y la causa se conserva', async () => {
     const { repositorio, email, caso } = crearCaso();
     email.fallar = true;
 
     await assert.rejects(
       () => caso.ejecutar({ email: 'operador@locify.co', password: PASSWORD }),
-      /SMTP caído/,
+      (error: unknown) => {
+        assert.ok(error instanceof ErrorEnvioDeInvitacion);
+        assert.match(error.message, /invitación/);
+        // La causa original se conserva para el log del servidor (HTTP responde 502).
+        assert.match(String((error.cause as Error).message), /SMTP caído/);
+        return true;
+      },
     );
 
     // Documenta el riesgo de doble escritura: no hay transacción ni outbox.

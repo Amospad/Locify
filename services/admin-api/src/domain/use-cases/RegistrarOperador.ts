@@ -1,5 +1,7 @@
 import { Usuario, RolUsuario, EstadoUsuario } from '../entities/Usuario.js';
 import { PoliticaPassword } from '../value-objects/PoliticaPassword.js';
+import { ErrorDeConflicto } from '../errors/ErrorDeConflicto.js';
+import { ErrorEnvioDeInvitacion } from '../errors/ErrorEnvioDeInvitacion.js';
 import type { UsuarioRepository } from '../ports/UsuarioRepository.js';
 import type { EmailService } from '../ports/EmailService.js';
 import type { GeneradorId } from '../ports/GeneradorId.js';
@@ -14,6 +16,15 @@ interface RegistrarOperadorDTO {
   password: string;
 }
 
+/**
+ * Resultado del registro. Es lo único que la capa HTTP puede devolver:
+ * nunca el hash, ni el token de invitación, ni la contraseña.
+ */
+export interface OperadorRegistrado {
+  id: string;
+  email: string;
+}
+
 export class RegistrarOperadorUseCase {
   constructor(
     private readonly usuarioRepository: UsuarioRepository,
@@ -23,7 +34,7 @@ export class RegistrarOperadorUseCase {
     private readonly passwordHasher: PasswordHasher,
   ) {}
 
-  public async ejecutar(dto: RegistrarOperadorDTO): Promise<void> {
+  public async ejecutar(dto: RegistrarOperadorDTO): Promise<OperadorRegistrado> {
     // Se normaliza y valida antes de consultar y antes de hashear: PostgreSQL
     // compara emails distinguiendo mayúsculas, así que "Admin@X.co" y
     // "admin@x.co" serían cuentas distintas, y un email inválido no debe
@@ -36,7 +47,7 @@ export class RegistrarOperadorUseCase {
     // 2. Validar que el correo no exista
     const usuarioExistente = await this.usuarioRepository.buscarPorEmail(email);
     if (usuarioExistente) {
-      throw new Error('El correo ya está registrado en el sistema.');
+      throw new ErrorDeConflicto('El correo ya está registrado en el sistema.');
     }
 
     // 3. Hashear la contraseña. Argon2 es deliberadamente costoso, por eso se
@@ -70,6 +81,16 @@ export class RegistrarOperadorUseCase {
     await this.usuarioRepository.guardar(nuevoOperador);
 
     // 7. Enviar correo de invitación (a través del puerto)
-    await this.emailService.enviarInvitacion(nuevoOperador.email, tokenInvitacion);
+    //
+    // Si el envío falla, el operador ya está persistido: se lanza un error
+    // propio para que HTTP responda 502 ("creado, invitación no enviada") y el
+    // llamador reintente la invitación, no el registro (que daría 409).
+    try {
+      await this.emailService.enviarInvitacion(nuevoOperador.email, tokenInvitacion);
+    } catch (error) {
+      throw new ErrorEnvioDeInvitacion(error);
+    }
+
+    return { id: nuevoOperador.id, email: nuevoOperador.email };
   }
 }

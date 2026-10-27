@@ -18,13 +18,54 @@ if (!process.env['DATABASE_URL']) {
 
 // Importación dinámica para que el mensaje anterior salga antes de que
 // `prisma/db.ts` intente conectarse con una URL ausente.
-const [{ buildServer }, { PostgresConsultadorDeBaseDeDatos }] = await Promise.all([
+const [
+  { buildServer },
+  { PostgresConsultadorDeBaseDeDatos },
+  { PostgresUsuarioRepository },
+  { Argon2Hasher },
+  { CryptoGeneradorId },
+  { RelojSistema },
+  { EmailConsola },
+  { AdminService },
+] = await Promise.all([
   import('./interfaces/http/server.js'),
   import('./infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.js'),
+  import('./infrastructure/persistence/PostgresUsuarioRepository.js'),
+  import('./infrastructure/security/Argon2Hasher.js'),
+  import('./infrastructure/id/CryptoGeneradorId.js'),
+  import('./infrastructure/time/RelojSistema.js'),
+  import('./infrastructure/email/EmailConsola.js'),
+  import('./application/services/AdminService.js'),
 ]);
 
 const db = new PostgresConsultadorDeBaseDeDatos();
-const app = await buildServer({ db }, { logger: true });
+
+// El adaptador de correo es el único que puede negarse a arrancar en
+// producción (imprimir el token de invitación en un log sería una fuga).
+const emailService = (() => {
+  try {
+    return new EmailConsola();
+  } catch (error) {
+    console.error(
+      `[admin-api] ${error instanceof Error ? error.message : String(error)}`,
+    );
+    process.exit(1);
+  }
+})();
+
+/**
+ * Composition root: único lugar que conoce adaptadores concretos.
+ * El dominio y la capa HTTP sólo ven puertos.
+ */
+const adminService = new AdminService(
+  new PostgresUsuarioRepository(),
+  emailService,
+  new CryptoGeneradorId(),
+  new RelojSistema(),
+  new Argon2Hasher(),
+);
+
+const app = await buildServer({ db, adminService }, { logger: true });
 
 try {
   await app.listen({ port: puerto, host: process.env['HOST'] ?? '0.0.0.0' });

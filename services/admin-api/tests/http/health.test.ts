@@ -12,9 +12,14 @@ function dbFalsa(consultar: () => Promise<readonly unknown[]>): ConsultadorDeBas
   };
 }
 
+/** El registro de operadores no participa en /health: doble inerte. */
+const REGISTRADOR_FALSO = {
+  registrarOperador: async () => ({ id: 'id-1', email: 'operador@locify.co' }),
+};
+
 async function servidorCon(db: ConsultadorDeBaseDeDatos): Promise<FastifyInstance> {
   // Sin `listen`: `inject` atiende la petición en memoria y no ocupa puerto.
-  return buildServer({ db });
+  return buildServer({ db, adminService: REGISTRADOR_FALSO });
 }
 
 test('GET /health responde 200 cuando la base responde', async () => {

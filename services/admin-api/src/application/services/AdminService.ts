@@ -1,4 +1,5 @@
 import { RegistrarOperadorUseCase } from '../../domain/use-cases/RegistrarOperador.js';
+import type { OperadorRegistrado } from '../../domain/use-cases/RegistrarOperador.js';
 import type { UsuarioRepository } from '../../domain/ports/UsuarioRepository.js';
 import type { EmailService } from '../../domain/ports/EmailService.js';
 import type { GeneradorId } from '../../domain/ports/GeneradorId.js';
@@ -25,7 +26,7 @@ export class AdminService {
   }
 
   /** Recibe la contraseña en claro; el caso de uso la hashea antes de persistir. */
-  public async registrarOperador(email: string, password: string) {
+  public async registrarOperador(email: string, password: string): Promise<OperadorRegistrado> {
     return this.registrarOperadorUseCase.ejecutar({ email, password });
   }
 }

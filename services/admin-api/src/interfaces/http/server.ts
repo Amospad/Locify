@@ -4,9 +4,12 @@ import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import type { ConsultadorDeBaseDeDatos } from '../../application/ports/ConsultadorDeBaseDeDatos.js';
 import { rutasSalud } from './routes/health.js';
+import { rutasOperadores, type RegistradorDeOperadores } from './routes/operadores.js';
+import { registrarManejadorDeErrores } from './errores.js';
 
 export interface DependenciasHttp {
   db: ConsultadorDeBaseDeDatos;
+  adminService: RegistradorDeOperadores;
 }
 
 export interface OpcionesServidor {
@@ -38,6 +41,15 @@ export async function buildServer(
   opciones: OpcionesServidor = {},
 ): Promise<FastifyInstance> {
   const app = Fastify({
+    // Fastify elimina por defecto las propiedades extra en lugar de
+    // rechazarlas. Aquí el contrato es explícito: un campo no declarado en el
+    // esquema (p. ej. `rol`) debe devolver 400, no ignorarse en silencio.
+    ajv: {
+      customOptions: {
+        removeAdditional: false,
+        coerceTypes: false,
+      },
+    },
     logger: opciones.logger
       ? {
           level: process.env['LOG_LEVEL'] ?? 'info',
@@ -57,7 +69,10 @@ export async function buildServer(
     timeWindow: '1 minute',
   });
 
+  registrarManejadorDeErrores(app);
+
   await app.register(rutasSalud, { db: deps.db });
+  await app.register(rutasOperadores, { adminService: deps.adminService });
 
   return app;
 }

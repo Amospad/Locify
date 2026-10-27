@@ -7,6 +7,7 @@
 - [x] Auditoría técnica de código, documentación y arquitectura (2026-10-27)
 - [x] Ratificación del ADR-003: monolito modular con un esquema por módulo (2026-10-27)
 - [x] Capa HTTP mínima: `buildServer()` (sin `listen`) + `GET /health` con Fastify, helmet, CORS y rate limit (2026-10-27)
+- [x] Registro de operadores por HTTP: `POST /api/operadores` + composition root en `src/index.ts` (2026-10-27)
 - [x] Cambio de alcance: App del Cliente como PWA *mobile-first* usable también desde escritorio (2026-10-27)
 - [x] Trazabilidad RF→HU al 100 % (32/32) con 30 historias de usuario (2026-10-27)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
@@ -34,6 +35,7 @@
 - [x] Cerrar la trazabilidad RF→HU: **32/32** requerimientos con historia (HU-27…HU-30) y matriz actualizada.
 - [x] Hashing de contraseñas con Argon2id: puerto `PasswordHasher`, adaptador `Argon2Hasher` y `RegistrarOperador` hasheando antes de persistir. (`npm test` → 33/33)
 - [x] Política de complejidad de contraseñas (RF-06): 12–128 caracteres, 4 categorías, 100 contraseñas comunes rechazadas, validada antes del hasher. (`npm test` → 53/53)
+- [x] Registro de operadores de extremo a extremo: `POST /api/operadores` (201/400/409/502/429) con composition root real y verificación contra PostgreSQL. (`npm test` → 64/64)
 
 ## Auditoría Técnica (2026-10-27)
 
@@ -65,7 +67,7 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 | Bloqueante | Evidencia | Motivo |
 | :--- | :--- | :--- |
-| Sin capa HTTP ni autenticación | `src/interfaces/http/` (antes inexistente) | **Parcial:** `GET /health` en 200 contra PostgreSQL real; faltan `POST /api/operadores`, autenticación y pruebas de rate limit/CORS |
+| Sin capa HTTP ni autenticación | `src/interfaces/http/` (antes inexistente) | **Parcial:** `POST /api/operadores` verificado E2E (201/400/409/502/429) y `GET /health` en 200; faltan autenticación/RBAC y pruebas de allowlist CORS |
 | Sin hashing real de contraseñas | `package.json` no incluía bcrypt/argon2 | **Resuelto (2026-10-27):** puerto `PasswordHasher` + `Argon2Hasher` (Argon2id, m=65536 t=3 p=4) + `RegistrarOperador` hashea antes de persistir |
 | Sin adaptador de correo | `EmailService` sin implementación | Requiere proveedor y credenciales |
 | CI roto | `.gitlab-ci.yml:20-40`: imagen `ubuntu:24.04` sin Node y `verify.sh` inexistente | Requiere reescribir el pipeline completo |
@@ -87,7 +89,32 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 - `src/application/ports/ConsultadorDeBaseDeDatos.ts` + `src/infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.ts`: puerto y adaptador del chequeo; el dominio y la capa HTTP no conocen Prisma.
 - `src/index.ts`: valida `PORT` (1–65535) y `DATABASE_URL`, construye el servidor, escucha en `PORT` (3000 por defecto) y cierra ordenadamente con `SIGINT`/`SIGTERM`.
 - **Evidencia:** `npm run test:http` → **4/4**; `npm test` → **27/27**; `node dist/index.js` en el puerto 3100 + `Invoke-WebRequest /health` → `200 {"status":"ok","db":"up"}` con `x-content-type-options: nosniff`.
-- **Pendiente de este bloqueante:** `POST /api/operadores`, autenticación/RBAC y pruebas de 429 y de allowlist CORS.
+- **Pendiente de este bloqueante:** autenticación/RBAC y pruebas de allowlist CORS. (`POST /api/operadores` y el 429 quedaron cerrados el 2026-10-27; ver la sección siguiente.)
+
+## Registro de operadores por HTTP (2026-10-27)
+
+**El flujo completo ya se ejecuta de extremo a extremo**, no sólo en pruebas.
+
+- `src/interfaces/http/routes/operadores.ts`: `POST /api/operadores` con JSON Schema (`required: ['email','password']`, `additionalProperties: false`, `maxLength` 254/128) y rate limit propio de 10 req/min. Responde `201 { id, email }` —nunca hash, token ni contraseña— y delega la complejidad de la contraseña en `PoliticaPassword` para que exista un único mensaje de error.
+- `src/interfaces/http/errores.ts`: `mapearError` traduce **tipos, no mensajes**: `ErrorDeValidacion → 400`, `ErrorDeConflicto → 409`, `ErrorEnvioDeInvitacion → 502`. El manejador global normaliza los 400 de esquema y responde 500 sin `stack` ni detalles de Prisma/SMTP.
+- `src/domain/errors/`: tres errores con nombre propio. `ErrorEnvioDeInvitacion` conserva la causa (`cause`) para el log.
+- **Composition root en `src/index.ts`** (desviación consciente del plan, que proponía `src/composition.ts`): instancia `PostgresUsuarioRepository`, `Argon2Hasher`, `CryptoGeneradorId`, `RelojSistema`, `EmailConsola` y `AdminService`, y los inyecta en `buildServer({ db, adminService })`. El dominio y la capa HTTP sólo ven puertos.
+- `src/infrastructure/email/EmailConsola.ts`: imprime el enlace de invitación en desarrollo y **se niega a arrancar** con `NODE_ENV=production` salvo `EMAIL_CONSOLA_PERMITIDA=true`: el token es una credencial y el log no es un canal seguro.
+- Fastify se configura con `removeAdditional: false` y `coerceTypes: false`; por defecto Fastify **elimina** las propiedades extra en lugar de rechazarlas, lo que habría dejado pasar `{"rol":"ADMIN"}` en silencio.
+- `RegistrarOperador.ejecutar` ahora devuelve `OperadorRegistrado { id, email }` (antes `void`) y envuelve el fallo del correo en `ErrorEnvioDeInvitacion`.
+
+**Evidencia ejecutada**
+
+- `npm test` → **64/64** (46 unitarios + 15 HTTP + 3 de integración contra PostgreSQL), 0 fallos. `tests/http/operadores.test.ts` cubre 11 casos: 201, normalización del email, 409, 400 (política, longitud, email, campo faltante, propiedad extra, contraseña > 128), 502 y 429.
+- `npm run build` → `tsc` sin errores.
+- **E2E contra PostgreSQL real** (`node dist/index.js`, puerto 3131): `POST /api/operadores` → `201 {"id":"99b2972f-…","email":"e2e-…@locify.test"}`; repetido → `409`; contraseña sin mayúscula → `400`; `GET /health` → `200`. En la base quedó `estado=PENDIENTE`, `rol=OPERADOR`, `hash=$argon2id$v=19$m=65536,p=4,t=3$…`, token presente y expiración a 24 h; la fila de prueba se eliminó después.
+- El log de `EmailConsola` mostró el enlace `/activar?token=…`, lo que prueba que el composition root conecta el caso de uso con el adaptador de correo.
+
+**Riesgos que siguen abiertos**
+
+- Si el correo falla, el operador queda persistido y la respuesta es 502: reintentar el registro da 409. Falta el endpoint de reinvitación (bloqueante 3) o un outbox.
+- Una colisión real del índice UNIQUE (dos peticiones concurrentes) no se traduce a 409: llega como 500, porque la comprobación previa no es atómica.
+- No hay autenticación ni RBAC: `POST /api/operadores` queda protegido sólo por rate limit. **No debe exponerse a Internet** hasta implementar login/sesión.
 
 ## Hashing con Argon2id (2026-10-27)
 
@@ -171,6 +198,8 @@ El negocio pidió que la App del Cliente (conductores) deje de plantearse como a
 
 ### Bloqueante 1 — Capa HTTP (5–6 días)
 
+**Estado: cerrado el 2026-10-27.** `GET /health`, `POST /api/operadores`, mapeo de errores y composition root implementados y verificados; ver "Registro de operadores por HTTP". Dos desviaciones: el composition root vive en `src/index.ts` (no en `src/composition.ts`, por indicación del alcance) y el logger con `redact` ya estaba en `buildServer`. Pendientes de este bloqueante: autenticación/RBAC y pruebas de allowlist CORS.
+
 **Decisión a registrar en `ADR-004`:** Fastify 5 (validación por JSON Schema, sin decoradores). Alternativa si el equipo prefiere lo conocido: Express + `zod`.
 
 1. `npm i fastify @fastify/helmet @fastify/cors @fastify/rate-limit` (esto es la dependencia de runtime que exige aprobación del equipo; queda cubierta por el ADR-004).
@@ -216,11 +245,11 @@ El negocio pidió que la App del Cliente (conductores) deje de plantearse como a
 
 ### Definición de hecho del sprint
 
-- [ ] `npm run build` y `npm test` verdes en local.
-- [ ] `npm start` deja `/health` en 200 contra la base real.
-- [ ] Registro por HTTP → 201, solo hash en la base e invitación enviada.
-- [ ] `.env.example` actualizado y ningún secreto en el repositorio.
-- [ ] `PROJECT_STATE.md` y `session-handoff.md` con la evidencia de cada bloqueante cerrado.
+- [x] `npm run build` y `npm test` verdes en local. (`npm test` → 64/64)
+- [x] `npm start` deja `/health` en 200 contra la base real.
+- [x] Registro por HTTP → 201, solo hash en la base e invitación generada por `EmailConsola` (SMTP real sigue pendiente).
+- [x] `.env.example` actualizado y ningún secreto en el repositorio.
+- [x] `PROJECT_STATE.md` con la evidencia de cada bloqueante cerrado.
 
 ## Documentación Web (Docusaurus + Vercel)
 

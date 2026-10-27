@@ -1,3 +1,5 @@
+import { ErrorDeValidacion } from '../errors/ErrorDeValidacion.js';
+
 /**
  * Lista de contraseñas comunes (filtraciones públicas y variantes obvias en
  * español). Se compara en minúsculas y por coincidencia exacta: no pretende
@@ -51,35 +53,35 @@ export class PoliticaPassword {
     const longitud = Array.from(password).length;
 
     if (longitud < LONGITUD_MINIMA) {
-      throw new Error(
+      throw new ErrorDeValidacion(
         `La contraseña debe tener al menos ${LONGITUD_MINIMA} caracteres.`,
       );
     }
 
     if (longitud > LONGITUD_MAXIMA) {
-      throw new Error(
+      throw new ErrorDeValidacion(
         `La contraseña no puede superar los ${LONGITUD_MAXIMA} caracteres.`,
       );
     }
 
     if (!TIENE_MAYUSCULA.test(password)) {
-      throw new Error('La contraseña debe incluir al menos una mayúscula.');
+      throw new ErrorDeValidacion('La contraseña debe incluir al menos una mayúscula.');
     }
 
     if (!TIENE_MINUSCULA.test(password)) {
-      throw new Error('La contraseña debe incluir al menos una minúscula.');
+      throw new ErrorDeValidacion('La contraseña debe incluir al menos una minúscula.');
     }
 
     if (!TIENE_NUMERO.test(password)) {
-      throw new Error('La contraseña debe incluir al menos un número.');
+      throw new ErrorDeValidacion('La contraseña debe incluir al menos un número.');
     }
 
     if (!TIENE_ESPECIAL.test(password)) {
-      throw new Error('La contraseña debe incluir al menos un carácter especial.');
+      throw new ErrorDeValidacion('La contraseña debe incluir al menos un carácter especial.');
     }
 
     if (CONTRASEÑAS_COMUNES.has(password.toLowerCase())) {
-      throw new Error(
+      throw new ErrorDeValidacion(
         'La contraseña es demasiado común; elige una que no aparezca en listas de filtraciones.',
       );
     }

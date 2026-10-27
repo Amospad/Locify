@@ -5,7 +5,7 @@ title: ADR-003 — Monolito modular antes que microservicios
 
 # ADR-003: Monolito modular antes que microservicios
 
-- **Estado:** Propuesto (requiere ratificación del equipo; no cambia código por sí solo)
+- **Estado:** **Aceptado** (ratificado por el equipo el 2026-10-27)
 - **Fecha:** 2026-10-27
 - **Decisores:** Andrés Mosquera, Lilia Torres, Denis Cuervo
 - **Relacionado:** ADR-001 (arquitectura hexagonal), ADR-002 (modelo híbrido de reservas), RNF-05, RNF-06
@@ -64,4 +64,10 @@ Un módulo se extrae solo cuando se cumple **al menos dos** de estas condiciones
 
 ## Impacto documental
 
-Si se ratifica, deben actualizarse `modelo-datos.md` (sección database-per-service), `arquitectura-hexagonal.md` (número de servicios) y `PROJECT_STATE.md`. Mientras el estado sea **Propuesto**, este ADR no modifica lo ya escrito: lo cuestiona.
+Al quedar **Aceptado**, la decisión es vinculante para el diseño:
+
+- `modelo-datos.md` mantiene el diagrama como **modelo lógico**, pero la implementación usa un esquema por módulo (`admin`, `operador`, `cliente`) en un solo clúster, no tres bases separadas.
+- `arquitectura-hexagonal.md` debe leerse como **cuatro módulos** del monolito (`identidad`, `operador`, `cliente`, `pagos`), no como cuatro despliegues independientes.
+- `PROJECT_STATE.md` registra la ratificación y el plan del próximo sprint.
+
+Queda pendiente reescribir la sección "database-per-service" de `modelo-datos.md` para describir esquemas en lugar de clústeres. Hasta entonces, ambas páginas llevan una nota que apunta a este ADR.

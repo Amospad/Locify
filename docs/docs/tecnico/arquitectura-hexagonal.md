@@ -17,7 +17,11 @@ La Arquitectura Hexagonal resuelve esto poniendo el **Dominio (lógica de negoci
 
 ## 2. Las 4 Capas de LOCIFY
 
-El microservicio implementado (`admin-api`) sigue esta estructura. Los otros tres (`cliente-api`, `operador-api`, `pago-worker`) están especificados en la documentación pero **todavía no existen en el repositorio**; la estructura es esta:
+El módulo implementado (`admin-api`) sigue esta estructura. Los otros tres (`cliente-api`, `operador-api`, `pago-worker`) están especificados en la documentación pero **todavía no existen en el repositorio**; la estructura es esta:
+
+:::info Decisión vigente
+El [ADR-003](../adr/ADR-003-monolito-modular-vs-microservicios.md) quedó **Aceptado** el 2026-10-27: los cuatro nombres anteriores son **módulos de un monolito modular**, no servicios con despliegue independiente. Cada módulo conserva su propio hexágono y su propio esquema de base de datos.
+:::
 
 ```mermaid
 flowchart TD

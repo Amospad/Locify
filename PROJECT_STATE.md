@@ -5,8 +5,9 @@
 - [x] Publicación de la documentación en Vercel con rediseño UI/UX
 - [x] Configuración de Skills (QA, CI/CD, Seguridad, Diseño)
 - [x] Auditoría técnica de código, documentación y arquitectura (2026-10-27)
-- [ ] Implementación de Microservicio `admin-api` (Prisma + PostgreSQL)
-- [ ] Implementación de los demás microservicios
+- [x] Ratificación del ADR-003: monolito modular con un esquema por módulo (2026-10-27)
+- [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
+- [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
 ## Stack Tecnológico
 - Backend: Node.js + TypeScript + Prisma
@@ -16,7 +17,7 @@
 ## Decisiones Clave (ADRs)
 - ADR-001: Arquitectura Hexagonal.
 - ADR-002: Modelo Híbrido de Reservas.
-- ADR-003: Monolito modular antes que microservicios (**Propuesto**, pendiente de ratificación).
+- ADR-003: Monolito modular antes que microservicios (**Aceptado**, ratificado el 2026-10-27; un esquema por módulo).
 - Decisión de negocio (no es ADR): buffer de seguridad del 95 % de celdas, documentado en `docs/docs/formativo/09-modelo-negocio-y-resiliencia.md`.
 
 ## Tareas Pendientes (Backlog Técnico)
@@ -24,6 +25,7 @@
 - [x] Aplicar el contrato de Prisma a PostgreSQL. (`npm run db:init` → tabla `usuario` con índice único en `email` y checks de enums)
 - [x] Implementar el adaptador `PostgresUsuarioRepository`. (`npm test` → 23/23 tests verdes: 20 unitarios + 3 de integración real contra PostgreSQL)
 - [x] Documentar la arquitectura de agentes IA. (`docs/docs/tecnico/arquitectura-agentes.md` + sección "Automatización y Agentes de IA" en el documento formativo 09)
+- [x] Ratificar el ADR-003 y marcar `modelo-datos.md` y `arquitectura-hexagonal.md` como módulos de un monolito modular.
 
 ## Auditoría Técnica (2026-10-27)
 
@@ -69,6 +71,71 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 - `services/admin-api`: `npm run build` limpio; `npm run test:unit` → **20/20**; `npm run test:repo` → **3/3**.
 - `docs`: `npm run build` → `Generated static files in "build"`; el HTML emitido no contiene el texto de PowerShell y `modelo-datos` renderiza sus cinco secciones como encabezados.
+
+## Plan del Próximo Sprint (bloqueantes de producción)
+
+- **Objetivo:** que `admin-api` atienda peticiones HTTP reales, guarde contraseñas hasheadas y envíe la invitación por correo.
+- **Duración sugerida:** 2 semanas.
+- **Orden:** 0 → 1 → 2 → 3. El paso 0 es común; los bloqueantes 2 y 3 son paralelizables entre dos personas; el bloqueante 1 integra a los otros dos al final.
+
+### Paso 0 — Base común (1 día, antes de los tres bloqueantes)
+
+1. `src/config/env.ts`: validar el entorno al arrancar con un validador propio (≈30 líneas, sin dependencia nueva): `PORT` numérico (3000 por defecto), `NODE_ENV` (`development`/`test`/`production`), `DATABASE_URL` obligatoria, `CORS_ORIGINS` (lista separada por comas), `EMAIL_DRIVER` (`console`/`smtp`) y, si `EMAIL_DRIVER=smtp`, las cinco `SMTP_*`. Si falta una obligatoria, el proceso termina con un mensaje que nombre la variable.
+2. `tests/unit/env.test.ts`: falta `DATABASE_URL` → error con su nombre; `PORT=abc` → error; `EMAIL_DRIVER=smtp` sin `SMTP_HOST` → error.
+3. Añadir `tests/http/*.test.ts` al script `test` de `package.json` y crear `"test:http": "node --import tsx --test tests/http/*.test.ts"`.
+
+**Criterio de aceptación:** `npm run test:unit` verde y `npm start` sin `.env` falla indicando la variable faltante.
+
+### Bloqueante 1 — Capa HTTP (5–6 días)
+
+**Decisión a registrar en `ADR-004`:** Fastify 5 (validación por JSON Schema, sin decoradores). Alternativa si el equipo prefiere lo conocido: Express + `zod`.
+
+1. `npm i fastify @fastify/helmet @fastify/cors @fastify/rate-limit` (esto es la dependencia de runtime que exige aprobación del equipo; queda cubierta por el ADR-004).
+2. **Prueba primero** `tests/http/health.test.ts`: `const app = await buildServer(deps); const res = await app.inject({ method: 'GET', url: '/health' });` con `assert.equal(res.statusCode, 200)`. Correr `npm run test:http` y confirmar que falla por módulo inexistente.
+3. `src/interfaces/http/server.ts`: `buildServer(deps: Dependencias): FastifyInstance`, **sin** `listen` (para poder probar con `inject`). Registrar `helmet`, `cors` con la allowlist de `CORS_ORIGINS`, `rateLimit` global 100 req/min por IP y 10 req/min en `/api/operadores`. Logger con `redact: ['req.body.password', 'req.headers.authorization']`.
+4. `src/interfaces/http/errores.ts`: `setErrorHandler` que traduce `ErrorValidacion → 400`, `EmailDuplicado → 409`, `ErrorEnvioCorreo → 502` y el resto → 500 sin filtrar `stack` ni detalles de Prisma.
+5. `src/interfaces/http/routes/health.ts`: `GET /health` ejecuta `SELECT 1` y responde `{ status: 'ok', db: 'up' }`; 503 si la base no responde.
+6. `src/interfaces/http/routes/operadores.ts`: `POST /api/operadores` con schema `{ email, password }`, `additionalProperties: false`; responde `201 { id }` (nunca el hash ni el token).
+7. `src/composition.ts`: único lugar que instancia adaptadores (`PostgresUsuarioRepository`, hasher, correo, `CryptoGeneradorId`, `RelojSistema`) y arma `AdminService`. `src/index.ts` solo llama `buildServer`, `listen` y cierra con `SIGTERM`.
+8. `tests/http/operadores.test.ts`: 201 válido, 400 email inválido, 400 campo extra, 409 duplicado, 429 al superar el límite, y que la respuesta no contenga `password_hash`.
+
+**Criterio de aceptación:** `npm test` verde sin abrir puertos; `npm start` + `curl -X POST /api/operadores` → 201 y en la base solo hay un hash; `/health` → 200; `curl` con email inválido → 400.
+
+### Bloqueante 2 — Hashing (2–3 días, paralelizable)
+
+1. *Spike* de 30 min: `npm i argon2` en Node 24 / Windows. Si no hay binario precompilado, usar `bcryptjs` (JS puro) y registrar el cambio de algoritmo en el ADR-004.
+2. `src/domain/ports/PasswordHasher.ts`: `hashear(password: string): Promise<string>` y `verificar(hash: string, password: string): Promise<boolean>`.
+3. `src/domain/services/PoliticaPassword.ts`: 12–128 caracteres, al menos una mayúscula, una minúscula, un dígito y un símbolo; rechaza las 1000 contraseñas más comunes (`politica-passwords-comunes.ts`).
+4. `src/infrastructure/security/Argon2PasswordHasher.ts`: Argon2id con `memoryCost 19456` KiB, `timeCost 2`, `parallelism 1` (recomendación OWASP).
+5. Cambiar `RegistrarOperadorDTO` a `{ email, password }` y hashear dentro del caso de uso; `Usuario.crear` sigue exigiendo formato de hash (BCrypt/Argon2), lo que impide guardar texto plano incluso si alguien se salta el caso de uso.
+6. Pruebas: el valor guardado no es la contraseña, empieza por `$argon2id$`, `verificar` acepta la correcta y rechaza la incorrecta; tabla de casos límite de la política.
+
+**Criterio de aceptación:** `npm test` verde; ninguna respuesta ni log contiene la contraseña; un usuario registrado se valida con `verificar`.
+
+### Bloqueante 3 — Adaptador de correo (2 días, paralelizable)
+
+1. `npm i nodemailer` + `npm i -D @types/nodemailer`.
+2. `src/infrastructure/email/EmailConsola.ts` para desarrollo (`EMAIL_DRIVER=console`): imprime el enlace y no falla si no hay SMTP.
+3. `src/infrastructure/email/SmtpEmailService.ts`: `connectionTimeout` y `socketTimeout` de 10 s, `FROM` obligatorio, credenciales desde `env.ts` (nunca en el repositorio).
+4. `src/infrastructure/email/plantillas/invitacion.ts`: HTML + texto plano con el token y la caducidad de 24 h; el token no se escribe en logs de producción.
+5. Mitigación del doble fallo (el outbox completo queda para el sprint siguiente): `POST /api/operadores/:id/reinvitar` regenera token y reenvía; si el correo falla, el registro ya confirmado responde `502` con "usuario creado, invitación no enviada" y el operador queda `PENDIENTE`.
+6. Pruebas: el adaptador de consola registra el token; un fallo SMTP produce `502` y no revierte el usuario; reinvitar cambia el token y la expiración.
+
+**Criterio de aceptación:** registro completo contra Mailtrap (o SMTP real) con el correo recibido y el enlace funcionando; `npm test` verde usando el doble de consola.
+
+### Fuera de este sprint
+
+- Outbox transaccional con reintentos y *backoff* (sprint siguiente, con ADR de mensajería).
+- Login, JWT y RBAC: necesitan el módulo de sesiones, no solo el registro.
+- CI con PostgreSQL de servicio, cobertura (`c8`) y `verify.sh`: se abordan en el sprint de infraestructura.
+
+### Definición de hecho del sprint
+
+- [ ] `npm run build` y `npm test` verdes en local.
+- [ ] `npm start` deja `/health` en 200 contra la base real.
+- [ ] Registro por HTTP → 201, solo hash en la base e invitación enviada.
+- [ ] `.env.example` actualizado y ningún secreto en el repositorio.
+- [ ] `PROJECT_STATE.md` y `session-handoff.md` con la evidencia de cada bloqueante cerrado.
 
 ## Documentación Web (Docusaurus + Vercel)
 

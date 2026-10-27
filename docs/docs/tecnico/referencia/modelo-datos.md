@@ -5,7 +5,11 @@ title: Modelo de Datos
 
 # Modelo de Datos (Database-per-Service)
 
-Para garantizar el desacoplamiento, LOCIFY utiliza el patrón **Database-per-service**. Cada microservicio tiene su propia base de datos PostgreSQL y es el único dueño de su esquema.
+:::warning Decisión vigente
+El [ADR-003](../../adr/ADR-003-monolito-modular-vs-microservicios.md) quedó **Aceptado** el 2026-10-27: los servicios descritos aquí se implementan como **módulos de un monolito modular**, cada uno con su propio esquema en un único clúster PostgreSQL. El diagrama y el diccionario se conservan como **modelo lógico** (fronteras de datos), no como tres despliegues separados.
+:::
+
+Para garantizar el desacoplamiento, LOCIFY separa los datos por **dueño**. En el diseño original cada microservicio tenía su propia base de datos PostgreSQL y era el único dueño de su esquema; con la decisión del ADR-003 esa separación se mantiene a nivel de esquema (`admin`, `operador`, `cliente`) dentro de una sola base.
 
 ## 1. Diagrama Entidad-Relación (ER) Global
 

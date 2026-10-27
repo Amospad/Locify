@@ -28,7 +28,7 @@ Este documento describe **cómo se aplican** los *Human Interface Guidelines* de
 - **Contraste:** mínimo 4.5:1 para texto normal y 3:1 para elementos de control (WCAG 2.2 AA). Los valores medidos están en `PROJECT_STATE.md`.
 - **Foco visible:** todo elemento interactivo conserva un anillo de foco; el `outline: none` sin reemplazo está prohibido.
 - **Movimiento reducido:** las animaciones se desactivan con `@media (prefers-reduced-motion: reduce)` y con `<MotionConfig reducedMotion="user">` en las animaciones de JavaScript.
-- **Áreas táctiles:** mínimo 44 × 44 px en móvil.
+- **Áreas táctiles:** mínimo 44 × 44 px en cualquier dispositivo, con dedo o con puntero (ver [Guía de Diseño UI/UX §3](./referencia/guia-diseno-ui.md)).
 
 ## 4. Componentes y espaciado
 

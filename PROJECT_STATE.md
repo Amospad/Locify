@@ -7,6 +7,7 @@
 - [x] Auditoría técnica de código, documentación y arquitectura (2026-10-27)
 - [x] Ratificación del ADR-003: monolito modular con un esquema por módulo (2026-10-27)
 - [x] Capa HTTP mínima: `buildServer()` (sin `listen`) + `GET /health` con Fastify, helmet, CORS y rate limit (2026-10-27)
+- [x] Cambio de alcance: App del Cliente como PWA *mobile-first* usable también desde escritorio (2026-10-27)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -83,6 +84,26 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 - `src/index.ts`: valida `PORT` (1–65535) y `DATABASE_URL`, construye el servidor, escucha en `PORT` (3000 por defecto) y cierra ordenadamente con `SIGINT`/`SIGTERM`.
 - **Evidencia:** `npm run test:http` → **4/4**; `npm test` → **27/27**; `node dist/index.js` en el puerto 3100 + `Invoke-WebRequest /health` → `200 {"status":"ok","db":"up"}` con `x-content-type-options: nosniff`.
 - **Pendiente de este bloqueante:** `POST /api/operadores`, autenticación/RBAC y pruebas de 429 y de allowlist CORS.
+
+## Cambio de Alcance (2026-10-27): App del Cliente híbrida mobile-first y web
+
+El negocio pidió que la App del Cliente (conductores) deje de plantearse como app sólo móvil. La decisión es una **PWA *mobile-first*** con un único código fuente: se instala desde el navegador en el celular (sin tiendas en esta fase) y se usa directamente en el navegador de escritorio, con la misma sesión.
+
+| Documento | Qué cambió |
+| :--- | :--- |
+| `formativo/03-alcance-requerimientos.md` | Casilla del alcance "App del Cliente multiplataforma"; §2.2 define plataforma, entornos soportados (iOS 16.4+/Android Chrome 110+, navegadores de escritorio), sesión única y una tabla de aclaraciones por RF (RF-09/10, RF-13/19, RF-15, RF-18, RF-20/21, RF-22). Añade cómo funcionarán las notificaciones (Web Push + correo) sin crear un RF nuevo |
+| `formativo/05-historias-usuario.md` | **HU-26** en la Épica 4 (acceso a la cuenta y QR desde computador o celular) con criterios de aceptación en ambos entornos; criterio transversal en la Épica 3 (mapa, filtros y QR no dependen de sensores) |
+| `formativo/07-matriz-trazabilidad.md` | Rango de historias `HU-01…HU-26`; HU-26 declarada transversal y registrada como hueco (historia sin RF propio) |
+| `tecnico/arquitectura-hexagonal.md` | §6 nueva: `web-cliente` como PWA Next.js/React *mobile-first*, manifest + service worker, sin APIs exclusivas de móvil, sesión con cookie `httpOnly`, alcance offline limitado al *shell*; `web-operador` y `web-admin` con prioridad escritorio. §4 actualizada con la estructura real (la capa HTTP ya existe) |
+| `tecnico/referencia/guia-diseno-ui.md` | §3 nueva: "Diseño Responsivo y Mobile-First" con puntos de corte (360 / 640 / 1024 px), área de toque de 44 px en cualquier dispositivo, prohibición de interacciones sólo-*hover*, tipografía fluida, formularios y QR imprimible; tabla de principios HIG aplicados a móvil y escritorio |
+| `tecnico/guia-diseno-ui.md` | El área táctil de 44 px deja de estar limitada a móvil; enlaza a la nueva sección |
+
+**Consecuencias técnicas**
+
+- El backend ya está preparado: CORS por allowlist (`CORS_ORIGINS`) y cookies; el QR se entrega como token y lo dibuja el frontend, para que sirva a la PWA, al dashboard del operador y a la impresión.
+- No hay código de frontend todavía. El primer entregable de `web-cliente` debe nacer con `manifest.webmanifest`, *service worker* y layout de una columna antes de la versión de escritorio.
+- **Pendiente de decisión:** sigue sin existir un RF de notificaciones; la documentación describe el canal (Web Push + correo) pero no un requerimiento numerado con criterio de aceptación.
+- **Pendiente de decisión:** registrar la elección Next.js vs React + Vite en un ADR cuando se cree el módulo (hoy la doc admite ambas).
 
 ## Plan del Próximo Sprint (bloqueantes de producción)
 

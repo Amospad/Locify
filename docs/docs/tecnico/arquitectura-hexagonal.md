@@ -101,14 +101,18 @@ services/admin-api/src/
 │   ├── ports/UsuarioRepository.ts
 │   └── use-cases/RegistrarOperador.ts
 ├── application/
+│   ├── ports/ConsultadorDeBaseDeDatos.ts
 │   └── services/AdminService.ts  # Orquesta casos de uso
 ├── infrastructure/               # Adaptadores de salida
 │   ├── id/CryptoGeneradorId.ts
 │   ├── time/RelojSistema.ts
 │   └── persistence/
 │       ├── PostgresUsuarioRepository.ts
+│       ├── PostgresConsultadorDeBaseDeDatos.ts
 │       └── test-connection.ts
-├── interfaces/http/              # Adaptadores de entrada (PENDIENTE: no existe)
+├── interfaces/http/              # Adaptadores de entrada (Fastify)
+│   ├── server.ts                 # buildServer(): no llama a listen
+│   └── routes/health.ts
 └── prisma/                       # Contrato y cliente de persistencia
     ├── contract.prisma
     ├── contract.json             # Generado: no editar
@@ -125,3 +129,30 @@ services/admin-api/src/
 | Todo el microservicio | Suite completa | `npm test` |
 
 Una prueba de integración que pasa contra una base de datos vacía no demuestra nada: antes de correrla hay que aplicar el contrato con `npm run db:init` (o `db update` si el esquema ya existe).
+
+## 6. Frontends: `web-cliente` como PWA mobile-first
+
+Los frontends son **adaptadores de entrada** del mismo hexágono: consumen la API HTTP y no contienen reglas de negocio. Hay tres consumidores y dos estrategias de diseño:
+
+| Aplicación | Usuarios | Estrategia |
+| :--- | :--- | :--- |
+| `web-cliente` | Conductores | **Mobile-first** + PWA instalable; se usa igual desde escritorio |
+| `web-operador` | Parqueaderos | Responsive con prioridad escritorio (dashboard de ocupación) |
+| `web-admin` | Personal interno | Responsive con prioridad escritorio (tablas y auditoría) |
+
+### 6.1 `web-cliente`
+
+- **Tecnología:** **Next.js (App Router)** o React + Vite si se opta por SPA pura; un único código fuente para móvil y escritorio.
+- **Mobile-first:** el CSS parte del caso de 360 px y amplía con `min-width`; no se diseña el escritorio primero para luego "encogerlo".
+- **PWA:** `manifest.webmanifest` (nombre, iconos 192/512, `display: standalone`, `theme_color` de marca) y *service worker* con el *shell* en caché. Se instala desde el navegador; **no** se publica en App Store ni Play Store en esta fase.
+- **Sin dependencia de hardware:** cámara, GPS y notificaciones son mejoras progresivas. La reserva, el historial y el QR funcionan con teclado y ratón.
+- **Sesión única:** cookie `httpOnly` + `SameSite=Lax`; el mismo inicio de sesión sirve en móvil y escritorio (HU-26).
+- **Alcance offline:** sólo el *shell* y la última reserva/QR en caché (RNF-08). No se encola la creación de reservas sin conexión: eso exigiría un *outbox* en el cliente y queda fuera de esta fase.
+
+### 6.2 Consecuencias para el backend
+
+- La API debe aceptar CORS sólo desde los orígenes declarados (`CORS_ORIGINS`) y admitir cookies; `src/interfaces/http/server.ts` ya aplica esa allowlist.
+- El QR se entrega como dato (token) y lo dibuja el frontend: el mismo endpoint sirve a la PWA, al dashboard del operador y a la impresión en escritorio.
+- Las notificaciones no se implementan en esta fase; cuando lleguen serán Web Push (VAPID) más correo, nunca un canal exclusivo de móvil.
+
+> **Estado:** todavía no hay código de frontend en el repositorio. Esta sección fija la decisión para cuando se cree el módulo `web-cliente`.

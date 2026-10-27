@@ -11,6 +11,7 @@ Este documento establece la línea base técnica del proyecto, definiendo qué s
 
 ### 1.1 Sí incluye
 - Registro y verificación legal de operadores mediante Onboarding (KYB).
+- App del Cliente multiplataforma: una sola base de código **mobile-first** que se usa desde el celular y desde el navegador de escritorio, instalable como PWA sin pasar por las tiendas de aplicaciones en esta fase.
 - Búsqueda de parqueaderos por ubicación con mapa interactivo y disponibilidad en tiempo real.
 - Sistema de reservas bajo un modelo híbrido (Garantizada con pago anticipado o Exprés sujeta a 5 minutos de tolerancia).
 - Check-in/Check-out mediante códigos QR dinámicos.
@@ -38,6 +39,29 @@ Los requerimientos funcionales describen el comportamiento obligatorio del siste
 - **RF-08 (Restricción de Acceso):** Bloquear acceso a dashboards si la cuenta no está activa o está suspendida. *(Prioridad: Alta)*
 
 ### 2.2 App del Cliente (Ecosistema Web/Móvil)
+
+**Plataforma objetivo:** la App del Cliente es una **PWA** (*Progressive Web App*) construida con un único código fuente *mobile-first* (Next.js/React, o app híbrida React Native / Expo Web si se requiere acceso a hardware nativo). Es la misma aplicación en todos los dispositivos; no existe una "versión web reducida".
+
+| Entorno | Soporte mínimo | Instalación |
+| :--- | :--- | :--- |
+| **Móvil** | iOS Safari 16.4+ · Android Chrome 110+ | "Añadir a pantalla de inicio" desde el navegador (sin App Store ni Play Store en esta fase) |
+| **Escritorio** | Chrome, Edge y Firefox actuales · Safari 16.4+ | Uso directo en el navegador; ventana instalable en Chrome/Edge |
+
+La sesión es la misma en ambos entornos (cookie `httpOnly` emitida por el backend), de modo que un conductor puede reservar en el computador y abrir el QR en el celular sin volver a autenticarse.
+
+**Aclaraciones por requerimiento** (los RF que podrían leerse como exclusivos de móvil):
+
+| RF | Supuesto móvil | Comportamiento en escritorio / navegador |
+| :--- | :--- | :--- |
+| **RF-09 / RF-10** | Dashboard y cronómetro en pantalla de teléfono | Misma información en una columna en móvil y en dos columnas desde 1024 px; el cronómetro se actualiza igual (no depende de notificaciones) |
+| **RF-13 / RF-19** | Pago y cobro desde la app | Misma pasarela; en escritorio la autenticación 3-D Secure abre en una pestaña, en móvil en el navegador del sistema |
+| **RF-15** | QR en pantalla para mostrar en la talanquera | QR renderizado como SVG, visible a pantalla completa y descargable/imprimible en A4 desde escritorio |
+| **RF-18** | Escaneo del QR con la cámara | La cámara es una comodidad, no un requisito: el operador puede escribir el código en el dashboard (RF-27) |
+| **RF-20 / RF-21** | Gestión de placas e historial | Mismas pantallas; en escritorio el historial usa tabla, en móvil tarjetas apiladas |
+| **RF-22** | Evidencias con la cámara | Selector de archivos en escritorio y cámara en móvil (mismo `input[type=file][accept=image/*]`) |
+
+**Notificaciones:** todavía no existe un RF que las exija. Cuando se implementen (aviso de vencimiento de una reserva exprés y de fin de tiempo de uso), el canal será **Web Push** con *Service Worker* y claves VAPID, complementado con correo electrónico. iOS 16.4+ sólo soporta Web Push en PWA instalada en la pantalla de inicio; en escritorio funciona en Chrome, Edge y Firefox. Si el usuario no concede el permiso, el aviso sigue visible dentro de la app (RF-10) y por correo.
+
 - **RF-09 (Dashboard Dinámico):** Mostrar si el cliente tiene reserva activa o check-in en curso. *(Prioridad: Alta)*
 - **RF-10 (Cronómetro):** Renderizar contador en tiempo real de horas/minutos desde el check-in. *(Prioridad: Alta)*
 - **RF-11 (Mapa Interactivo):** Mostrar ubicación geográfica real de sedes disponibles. *(Prioridad: Alta)*

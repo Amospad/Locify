@@ -38,6 +38,8 @@ Este documento contiene el Product Backlog completo del proyecto LOCIFY, organiz
 | **HU-15** | Como cliente, quiero registrar múltiples vehículos (placas) para poder reservar con cualquiera de ellos. | Media | 2 |
 | **HU-16** | Como sistema, quiero validar que un vehículo no tenga una reserva activa para evitar doble reserva. | Alta | 2 |
 
+> **Criterio transversal de la épica:** HU-10 a HU-15 deben cumplirse en móvil y en escritorio. El mapa, los filtros y el QR no pueden depender de sensores del teléfono; en escritorio se usan con ratón y teclado, y el QR se puede ver, descargar e imprimir ([03. Alcance §2.2](./03-alcance-requerimientos.md)).
+
 ## Épica 4: Acceso y Uso (Check-in / Check-out)
 
 | ID | Historia de Usuario | Prioridad | Estimación |
@@ -47,6 +49,7 @@ Este documento contiene el Product Backlog completo del proyecto LOCIFY, organiz
 | **HU-19** | Como cliente, quiero ver un cronómetro en tiempo real de mi tiempo de uso para saber cuánto voy a pagar. | Alta | 2 |
 | **HU-20** | Como operador, quiero registrar salidas (Check-out) y que el sistema cobre automáticamente al cliente. | Alta | 5 |
 | **HU-21** | Como operador, quiero poder hacer Check-in/out manual (por placa) si el sistema o el internet fallan (contingencia). | Alta | 3 |
+| **HU-26** | Como conductor, quiero poder acceder a mi cuenta y ver mi QR desde el navegador de mi computador o desde mi celular, para tener flexibilidad según el dispositivo que esté usando. | Alta | 2 |
 
 ## Épica 5: Administración y Soporte
 
@@ -64,3 +67,15 @@ Este documento contiene el Product Backlog completo del proyecto LOCIFY, organiz
 - **Dado** que la reserva expira a los 5 minutos,
 - **Cuando** el sistema evalúa el tiempo,
 - **Entonces** cancela la reserva y libera el cupo.
+
+## Formato de Criterios de Aceptación (Ejemplo HU-26)
+
+- **Dado** que inicié sesión en el navegador de mi computador,
+- **Cuando** entro a "Mis reservas",
+- **Entonces** veo mi reserva activa y el QR en formato descargable, sin volver a autenticarme.
+- **Dado** que abro la misma cuenta desde mi celular,
+- **Cuando** toco "Ver QR",
+- **Entonces** el código se muestra a pantalla completa, con un área de toque mínima de 44 × 44 px y sin depender de notificaciones push.
+- **Dado** que uso un lector de pantalla o navego con teclado en escritorio,
+- **Cuando** recorro la tarjeta de la reserva,
+- **Entonces** el QR tiene texto alternativo con el código y el botón de descarga es alcanzable con `Tab`.

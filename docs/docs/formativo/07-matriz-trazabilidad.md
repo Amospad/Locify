@@ -9,9 +9,10 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 
 > **Alcance de esta versión:** cubre los **32 requerimientos funcionales** y los **10 no funcionales** definidos en
 > [03. Alcance y Requerimientos](./03-alcance-requerimientos.md). Los identificadores de casos de uso (`CU-01…CU-10`)
-> corresponden a [04. Casos de Uso](./04-casos-uso.md) y los de historias (`HU-01…HU-25`) a
+> corresponden a [04. Casos de Uso](./04-casos-uso.md) y los de historias (`HU-01…HU-26`) a
 > [05. Historias de Usuario](./05-historias-usuario.md). La columna *Estado en el código* distingue lo implementado,
-> lo parcial y lo que solo está especificado.
+> lo parcial y lo que solo está especificado. `HU-26` es transversal: exige que la App del Cliente funcione en móvil
+> y en escritorio, sin sustituir la historia propia de cada requerimiento.
 
 ## 1. Matriz de requerimientos funcionales
 
@@ -82,8 +83,8 @@ Alineada con la tabla de la sección 4 del SRS. Cualquier cambio en una de las d
 
 | Tipo | Elementos | Acción requerida |
 | :--- | :--- | :--- |
-| RF sin historia de usuario | RF-09, RF-17, RF-21, RF-26 | Crear HU antes de implementar (el backlog tiene 25 historias para 32 RF) |
+| RF sin historia de usuario | RF-09, RF-17, RF-21, RF-26 | Crear HU antes de implementar (el backlog tiene 26 historias para 32 RF) |
 | RF sin caso de uso | RF-09, RF-21, RF-31, RF-32 | Añadir CU o justificar que se cubren como regla transversal |
 | RF con caso de uso parcial | RF-13, RF-20, RF-26 | Precisar el escenario en `04-casos-uso.md` |
-| Historia sin requerimiento | HU-03 (recuperación de contraseña), HU-16 (doble reserva) | Derivar el RF correspondiente o retirar la historia del alcance |
+| Historia sin requerimiento | HU-03 (recuperación de contraseña), HU-16 (doble reserva), HU-26 (acceso multiplataforma) | Derivar el RF correspondiente o declararla transversal al alcance |
 | RNF sin instrumento de verificación | RNF-01 a RNF-10 | Definir métrica, umbral y comando de verificación antes de afirmar cumplimiento |

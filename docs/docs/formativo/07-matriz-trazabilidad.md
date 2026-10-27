@@ -9,7 +9,7 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 
 > **Alcance de esta versión:** cubre los **32 requerimientos funcionales** y los **10 no funcionales** definidos en
 > [03. Alcance y Requerimientos](./03-alcance-requerimientos.md). Los identificadores de casos de uso (`CU-01…CU-10`)
-> corresponden a [04. Casos de Uso](./04-casos-uso.md) y los de historias (`HU-01…HU-26`) a
+> corresponden a [04. Casos de Uso](./04-casos-uso.md) y los de historias (`HU-01…HU-30`) a
 > [05. Historias de Usuario](./05-historias-usuario.md). La columna *Estado en el código* distingue lo implementado,
 > lo parcial y lo que solo está especificado. `HU-26` es transversal: exige que la App del Cliente funcione en móvil
 > y en escritorio, sin sustituir la historia propia de cada requerimiento.
@@ -26,7 +26,7 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-06** | Contraseña con política de complejidad | CU-01 | HU-01 | Alta | **No implementado** — no hay hashing ni política; solo se valida que el valor sea un hash |
 | **RF-07** | Activación: guardar contraseña y pasar a ACTIVO | CU-01 | HU-02 | Alta | **No implementado** — no existe caso de uso de activación |
 | **RF-08** | Bloquear dashboard si la cuenta no está activa | CU-01 | HU-05 | Alta | **Parcial** — `Usuario.puedeAccederAlDashboard`; no hay capa de acceso que lo aplique |
-| **RF-09** | Dashboard del cliente con reserva o check-in activo | — | **Falta historia** | Alta | **No implementado** |
+| **RF-09** | Dashboard del cliente con reserva o check-in activo | — | HU-27 | Alta | **No implementado** |
 | **RF-10** | Cronómetro desde el check-in | CU-07 | HU-19 | Alta | **No implementado** |
 | **RF-11** | Mapa interactivo con ubicación de sedes | CU-05 | HU-10 | Alta | **No implementado** |
 | **RF-12** | Filtros por precio, horario, vehículo y disponibilidad | CU-05 | HU-11 | Media | **No implementado** |
@@ -34,16 +34,16 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-14** | Modelo híbrido Garantizada / Exprés | CU-05 | HU-12 | Alta | **No implementado** |
 | **RF-15** | QR único con caducidad de 5 min en Exprés | CU-05 | HU-13 | Alta | **No implementado** |
 | **RF-16** | Cancelación con ventana de gratuidad | CU-06 | HU-14 | Alta | **No implementado** |
-| **RF-17** | Recalculo y abono de créditos por uso menor | CU-09 | **Falta historia** | Media | **No implementado** |
+| **RF-17** | Recalculo y abono de créditos por uso menor | CU-09 | HU-29 | Media | **No implementado** |
 | **RF-18** | Validación de vigencia del QR al escanear | CU-07 | HU-18 | Alta | **No implementado** |
 | **RF-19** | Cobro automático al registrar check-out | CU-09 | HU-20 | Alta | **No implementado** |
 | **RF-20** | Alta, modificación e inactivación de placas | CU-05 | HU-15 | Alta | **No implementado** |
-| **RF-21** | Historial con desglose económico | — | **Falta historia** | Media | **No implementado** |
+| **RF-21** | Historial con desglose económico | — | HU-28 | Media | **No implementado** |
 | **RF-22** | Tickets de soporte con evidencias | CU-10 | HU-23 | Alta | **No implementado** |
 | **RF-23** | Carga de documentos KYB | CU-02 | HU-06 | Alta | **No implementado** |
 | **RF-24** | Bloqueo de la sede hasta aprobar el KYB | CU-02, CU-03 | HU-08 | Alta | **No implementado** |
 | **RF-25** | Parametrización de sedes y cupos | CU-04 | HU-09 | Alta | **No implementado** |
-| **RF-26** | Dashboard de ocupación con alertas | CU-04 (parcial) | **Falta historia** | Alta | **No implementado** |
+| **RF-26** | Dashboard de ocupación con alertas | CU-04 (parcial) | HU-30 | Alta | **No implementado** |
 | **RF-27** | Búsqueda por placa y registro manual | CU-08 | HU-21 | Alta | **No implementado** |
 | **RF-28** | Reportes de ingresos, penalidades y caja | CU-09 | HU-25 | Alta | **No implementado** |
 | **RF-29** | Auditoría de tickets KYB | CU-03 | HU-07 | Alta | **No implementado** |
@@ -83,7 +83,7 @@ Alineada con la tabla de la sección 4 del SRS. Cualquier cambio en una de las d
 
 | Tipo | Elementos | Acción requerida |
 | :--- | :--- | :--- |
-| RF sin historia de usuario | RF-09, RF-17, RF-21, RF-26 | Crear HU antes de implementar (el backlog tiene 26 historias para 32 RF) |
+| RF sin historia de usuario | **Ninguno** (32 de 32 cubiertos) | Cerrado el 2026-10-27 con HU-27 (RF-09), HU-28 (RF-21), HU-29 (RF-17) y HU-30 (RF-26) |
 | RF sin caso de uso | RF-09, RF-21, RF-31, RF-32 | Añadir CU o justificar que se cubren como regla transversal |
 | RF con caso de uso parcial | RF-13, RF-20, RF-26 | Precisar el escenario en `04-casos-uso.md` |
 | Historia sin requerimiento | HU-03 (recuperación de contraseña), HU-16 (doble reserva), HU-26 (acceso multiplataforma) | Derivar el RF correspondiente o declararla transversal al alcance |

@@ -8,6 +8,7 @@
 - [x] Ratificación del ADR-003: monolito modular con un esquema por módulo (2026-10-27)
 - [x] Capa HTTP mínima: `buildServer()` (sin `listen`) + `GET /health` con Fastify, helmet, CORS y rate limit (2026-10-27)
 - [x] Cambio de alcance: App del Cliente como PWA *mobile-first* usable también desde escritorio (2026-10-27)
+- [x] Trazabilidad RF→HU al 100 % (32/32) con 30 historias de usuario (2026-10-27)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -30,6 +31,7 @@
 - [x] Documentar la arquitectura de agentes IA. (`docs/docs/tecnico/arquitectura-agentes.md` + sección "Automatización y Agentes de IA" en el documento formativo 09)
 - [x] Ratificar el ADR-003 y marcar `modelo-datos.md` y `arquitectura-hexagonal.md` como módulos de un monolito modular.
 - [x] Capa HTTP mínima: `buildServer()` sin `listen`, `GET /health` con `SELECT 1`, helmet, CORS y rate limit. (`npm test` → 27/27; `curl /health` → 200 contra PostgreSQL real)
+- [x] Cerrar la trazabilidad RF→HU: **32/32** requerimientos con historia (HU-27…HU-30) y matriz actualizada.
 
 ## Auditoría Técnica (2026-10-27)
 
@@ -84,6 +86,21 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 - `src/index.ts`: valida `PORT` (1–65535) y `DATABASE_URL`, construye el servidor, escucha en `PORT` (3000 por defecto) y cierra ordenadamente con `SIGINT`/`SIGTERM`.
 - **Evidencia:** `npm run test:http` → **4/4**; `npm test` → **27/27**; `node dist/index.js` en el puerto 3100 + `Invoke-WebRequest /health` → `200 {"status":"ok","db":"up"}` con `x-content-type-options: nosniff`.
 - **Pendiente de este bloqueante:** `POST /api/operadores`, autenticación/RBAC y pruebas de 429 y de allowlist CORS.
+
+## Trazabilidad RF → HU cerrada (2026-10-27)
+
+Los cuatro requerimientos que la matriz marcaba como "Falta historia" ya tienen historia y criterios de aceptación:
+
+| RF | Historia nueva | Qué cubre |
+| :--- | :--- | :--- |
+| RF-09 | **HU-27** | Panel del cliente con reserva o check-in activo, y los estados vacío, en curso y expirado |
+| RF-17 | **HU-29** | Recalculo por uso real y abono como crédito, incluido el excedente y la fracción mínima |
+| RF-21 | **HU-28** | Historial paginado con desglose económico y reembolsos |
+| RF-26 | **HU-30** | Dashboard de ocupación del operador con alertas de sobretiempo y actualización ≤ 500 ms |
+
+- Resultado: **32 de 32 RF con historia**; el backlog pasa de 26 a **30 historias**.
+- **No cierra:** los 4 RF sin caso de uso (RF-09, RF-21, RF-31, RF-32), los 3 con CU parcial (RF-13, RF-20, RF-26) y las 3 historias sin RF (HU-03, HU-16, HU-26). La matriz sigue declarándolos en §4.
+- **Evidencia:** `docs/docs/formativo/05-historias-usuario.md` (HU-27…HU-30 con criterios), `docs/docs/formativo/07-matriz-trazabilidad.md` §4 ("RF sin historia: Ninguno") y la página publicada en producción.
 
 ## Cambio de Alcance (2026-10-27): App del Cliente híbrida mobile-first y web
 
@@ -174,6 +191,15 @@ El negocio pidió que la App del Cliente (conductores) deje de plantearse como a
 
 **URL de publicación:** https://locify-wheat.vercel.app
 
+### Estado del despliegue (2026-10-27)
+
+- **Producción sirviendo el commit `b2b160d`** (`main` sincronizado con `origin/main`).
+- **Verificado sobre el sitio publicado, no sobre el build local:**
+  - `GET /docs/formativo/matriz-trazabilidad` → rango `HU-01…HU-30` y la fila "RF sin historia de usuario: **Ninguno (32 de 32 cubiertos)**".
+  - `GET /docs/formativo/historias-usuario` → HU-26, HU-27, HU-28, HU-29 y HU-30, con los criterios de aceptación de cada una.
+- **Comportamiento observado:** tras el `git push`, el primer `GET` devolvió la versión anterior durante ~1 minuto (build de Vercel en curso); el siguiente ya sirvió el commit nuevo. No hay caché agresiva en las rutas de documentación.
+- **Assets:** `HEAD /` → 200, `HEAD /img/logo.svg` → 200, `HEAD /img/favicon.ico` → 200. La raíz `/favicon.ico` devuelve 404 a propósito: `docusaurus.config.ts` declara `img/favicon.ico`, y el HTML apunta a esa ruta.
+
 ### Infraestructura
 - `url` y `baseUrl` corregidos en `docs/docusaurus.config.ts` (`/Locify/` → `/`), porque Vercel sirve el sitio desde la raíz.
 - `favicon` (`img/favicon.ico`) y `logo` del navbar (`img/logo.svg`) en rutas relativas al `baseUrl`.
@@ -228,5 +254,4 @@ Medido cargando el build dentro de un viewport de 1440 × 900:
 
 ### Pendiente
 - Reemplazar `static/img/docusaurus-social-card.jpg` (imagen social genérica) por una propia de LOCIFY.
-- Confirmar el deploy de producción en Vercel tras el push y validar las rutas de los assets.
 - `npm install` reportó 23 avisos de `npm audit` en el árbol de `docs` (dependencias transitivas del toolchain); no se aplicó `npm audit fix --force` porque introduce cambios incompatibles.

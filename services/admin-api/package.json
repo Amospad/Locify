@@ -10,8 +10,9 @@
     "start": "node dist/index.js",
     "db:emit": "prisma contract emit",
     "db:init": "prisma db init",
-    "test": "node --import tsx --test tests/unit/*.test.ts tests/integration/*.test.ts",
+    "test": "node --import tsx --test tests/unit/*.test.ts tests/http/*.test.ts tests/integration/*.test.ts",
     "test:unit": "node --import tsx --test tests/unit/*.test.ts",
+    "test:http": "node --import tsx --test tests/http/*.test.ts",
     "test:repo": "node --import tsx --test tests/integration/PostgresUsuarioRepository.test.ts",
     "test:db": "tsx src/infrastructure/persistence/test-connection.ts",
     "postinstall": "prisma skills sync || exit 0"
@@ -25,8 +26,12 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.1",
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/rate-limit": "^11.2.1",
     "@prisma/orm-postgres": "^8.0.0-rc.20",
     "dotenv": "^17.2.3",
+    "fastify": "^5.12.7",
     "prisma": "^8.0.0-rc.27"
   }
 }

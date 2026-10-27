@@ -22,6 +22,7 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'adr/ADR-001-arquitectura-hexagonal', label: 'ADR-001: Arquitectura Hexagonal' },
     { type: 'doc', id: 'adr/ADR-002-modelo-hibrido-reservas', label: 'ADR-002: Modelo Híbrido' },
     { type: 'doc', id: 'adr/ADR-003-monolito-modular-vs-microservicios', label: 'ADR-003: Monolito Modular' },
+    { type: 'doc', id: 'adr/ADR-004-fastify-como-framework-http', label: 'ADR-004: Fastify HTTP' },
   ],
   
   gestionSidebar: [

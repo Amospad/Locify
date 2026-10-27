@@ -6,6 +6,7 @@
 - [x] Configuración de Skills (QA, CI/CD, Seguridad, Diseño)
 - [x] Auditoría técnica de código, documentación y arquitectura (2026-10-27)
 - [x] Ratificación del ADR-003: monolito modular con un esquema por módulo (2026-10-27)
+- [x] Capa HTTP mínima: `buildServer()` (sin `listen`) + `GET /health` con Fastify, helmet, CORS y rate limit (2026-10-27)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -18,6 +19,7 @@
 - ADR-001: Arquitectura Hexagonal.
 - ADR-002: Modelo Híbrido de Reservas.
 - ADR-003: Monolito modular antes que microservicios (**Aceptado**, ratificado el 2026-10-27; un esquema por módulo).
+- ADR-004: Fastify 5 como framework HTTP (**Aceptado**, 2026-10-27).
 - Decisión de negocio (no es ADR): buffer de seguridad del 95 % de celdas, documentado en `docs/docs/formativo/09-modelo-negocio-y-resiliencia.md`.
 
 ## Tareas Pendientes (Backlog Técnico)
@@ -26,6 +28,7 @@
 - [x] Implementar el adaptador `PostgresUsuarioRepository`. (`npm test` → 23/23 tests verdes: 20 unitarios + 3 de integración real contra PostgreSQL)
 - [x] Documentar la arquitectura de agentes IA. (`docs/docs/tecnico/arquitectura-agentes.md` + sección "Automatización y Agentes de IA" en el documento formativo 09)
 - [x] Ratificar el ADR-003 y marcar `modelo-datos.md` y `arquitectura-hexagonal.md` como módulos de un monolito modular.
+- [x] Capa HTTP mínima: `buildServer()` sin `listen`, `GET /health` con `SELECT 1`, helmet, CORS y rate limit. (`npm test` → 27/27; `curl /health` → 200 contra PostgreSQL real)
 
 ## Auditoría Técnica (2026-10-27)
 
@@ -57,7 +60,7 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 | Bloqueante | Evidencia | Motivo |
 | :--- | :--- | :--- |
-| Sin capa HTTP ni autenticación | `src/index.ts`, no existe `src/interfaces/http/` | Requiere elegir framework y añadir dependencia (decisión del equipo) |
+| Sin capa HTTP ni autenticación | `src/interfaces/http/` (antes inexistente) | **Parcial:** `GET /health` en 200 contra PostgreSQL real; faltan `POST /api/operadores`, autenticación y pruebas de rate limit/CORS |
 | Sin hashing real de contraseñas | `package.json` no incluye bcrypt/argon2 | Añadir dependencia de runtime exige aprobación |
 | Sin adaptador de correo | `EmailService` sin implementación | Requiere proveedor y credenciales |
 | CI roto | `.gitlab-ci.yml:20-40`: imagen `ubuntu:24.04` sin Node y `verify.sh` inexistente | Requiere reescribir el pipeline completo |
@@ -69,8 +72,17 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 ### Verificación de esta pasada
 
-- `services/admin-api`: `npm run build` limpio; `npm run test:unit` → **20/20**; `npm run test:repo` → **3/3**.
+- `services/admin-api`: `npm run build` limpio; `npm test` → **27/27** (20 unitarios + 4 HTTP + 3 de integración contra PostgreSQL).
 - `docs`: `npm run build` → `Generated static files in "build"`; el HTML emitido no contiene el texto de PowerShell y `modelo-datos` renderiza sus cinco secciones como encabezados.
+
+### Capa HTTP (2026-10-27)
+
+- `src/interfaces/http/server.ts`: `buildServer(deps, opciones)` registra helmet, CORS por allowlist (`CORS_ORIGINS`) y rate limit global (100 req/min) y **no** llama a `listen`; el logger nace con `redact` sobre `password`, `passwordHash` y `authorization`.
+- `src/interfaces/http/routes/health.ts`: `GET /health` ejecuta `SELECT 1`; responde `200 {status:'ok',db:'up'}` o `503 {status:'error',db:'down'}` sin filtrar el error interno. Exento de rate limit para no gastar cuota del monitor.
+- `src/application/ports/ConsultadorDeBaseDeDatos.ts` + `src/infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.ts`: puerto y adaptador del chequeo; el dominio y la capa HTTP no conocen Prisma.
+- `src/index.ts`: valida `PORT` (1–65535) y `DATABASE_URL`, construye el servidor, escucha en `PORT` (3000 por defecto) y cierra ordenadamente con `SIGINT`/`SIGTERM`.
+- **Evidencia:** `npm run test:http` → **4/4**; `npm test` → **27/27**; `node dist/index.js` en el puerto 3100 + `Invoke-WebRequest /health` → `200 {"status":"ok","db":"up"}` con `x-content-type-options: nosniff`.
+- **Pendiente de este bloqueante:** `POST /api/operadores`, autenticación/RBAC y pruebas de 429 y de allowlist CORS.
 
 ## Plan del Próximo Sprint (bloqueantes de producción)
 

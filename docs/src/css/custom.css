@@ -612,6 +612,17 @@ blockquote p {
 
 /* ── Pie de página ───────────────────────────────────────────── */
 
+/* El tema aplica la clase `footer--dark`, que redefine la variable en el
+   propio elemento y gana a :root. Se fija aquí para que el pie use el
+   grafito de la marca (#1F2937) y no el azul-gris de Infima (#303846). */
+.footer,
+.footer--dark {
+  --ifm-footer-background-color: var(--locify-ink);
+  --ifm-footer-color: #C7D5E8;
+  --ifm-footer-link-color: #C7D5E8;
+  --ifm-footer-title-color: #FFFFFF;
+}
+
 .footer {
   background-color: var(--ifm-footer-background-color);
   color: #E6EEF8;

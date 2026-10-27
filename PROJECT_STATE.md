@@ -63,6 +63,22 @@
 - **Accesibilidad del movimiento:** bloque global `@media (prefers-reduced-motion: reduce)` (`animation`/`transition` a `none`) y `<MotionConfig reducedMotion="user">` para que framer-motion sólo anime opacidad.
 - **Evidencia medida en el build de producción:** drawer 380 × 717,6 px anclado al viewport (alto completo, no a la barra), `transform` de `translate(380px)` a `translate(0)` al abrir, enlaces de 49,6 px, tarjetas de `opacity: 0` a `1` al hacer scroll, `backdrop-filter` del `.navbar` = `none` y presente en `::before`.
 
+### Verificación en escritorio (1440 px)
+Medido cargando el build dentro de un viewport de 1440 × 900:
+
+| Elemento | Resultado |
+|---|---|
+| Barra lateral de documentación | 299,2 px, `position: sticky` (`.sidebarViewport`, alto 900 px); el menú sigue visible tras 1200 px de scroll |
+| Hueco barra lateral → contenido | 16,8 px |
+| Columna de lectura | 811,6 px (75 % de Docusaurus) |
+| Índice derecho (TOC) | `sticky`, `top: 76px`, 249,2 px; sigue visible tras 1400 px de scroll |
+| Menú hamburguesa / drawer | `display: none` y no se renderiza en escritorio |
+| Overflow horizontal | Ninguno (documento 1425 px con scrollbar) |
+| Landing | Contenedor de 1320 px centrado, título de 88 px, 3 tarjetas de 416 px con 20 px de separación |
+
+- **Corregido en esta pasada:** el pie de página tomaba `#303846` porque Infima aplica `.footer--dark`, que redefine `--ifm-footer-background-color` en el propio elemento y gana a `:root`. Se fijó el token a nivel de `.footer, .footer--dark` → `#1F2937`, con contraste 9,86:1 en enlaces y 6,64:1 en copyright.
+- **Observación (no modificado):** a 1440 px el ancho de lectura ronda las 100 caracteres por línea frente a los 60–75 recomendados. Se dejó el valor de Docusaurus porque la documentación es intensiva en tablas y matrices: estrechar la columna las forzaría a scroll horizontal. Si se decide limitar, basta con `--doc-item-container-width` en `custom.css`.
+
 ### Pendiente
 - Reemplazar `static/img/docusaurus-social-card.jpg` (imagen social genérica) por una propia de LOCIFY.
 - Confirmar el deploy de producción en Vercel tras el push y validar las rutas de los assets.

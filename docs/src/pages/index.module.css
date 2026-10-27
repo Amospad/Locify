@@ -138,10 +138,17 @@
   gap: 1.25rem;
 }
 
+/* Envoltorio de motion: la tarjeta ocupa toda la celda de la cuadrícula.
+   La escala del hover la aplica framer-motion aquí; el CSS no la duplica. */
+.cardWrapper {
+  display: flex;
+}
+
 .card {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  width: 100%;
   padding: 1.75rem;
   border: 1px solid var(--locify-border);
   border-radius: var(--locify-radius-lg);
@@ -149,17 +156,21 @@
   color: inherit;
   text-decoration: none;
   box-shadow: var(--locify-shadow-sm);
-  transition: transform 200ms ease, box-shadow 200ms ease,
-    border-color 200ms ease;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
 }
 
+/* Feedback por teclado: el ratón lo aporta whileHover de framer-motion. */
 .card:hover,
 .card:focus-visible {
   text-decoration: none;
   color: inherit;
-  transform: translateY(-3px);
   border-color: var(--locify-primary);
   box-shadow: var(--locify-shadow-lg);
+}
+
+.card:focus-visible {
+  outline: none;
+  box-shadow: var(--locify-shadow-lg), var(--locify-focus-ring);
 }
 
 .cardNumero {
@@ -234,9 +245,6 @@
   }
 }
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .card:hover,
-  .card:focus-visible {
-    transform: none;
-  }
-}
+/* Con movimiento reducido, framer-motion conserva la opacidad y elimina los
+   desplazamientos (`MotionConfig reducedMotion="user"`), así que aquí ya no
+   hay transformaciones propias que desactivar. */

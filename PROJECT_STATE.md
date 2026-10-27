@@ -55,6 +55,15 @@
 - **Output Directory:** `build`
 - **Node.js:** 20 o superior
 
+### Navegación móvil y movimiento
+- **Bug corregido:** el drawer móvil es hijo de `<nav class="navbar">`; un `backdrop-filter` en `.navbar` crea un *containing block* y dejaba el menú anclado a los 60 px de la barra. El efecto vidrio se movió a `.navbar::before` (pseudo-elemento, no es ancestro del drawer).
+- **Entrada desde la derecha:** `translate3d(100%, 0, 0)` oculto → `translate3d(0, 0, 0)` con `.navbar-sidebar--show`, `right: 0`, ancho `min(86vw, 380px)`, `z-index` sobre backdrop y contenido, sombra y esquina redondeada.
+- **Áreas de toque:** hamburguesa 44×44, cierre 44×44, enlaces del drawer `min-height: 44px` con padding vertical de 0.85 rem.
+- **Animaciones (framer-motion ^14.7.1 en `docs/package.json`):** hero con fade + desplazamiento; tarjetas escalonadas con `whileInView` (`once`), `whileHover` 1.03 y `whileTap` 0.98. El efecto hover por ratón lo aporta framer-motion; el foco por teclado conserva anillo propio en CSS.
+- **Accesibilidad del movimiento:** bloque global `@media (prefers-reduced-motion: reduce)` (`animation`/`transition` a `none`) y `<MotionConfig reducedMotion="user">` para que framer-motion sólo anime opacidad.
+- **Evidencia medida en el build de producción:** drawer 380 × 717,6 px anclado al viewport (alto completo, no a la barra), `transform` de `translate(380px)` a `translate(0)` al abrir, enlaces de 49,6 px, tarjetas de `opacity: 0` a `1` al hacer scroll, `backdrop-filter` del `.navbar` = `none` y presente en `::before`.
+
 ### Pendiente
 - Reemplazar `static/img/docusaurus-social-card.jpg` (imagen social genérica) por una propia de LOCIFY.
 - Confirmar el deploy de producción en Vercel tras el push y validar las rutas de los assets.
+- `npm install` reportó 23 avisos de `npm audit` en el árbol de `docs` (dependencias transitivas del toolchain); no se aplicó `npm audit fix --force` porque introduce cambios incompatibles.

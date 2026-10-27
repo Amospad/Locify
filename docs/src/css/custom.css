@@ -171,15 +171,38 @@ button:focus-visible,
   border-radius: var(--locify-radius-sm);
 }
 
-/* ── Navegación superior (barra translúcida, estilo Apple) ───── */
+/* ── Navegación superior (barra translúcida, estilo Apple) ─────
+   IMPORTANTE: `backdrop-filter` NO puede ir en `.navbar`.
+   El sidebar móvil de Docusaurus se monta dentro de este <nav>; un
+   `filter`/`backdrop-filter` en el ancestro crea un "containing block" y
+   deja de tomar el viewport: el drawer se posiciona respecto a la barra
+   (60 px de alto) y el menú queda roto. El vidrio se pinta en un
+   pseudo-elemento, que no es ancestro del drawer. */
 
 .navbar {
-  background-color: var(--ifm-navbar-background-color);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background-color: transparent; /* el fondo translúcido lo pinta ::before */
   border-bottom: 1px solid var(--locify-border);
   box-shadow: none;
   padding: 0.6rem 1rem;
+}
+
+.navbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--ifm-navbar-background-color);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .navbar::before {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background-color: var(--locify-surface);
+  }
 }
 
 .navbar__title {
@@ -209,6 +232,118 @@ button:focus-visible,
 }
 
 .navbar__toggle {
+  color: var(--locify-ink);
+}
+
+/* Área de toque de 44 × 44 px (Apple HIG). Va dentro del media query para no
+   anular el `display: none` que Infima usa en escritorio. */
+@media screen and (max-width: 996px) {
+  .navbar__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-right: 0;
+    padding: 0;
+    border-radius: var(--locify-radius-sm);
+  }
+
+  .navbar__toggle:hover {
+    background-color: rgba(47, 93, 159, 0.08);
+  }
+
+  [data-theme='dark'] .navbar__toggle:hover {
+    background-color: rgba(122, 163, 227, 0.14);
+  }
+}
+
+/* ── Menú móvil (drawer) ───────────────────────────────────────
+   Entra desde la derecha, que es donde está el botón hamburguesa.
+   Ganchos reales de Docusaurus:
+     .navbar-sidebar         → panel del drawer
+     .navbar-sidebar--show   → clase que añade <nav> al abrir
+   El estado oculto es translate3d(100%, 0, 0) (fuera de pantalla a la
+   derecha) y el visible translate3d(0, 0, 0). translate3d se compone en
+   la GPU y evita repintados durante la animación. */
+
+.navbar-sidebar__backdrop {
+  z-index: 0;
+}
+
+.navbar > .navbar-sidebar {
+  left: auto;                 /* anula el `left: 0` de Infima */
+  right: 0;
+  width: min(86vw, 380px);
+  background-color: var(--locify-surface);
+  border-left: 1px solid var(--locify-border);
+  border-radius: var(--locify-radius-lg) 0 0 var(--locify-radius-lg);
+  box-shadow: var(--locify-shadow-lg);
+  z-index: 1;                 /* sobre el backdrop y sobre el contenido */
+  transform: translate3d(100%, 0, 0);
+  transition-property: transform, opacity, visibility;
+  transition-duration: 320ms, 200ms, 200ms;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1), ease, ease;
+}
+
+/* Especificidad 0,3,0 para ganar a la regla de Infima sin `!important` */
+.navbar.navbar-sidebar--show .navbar-sidebar {
+  transform: translate3d(0, 0, 0);
+}
+
+/* Cabecera del drawer: altura flexible para que el botón de cierre de 44 px
+   no quede recortado por la altura fija de Infima. */
+.navbar-sidebar__brand {
+  height: auto;
+  min-height: var(--ifm-navbar-height);
+  padding: 0.6rem 1rem;
+  box-shadow: none;
+  border-bottom: 1px solid var(--locify-border);
+}
+
+/* Área de toque ≥ 44 × 44 px (guía Apple / WCAG 2.5.5) */
+.navbar-sidebar__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: auto;
+  border-radius: var(--locify-radius-sm);
+  color: var(--locify-ink-secondary);
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.navbar-sidebar__close:hover {
+  background-color: var(--locify-primary-soft);
+  color: var(--locify-primary);
+}
+
+/* Enlaces con espaciado generoso: lectura clara y toque cómodo.
+   El scroll va en el panel (no en __items, que se desplaza en horizontal
+   para la transición entre menú primario y secundario). */
+.navbar-sidebar__item.menu {
+  padding: 0.75rem 0.75rem 1.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.navbar-sidebar .menu__link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.85rem 0.9rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  border-radius: var(--locify-radius-md);
+}
+
+.navbar-sidebar .menu__list-item + .menu__list-item {
+  margin-top: 0.25rem;
+}
+
+.navbar-sidebar .menu__list-item-collapsible .menu__link {
+  font-weight: 600;
   color: var(--locify-ink);
 }
 
@@ -507,18 +642,24 @@ blockquote p {
   font-size: 0.85rem;
 }
 
-/* ── Movimiento reducido: se conserva el estado, no la animación ─ */
+/* ── Movimiento reducido ───────────────────────────────────────
+   Si el sistema pide menos movimiento, se desactivan animaciones y
+   transiciones por completo: el contenido sigue siendo legible y los
+   estados (hover, foco, menú abierto) se aplican sin desplazamiento.
+   Las animaciones de framer-motion se desactivan en React con
+   <MotionConfig reducedMotion="user">. */
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 
+  /* Sin desplazamientos en hover/press. El drawer conserva su transform de
+     posición (fuera/dentro de pantalla), pero se abre al instante. */
   .button:hover,
   .pagination-nav__link:hover {
     transform: none;

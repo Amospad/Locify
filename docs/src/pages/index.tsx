@@ -2,6 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
+import { MotionConfig, motion } from 'framer-motion';
 
 import styles from './index.module.css';
 
@@ -40,11 +41,18 @@ const secciones: Seccion[] = [
   },
 ];
 
+/** Curva de easing de Apple: arranca rápido y frena suave. */
+const easeApple = [0.32, 0.72, 0, 1] as const;
+
 function Hero(): React.JSX.Element {
   return (
     <header className={styles.hero}>
       <div className={styles.heroGlow} aria-hidden="true" />
-      <div className={clsx('container', styles.heroContent)}>
+      <motion.div
+        className={clsx('container', styles.heroContent)}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1, ease: easeApple }}>
         <p className={styles.eyebrow}>Documentación del proyecto</p>
 
         <h1 className={styles.title}>LOCIFY</h1>
@@ -75,7 +83,7 @@ function Hero(): React.JSX.Element {
         <p className={styles.meta}>
           Arquitectura Hexagonal · Prisma + PostgreSQL · SENA ADSO Ficha 3314811
         </p>
-      </div>
+      </motion.div>
     </header>
   );
 }
@@ -91,25 +99,50 @@ function Secciones(): React.JSX.Element {
           Tres recorridos con propósitos distintos, un mismo proyecto.
         </p>
 
-        <div className={styles.cards}>
+        {/*
+          El contenedor orquesta la entrada: cada tarjeta hereda la variante
+          y aparece escalonada. `whileInView` sólo se ejecuta al entrar en
+          pantalla y una única vez (`once`), para no repetir el efecto.
+          `MotionConfig reducedMotion="user"` desactiva los desplazamientos
+          si el sistema pide movimiento reducido.
+        */}
+        <motion.div
+          className={styles.cards}
+          initial="oculto"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
           {secciones.map((seccion) => (
-            <Link
+            <motion.div
               key={seccion.numero}
-              to={seccion.href}
-              className={styles.card}
-              aria-label={`Ir a ${seccion.titulo}`}>
-              <span className={styles.cardNumero} aria-hidden="true">
-                {seccion.numero}
-              </span>
-              <span className={styles.cardEtiqueta}>{seccion.etiqueta}</span>
-              <h3 className={styles.cardTitulo}>{seccion.titulo}</h3>
-              <p className={styles.cardTexto}>{seccion.descripcion}</p>
-              <span className={styles.cardAccion} aria-hidden="true">
-                Ver sección →
-              </span>
-            </Link>
+              className={styles.cardWrapper}
+              variants={{
+                oculto: { opacity: 0, y: 24 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.45, ease: easeApple },
+                },
+              }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}>
+              <Link
+                to={seccion.href}
+                className={styles.card}
+                aria-label={`Ir a ${seccion.titulo}`}>
+                <span className={styles.cardNumero} aria-hidden="true">
+                  {seccion.numero}
+                </span>
+                <span className={styles.cardEtiqueta}>{seccion.etiqueta}</span>
+                <h3 className={styles.cardTitulo}>{seccion.titulo}</h3>
+                <p className={styles.cardTexto}>{seccion.descripcion}</p>
+                <span className={styles.cardAccion} aria-hidden="true">
+                  Ver sección →
+                </span>
+              </Link>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -117,13 +150,15 @@ function Secciones(): React.JSX.Element {
 
 export default function Home(): React.JSX.Element {
   return (
-    <Layout
-      title="Documentación"
-      description="Documentación técnica, formativa y de gestión del ecosistema de parqueaderos urbanos LOCIFY.">
-      <main>
-        <Hero />
-        <Secciones />
-      </main>
-    </Layout>
+    <MotionConfig reducedMotion="user">
+      <Layout
+        title="Documentación"
+        description="Documentación técnica, formativa y de gestión del ecosistema de parqueaderos urbanos LOCIFY.">
+        <main>
+          <Hero />
+          <Secciones />
+        </main>
+      </Layout>
+    </MotionConfig>
   );
 }

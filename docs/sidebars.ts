@@ -15,11 +15,13 @@ const sidebars: SidebarsConfig = {
   tecnicoSidebar: [
     'tecnico/arquitectura-hexagonal',
     { type: 'doc', id: 'tecnico/arquitectura-agentes', label: 'Arquitectura de Agentes IA' },
+    { type: 'doc', id: 'tecnico/guia-diseno-ui', label: 'Principios de Interacción (HIG)' },
     { type: 'doc', id: 'tecnico/referencia/modelo-datos', label: 'Modelo de Datos' },
     { type: 'doc', id: 'tecnico/referencia/glosario', label: 'Glosario' },
     { type: 'doc', id: 'tecnico/referencia/guia-diseno-ui', label: 'Guía de Diseño UI/UX' },
     { type: 'doc', id: 'adr/ADR-001-arquitectura-hexagonal', label: 'ADR-001: Arquitectura Hexagonal' },
     { type: 'doc', id: 'adr/ADR-002-modelo-hibrido-reservas', label: 'ADR-002: Modelo Híbrido' },
+    { type: 'doc', id: 'adr/ADR-003-monolito-modular-vs-microservicios', label: 'ADR-003: Monolito Modular' },
   ],
   
   gestionSidebar: [

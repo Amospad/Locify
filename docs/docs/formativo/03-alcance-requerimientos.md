@@ -1,6 +1,5 @@
-<!-- $contenido = @'
---- -->
-<!-- sidebar_position: 3 -->
+---
+sidebar_position: 3
 title: 03. Alcance y Requerimientos
 ---
 
@@ -102,6 +101,3 @@ Los RNF establecen los atributos de calidad y restricciones técnicas.
 | **CA-02** Validación de Roles y Seguridad | Onboarding/Admin | RF-05 a RF-08, RF-18, RF-24, RF-29, RF-32 | RNF-01, RNF-02 |
 | **CA-03** Exactitud del Motor de Reservas | Cliente/Operador | RF-13 a RF-19, RF-31 | RNF-06, RNF-09 |
 | **CA-04** Trazabilidad y Cumplimiento | Onboarding/Admin | RF-01, RF-02, RF-21, RF-23, RF-30 | RNF-02, RNF-03, RNF-10 |
-'@
-
-$contenido | Out-File -FilePath "docs/formativo/03-alcance-requerimientos.md" -Encoding utf8

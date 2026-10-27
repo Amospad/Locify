@@ -10,6 +10,12 @@ export enum EstadoUsuario {
   SUSPENDIDO = 'SUSPENDIDO',
 }
 
+/** Formato mínimo aceptable: algo@dominio.tld (RFC 5321 práctico). */
+const PATRON_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+/** BCrypt ($2a/$2b/$2y) o Argon2 ($argon2i/$argon2d/$argon2id). */
+const PATRON_HASH = /^\$(2[aby]|argon2(?:i|d|id))\$/
+const LONGITUD_MAXIMA_EMAIL = 254;
+
 export interface UsuarioProps {
   id: string;
   email: string;
@@ -37,26 +43,44 @@ export class Usuario {
     return this.props.estado === EstadoUsuario.ACTIVO;
   }
 
-  public puedeAccederAlDashboard(): boolean {
-    return this.estaActivo() && !this.tokenHaExpirado();
+  public puedeAccederAlDashboard(ahora: Date = new Date()): boolean {
+    return this.estaActivo() && !this.tokenHaExpirado(ahora);
   }
 
-  public tokenHaExpirado(): boolean {
+  public tokenHaExpirado(ahora: Date = new Date()): boolean {
     if (!this.props.tokenExpiracion) return false;
-    return new Date() > this.props.tokenExpiracion;
+    return ahora.getTime() > this.props.tokenExpiracion.getTime();
   }
 
   // Fábrica estática para crear usuarios de forma controlada
   public static crear(props: UsuarioProps): Usuario {
-    if (!props.email.includes('@')) {
+    const email = props.email.trim().toLowerCase();
+
+    if (
+      email.length === 0 ||
+      email.length > LONGITUD_MAXIMA_EMAIL ||
+      !PATRON_EMAIL.test(email)
+    ) {
       throw new Error('El email no es válido');
     }
-    return new Usuario(props);
+
+    if (!PATRON_HASH.test(props.passwordHash)) {
+      throw new Error(
+        'passwordHash debe ser un hash BCrypt o Argon2; nunca una contraseña en claro',
+      );
+    }
+
+    if (props.id.trim().length === 0) {
+      throw new Error('El id es obligatorio');
+    }
+
+    // Copia defensiva: el llamador no puede mutar el estado interno de la entidad.
+    return new Usuario({ ...props, email });
   }
 
   // Rehidrata un usuario que ya existe en persistencia. No revalida los datos:
   // son un hecho consumado, validarlos aquí impediría leer registros históricos.
   public static reconstituir(props: UsuarioProps): Usuario {
-    return new Usuario(props);
+    return new Usuario({ ...props });
   }
 }

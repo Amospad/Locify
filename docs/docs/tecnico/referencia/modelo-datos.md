@@ -33,7 +33,7 @@ erDiagram
     %% MICROSERVICIO: OPERADOR (Sedes y Ocupación)
     SEDE {
         uuid id PK
-        uuid operador_id FK
+        uuid operador_id "ID lógico en admin-api"
         string nombre
         string direccion
         float latitud
@@ -54,15 +54,15 @@ erDiagram
     %% MICROSERVICIO: CLIENTE (Reservas y Vehículos)
     VEHICULO {
         uuid id PK
-        uuid cliente_id FK
+        uuid cliente_id "ID lógico en admin-api"
         string placa
         string marca
     }
 
     RESERVA {
         uuid id PK
-        uuid cliente_id FK
-        uuid sede_id FK
+        uuid cliente_id "ID lógico en admin-api"
+        uuid sede_id "ID lógico en operador-api"
         uuid vehiculo_id FK
         enum modalidad "GARANTIZADA, EXPRES"
         enum estado "PENDIENTE_PAGO, ACTIVA, EN_USO, EN_SOBRETIEMPO, COMPLETADA, CANCELADA, EXPIRADA"
@@ -73,13 +73,19 @@ erDiagram
         boolean sincronizado
     }
 
-    %% Relaciones Lógicas
+    %% Relaciones lógicas (no son FOREIGN KEY entre servicios distintos)
     USUARIO ||--o{ TICKET_KYB : "solicita"
-    USUARIO ||--o{ SEDE : "administra"
+    USUARIO ||--o{ SEDE : "administra (lógica)"
     SEDE ||--|{ CELDA : "contiene"
-    USUARIO ||--o{ VEHICULO : "registra"
+    USUARIO ||--o{ VEHICULO : "registra (lógica)"
     VEHICULO ||--o{ RESERVA : "tiene"
-    SEDE ||--o{ RESERVA : "recibe"
+    SEDE ||--o{ RESERVA : "recibe (lógica)"
+```
+
+> **Lectura del diagrama:** solo son `FOREIGN KEY` físicas las relaciones dentro de un mismo servicio
+> (`USUARIO`→`TICKET_KYB`, `SEDE`→`CELDA`, `VEHICULO`→`RESERVA`). Las relaciones entre servicios
+> (`USUARIO`→`SEDE`, `USUARIO`→`VEHICULO`, `SEDE`→`RESERVA`) son **referencias lógicas por UUID**, tal como exige
+> el patrón database-per-service descrito en la sección 4.
 
 ## 2. Diccionario de Datos (Con ajustes de auditoría)
 
@@ -88,8 +94,8 @@ erDiagram
 | Tabla | Campo | Tipo | Descripción |
 |---|---|---|---|
 | **USUARIO** | `id` | UUID | Llave primaria. |
-| | `email` | VARCHAR(255) | Único en el sistema. |
-| | `rol` | ENUM | Define los permisos (RBAC). |
+| | `email` | TEXT | Único en el sistema. El contrato usa `String` de Prisma, que se materializa como `text` (sin límite de 255). |
+| | `rol` | ENUM | Define los permisos (RBAC). Se persiste como `text` con `CHECK` de valores. |
 
 ### 2.2 `operador-api` (Sedes y Capacidad)
 
@@ -132,7 +138,10 @@ stateDiagram-v2
     COMPLETADA --> [*]
     CANCELADA --> [*]
     EXPIRADA --> [*]
-    
+```
+
+> Este diagrama es el **objetivo** de diseño. `RESERVA` no existe todavía en `contract.prisma` (ver sección 5).
+
 ## 4. Estrategia de IDs Lógicos (Cross-Service)
 
 Como cada microservicio tiene su propia base de datos, no usamos llaves foráneas (`FOREIGN KEY`) entre servicios. Usamos UUIDs como IDs lógicos.
@@ -141,3 +150,31 @@ Como cada microservicio tiene su propia base de datos, no usamos llaves foránea
 - Si necesita validar que la sede existe, hace una petición HTTP al `operador-api` (`GET /api/sedes/{id}`).
 
 Esto mantiene las bases de datos aisladas y escalables.
+
+## 5. Estado de implementación: diagrama vs. contrato
+
+El diagrama describe el **modelo objetivo**. El contrato de Prisma (`services/admin-api/src/prisma/contract.prisma`) solo materializa una parte, así que conviene no confundir diseño con código desplegado:
+
+| Entidad del diagrama | Servicio dueño | Estado en `contract.prisma` | Requerimientos que bloquea |
+| :--- | :--- | :--- | :--- |
+| `USUARIO` | `admin-api` | **Implementado** (7 columnas) | RF-01 a RF-08 |
+| `TICKET_KYB` | `admin-api` | No implementado | RF-23, RF-24, RF-29 |
+| `SEDE` | `operador-api` | No implementado | RF-24, RF-25, RF-26 |
+| `CELDA` | `operador-api` | No implementado | RF-25, RF-26, RF-27 |
+| `VEHICULO` | `cliente-api` | No implementado | RF-20 |
+| `RESERVA` | `cliente-api` | No implementado | RF-14 a RF-19, RF-21 |
+
+Además, el SRS exige entidades que **no aparecen en el diagrama**:
+
+| Requerimiento | Entidad necesaria |
+| :--- | :--- |
+| RF-19, RF-28 | `PAGO` / `TRANSACCION` |
+| RF-22 | `TICKET_SOPORTE` + `ADJUNTO` |
+| RF-28 | `CIERRE_CAJA` |
+| RF-30 | `DISPUTA` + `EVENTO_DISPUTA` |
+| RF-31 | `REGLA_NEGOCIO` |
+| RF-32 | `ROL` / `PERMISO` |
+| RNF-02 | `EVENTO_AUDITORIA` (append-only) |
+| RNF-03 | `ACEPTACION_POLITICA` |
+
+Por último, `compose.yaml` solo levanta `admin-db`. Las bases `operador_api` y `cliente_api` que exige el patrón todavía no existen, y ningún servicio además de `admin-api` tiene código.

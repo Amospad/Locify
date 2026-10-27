@@ -4,3 +4,10 @@ dist/
 .env.*
 !.env.example
 .prisma/
+
+# Copias de skills que genera `prisma skills sync` en cada servicio.
+# Son artefactos reproducibles: se instalan con `npm install`, no se versionan.
+services/admin-api/.claude/
+services/admin-api/.cursor/
+services/admin-api/.devin/
+services/admin-api/.agents/

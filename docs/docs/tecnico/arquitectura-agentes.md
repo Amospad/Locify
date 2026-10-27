@@ -112,7 +112,7 @@ Una **skill** es un paquete de instrucciones + referencias + assets que el agent
 | :--- | :--- | :--- | :--- |
 | `apple-hig` | **Diseño** | Jerarquía visual, contraste, tipografía y patrones de interacción coherentes con las guías de Apple para la app móvil | `.agents/skills/apple-hig` |
 | `rig` | **CI/CD + Seguridad** | Hooks de git, plantillas de PR, workflows de lint/type-check/build y escaneo de credenciales antes de cada commit | `slamb2k/mad-skills` |
-| `agentic-qe` / `qa-skills` | **QA** | Casos de prueba unitarios, bordes y datos de prueba para la funcionalidad que se implementa | Invocadas por `workflow.mdc` |
+| `agentic-qe` / `qa-skills` | **QA** | Casos de prueba unitarios, bordes y datos de prueba para la funcionalidad que se implementa | **No instaladas**: no aparecen en `skills-lock.json` ni en `.agents/skills/` |
 | `prisma-8` | **Persistencia** | Contratos, migraciones y consultas correctas para Prisma 8 (evita sintaxis de Prisma 5/6) | `prisma skills sync` |
 | `test-driven-development` | **QA (proceso)** | Fuerza el ciclo rojo → verde → refactor: la prueba falla antes de escribir la implementación | Catálogo del agente |
 
@@ -194,13 +194,13 @@ Documentar la arquitectura también exige decir qué está operativo y qué solo
 | Artefacto | Estado | Evidencia |
 | :--- | :--- | :--- |
 | `AGENTS.md` y modelo de 5 subsistemas | Operativo | Leído por Cursor y OpenCode en cada sesión |
-| Reglas `.cursor/rules/*.mdc` y subagente `verifier` | Operativo | `memory.mdc`, `workflow.mdc`, `verifier.md` |
-| Skills de diseño, CI/CD y persistencia | Operativo | `skills-lock.json` + `.agents/skills/` |
+| Reglas `.cursor/rules/*.mdc` y subagente `verifier` | Operativo | `memory.mdc`, `workflow.mdc`, `verifier.md` existen en el repositorio |
+| Skills de diseño y CI/CD | **Parcial** | `apple-hig` y `rig` instaladas y fijadas en `skills-lock.json`; `agentic-qe`/`qa-skills` **no** están instaladas |
 | Memoria (`PROJECT_STATE.md`) | Operativo | Actualizado con evidencia en cada cierre |
 | `.harness/scripts/ps/verify.ps1` | **Pendiente** | Referenciado por `init.ps1`, `.pre-commit-config.yaml` y `.gitlab-ci.yml`, aún no materializado |
 | Hooks de `rig` (lefthook + escaneo de secretos) | Pendiente | No existe `lefthook.yml`; hoy el único hook es `.pre-commit-config.yaml`, que invoca el `verify.sh` faltante |
 | `specs/<NNN>/feature_list.json` | Pendiente | Se crea con el primer `/hx-propose` |
-| Pipeline de GitLab | Declarado | `.gitlab-ci.yml` depende de `verify.sh` |
+| Pipeline de GitLab | **Roto** | `.gitlab-ci.yml` usa la imagen `ubuntu:24.04` sin Node/npm y llama a `.harness/scripts/ps/verify.sh`, que no existe: cualquier merge request falla |
 
 > Nota de honestidad técnica: mientras `verify.ps1` no exista, el gate real es `npm run build` + `npm test`, y `init.ps1` falla por un problema de codificación (UTF-8 sin BOM) al leer el guion `—`. Un documento de arquitectura que esconde esto no sirve para operar el proyecto.
 

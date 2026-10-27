@@ -17,7 +17,7 @@ La Arquitectura Hexagonal resuelve esto poniendo el **Dominio (lógica de negoci
 
 ## 2. Las 4 Capas de LOCIFY
 
-Cada microservicio (`cliente-api`, `operador-api`, `admin-api`, `pago-worker`) tiene exactamente esta misma estructura interna:
+El microservicio implementado (`admin-api`) sigue esta estructura. Los otros tres (`cliente-api`, `operador-api`, `pago-worker`) están especificados en la documentación pero **todavía no existen en el repositorio**; la estructura es esta:
 
 ```mermaid
 flowchart TD
@@ -68,7 +68,9 @@ La flechas del diagrama apuntan siempre **hacia el dominio**. Esa es la regla qu
 | **Infraestructura** | Dominio (implementa sus puertos) | Aplicación |
 | **Interfaces** | Aplicación | Dominio directamente |
 
-Consecuencia práctica: un caso de uso como `RegistrarOperador` se puede probar **sin base de datos**, porque depende de la interfaz `UsuarioRepository` y no de PostgreSQL.
+Consecuencia práctica: un caso de uso como `RegistrarOperador` se puede probar **sin base de datos**, porque depende de la interfaz `UsuarioRepository` y no de PostgreSQL. Eso no es una promesa: `tests/unit/RegistrarOperador.test.ts` lo ejecuta con repositorio, correo, generador de IDs y reloj en memoria.
+
+Para que la regla se cumpla también con el tiempo y los identificadores, el dominio no importa `node:crypto` ni llama a `new Date()`: recibe los puertos `GeneradorId` y `Reloj`, y la infraestructura aporta `CryptoGeneradorId` y `RelojSistema`.
 
 ```ts
 // src/domain/ports/UsuarioRepository.ts — el dominio define QUÉ necesita
@@ -97,10 +99,12 @@ services/admin-api/src/
 ├── application/
 │   └── services/AdminService.ts  # Orquesta casos de uso
 ├── infrastructure/               # Adaptadores de salida
+│   ├── id/CryptoGeneradorId.ts
+│   ├── time/RelojSistema.ts
 │   └── persistence/
 │       ├── PostgresUsuarioRepository.ts
 │       └── test-connection.ts
-├── interfaces/http/              # Adaptadores de entrada
+├── interfaces/http/              # Adaptadores de entrada (PENDIENTE: no existe)
 └── prisma/                       # Contrato y cliente de persistencia
     ├── contract.prisma
     ├── contract.json             # Generado: no editar

@@ -4,6 +4,7 @@
 - [x] Documentación (SENA y Técnica)
 - [x] Publicación de la documentación en Vercel con rediseño UI/UX
 - [x] Configuración de Skills (QA, CI/CD, Seguridad, Diseño)
+- [x] Auditoría técnica de código, documentación y arquitectura (2026-10-27)
 - [ ] Implementación de Microservicio `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás microservicios
 
@@ -15,13 +16,59 @@
 ## Decisiones Clave (ADRs)
 - ADR-001: Arquitectura Hexagonal.
 - ADR-002: Modelo Híbrido de Reservas.
-- ADR-003: Buffer de seguridad del 95% en celdas.
+- ADR-003: Monolito modular antes que microservicios (**Propuesto**, pendiente de ratificación).
+- Decisión de negocio (no es ADR): buffer de seguridad del 95 % de celdas, documentado en `docs/docs/formativo/09-modelo-negocio-y-resiliencia.md`.
 
 ## Tareas Pendientes (Backlog Técnico)
 - [x] Terminar la prueba de conexión de Prisma. (`npm run test:db` en `services/admin-api` → `SELECT 1`)
 - [x] Aplicar el contrato de Prisma a PostgreSQL. (`npm run db:init` → tabla `usuario` con índice único en `email` y checks de enums)
-- [x] Implementar el adaptador `PostgresUsuarioRepository`. (`npm test` → 7/7 tests verdes, incluida la integración real contra PostgreSQL)
+- [x] Implementar el adaptador `PostgresUsuarioRepository`. (`npm test` → 23/23 tests verdes: 20 unitarios + 3 de integración real contra PostgreSQL)
 - [x] Documentar la arquitectura de agentes IA. (`docs/docs/tecnico/arquitectura-agentes.md` + sección "Automatización y Agentes de IA" en el documento formativo 09)
+
+## Auditoría Técnica (2026-10-27)
+
+Revisión de 360° sobre código, documentación y arquitectura. Las skills `crucible`, `code-refactor-review` y
+`awesome-code-review` **no están instaladas** en el repositorio: `skills-lock.json` solo fija `apple-hig` y `rig`.
+La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin simular herramientas inexistentes.
+
+### Corregido en esta pasada
+
+| Hallazgo | Evidencia | Corrección |
+| :--- | :--- | :--- |
+| PowerShell incrustado en un documento | `03-alcance-requerimientos.md:1-5,105-107` | Frontmatter restaurado; el HTML generado ya no contiene `$contenido` ni `Out-File` |
+| Dos bloques Mermaid sin cerrar | `modelo-datos.md:12,116` | Vallas cerradas; las secciones 2 a 5 se renderizan como `<h2>` (antes eran código) |
+| Matriz de trazabilidad incompleta | `07-matriz-trazabilidad.md` cubría 8 de 32 RF | Matriz completa de 32 RF + 10 RNF, con huecos declarados |
+| CU/HU inexistentes en la matriz | `HU-P01`, `HU-A04`, `CU-02 (Validación)` | IDs alineados con `04-casos-uso.md` y `05-historias-usuario.md` |
+| ER de 6 entidades vs. contrato de 1 | `modelo-datos.md` vs. `contract.prisma` | Sección "Estado de implementación" + entidades faltantes + `text` en vez de `VARCHAR(255)` |
+| FK entre servicios en un modelo database-per-service | `modelo-datos.md` | Referencias marcadas como lógicas; solo FK físicas intra-servicio |
+| Bibliografía APA deficiente y cifras sin fuente | `06-antecedentes-justificacion.md` | APA 7 corregida (incluye DOI de Shoup) + nota de verificación de fuentes |
+| Escenarios y estados inventados | `09-modelo-negocio-y-resiliencia.md` | "7 escenarios" → 8; `SINCRONIZANDO` inexistente → `sincronizado = false`; índice UNIQUE marcado como diseño |
+| Dos guías de diseño con el mismo título y paletas contradictorias | `tecnico/guia-diseno-ui.md` vs. `referencia/guia-diseno-ui.md` | La guía HIG ya no define colores; ambas están en el sidebar |
+| Dominio importaba `node:crypto` y `new Date()` | `RegistrarOperador.ts:4,26` | Puertos `GeneradorId` y `Reloj` + adaptadores en infraestructura |
+| Validación de email trivial y contraseñas en claro aceptadas | `Usuario.ts:51` | Regex, normalización a minúsculas, límite de 254 y exigencia de hash BCrypt/Argon2 |
+| Caso de uso sin ninguna prueba | `RegistrarOperador` | `tests/unit/RegistrarOperador.test.ts` (7 casos con fakes) |
+| Variable de entorno con `!` no verificada | `prisma.config.ts:9` | Validación explícita con mensaje accionable |
+| Entrada que declaraba éxito sin atender peticiones | `src/index.ts` | Mensaje honesto y `exit code 1` |
+| ADR-003 citado pero inexistente | `PROJECT_STATE.md` | ADR-003 real (monolito modular); el buffer 95 % se reclasifica como decisión de negocio |
+
+### Bloqueantes abiertos (no se corrigieron aquí)
+
+| Bloqueante | Evidencia | Motivo |
+| :--- | :--- | :--- |
+| Sin capa HTTP ni autenticación | `src/index.ts`, no existe `src/interfaces/http/` | Requiere elegir framework y añadir dependencia (decisión del equipo) |
+| Sin hashing real de contraseñas | `package.json` no incluye bcrypt/argon2 | Añadir dependencia de runtime exige aprobación |
+| Sin adaptador de correo | `EmailService` sin implementación | Requiere proveedor y credenciales |
+| CI roto | `.gitlab-ci.yml:20-40`: imagen `ubuntu:24.04` sin Node y `verify.sh` inexistente | Requiere reescribir el pipeline completo |
+| `init.ps1` no parsea | Error en la línea 30 (`—` mal codificado) | Rompe el paso "Resume" del harness |
+| Registro sin transacción ni outbox | `RegistrarOperador` guarda y luego envía correo | Requiere una decisión de diseño (ADR) |
+| Prisma 8 **release candidate** en un servicio que se pretende productivo | `package.json:28-30` (`^8.0.0-rc.27`) | Decisión del equipo: fijar versión estable |
+| Pruebas de integración contra la base de desarrollo | `tests/integration` usa el mismo `DATABASE_URL` | Requiere contenedor de test dedicado |
+| Afirmaciones de disponibilidad y rendimiento sin instrumento | RNF-04, RNF-05, RNF-07 | Definir métrica y comando de verificación antes de afirmarlas |
+
+### Verificación de esta pasada
+
+- `services/admin-api`: `npm run build` limpio; `npm run test:unit` → **20/20**; `npm run test:repo` → **3/3**.
+- `docs`: `npm run build` → `Generated static files in "build"`; el HTML emitido no contiene el texto de PowerShell y `modelo-datos` renderiza sus cinco secciones como encabezados.
 
 ## Documentación Web (Docusaurus + Vercel)
 

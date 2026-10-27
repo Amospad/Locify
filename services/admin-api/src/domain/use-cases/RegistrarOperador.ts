@@ -88,7 +88,8 @@ export class RegistrarOperadorUseCase {
     try {
       await this.emailService.enviarInvitacion(nuevoOperador.email, tokenInvitacion);
     } catch (error) {
-      throw new ErrorEnvioDeInvitacion(error);
+      // El id viaja en el error para que la respuesta 502 permita reinvitar.
+      throw new ErrorEnvioDeInvitacion(error, { idOperador: nuevoOperador.id });
     }
 
     return { id: nuevoOperador.id, email: nuevoOperador.email };

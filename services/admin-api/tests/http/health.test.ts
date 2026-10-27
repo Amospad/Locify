@@ -15,6 +15,7 @@ function dbFalsa(consultar: () => Promise<readonly unknown[]>): ConsultadorDeBas
 /** El registro de operadores no participa en /health: doble inerte. */
 const REGISTRADOR_FALSO = {
   registrarOperador: async () => ({ id: 'id-1', email: 'operador@locify.co' }),
+  reinvitarOperador: async () => ({ id: 'id-1', email: 'operador@locify.co' }),
 };
 
 async function servidorCon(db: ConsultadorDeBaseDeDatos): Promise<FastifyInstance> {

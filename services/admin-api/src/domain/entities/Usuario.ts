@@ -54,6 +54,32 @@ export class Usuario {
     return ahora.getTime() > this.props.tokenExpiracion.getTime();
   }
 
+  /**
+   * Renueva el token de invitación y devuelve una **nueva** instancia: la
+   * entidad es inmutable.
+   *
+   * Regla de negocio: sólo un usuario PENDIENTE puede ser reinvitado. Uno
+   * ACTIVO ya tiene credenciales y uno SUSPENDIDO no debe recibir un enlace
+   * nuevo. Se lanza `ErrorDeValidacion` porque la capa HTTP responde 400.
+   */
+  public regenerarInvitacion(tokenInvitacion: string, tokenExpiracion: Date): Usuario {
+    if (this.props.estado !== EstadoUsuario.PENDIENTE) {
+      throw new ErrorDeValidacion(
+        'Solo se puede reinvitar a un operador en estado PENDIENTE.',
+      );
+    }
+
+    if (tokenInvitacion.trim().length === 0) {
+      throw new Error('El token de invitación es obligatorio');
+    }
+
+    return new Usuario({
+      ...this.props,
+      tokenInvitacion,
+      tokenExpiracion,
+    });
+  }
+
   // Fábrica estática para crear usuarios de forma controlada
   public static crear(props: UsuarioProps): Usuario {
     const email = Usuario.validarEmail(props.email);

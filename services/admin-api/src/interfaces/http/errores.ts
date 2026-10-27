@@ -2,17 +2,18 @@ import type { FastifyError, FastifyInstance } from 'fastify';
 import { ErrorDeValidacion } from '../../domain/errors/ErrorDeValidacion.js';
 import { ErrorDeConflicto } from '../../domain/errors/ErrorDeConflicto.js';
 import { ErrorEnvioDeInvitacion } from '../../domain/errors/ErrorEnvioDeInvitacion.js';
+import { ErrorNoEncontrado } from '../../domain/errors/ErrorNoEncontrado.js';
 
 export interface RespuestaDeError {
   statusCode: number;
-  body: { error: string };
+  body: { error: string; id?: string };
 }
 
 /**
  * Traduce los errores de dominio e infraestructura a códigos HTTP.
  *
- * Devuelve `null` cuando el error no es de un tipo conocido: quien llama decide
- * qué hacer (la ruta lo relanza y el manejador global responde 500).
+ * Devuelve `null` cuando el error no es de un tipo conocido: el manejador
+ * global lo trata como 500.
  */
 export function mapearError(error: unknown): RespuestaDeError | null {
   if (error instanceof ErrorDeValidacion) {
@@ -23,8 +24,19 @@ export function mapearError(error: unknown): RespuestaDeError | null {
     return { statusCode: 409, body: { error: error.message } };
   }
 
+  if (error instanceof ErrorNoEncontrado) {
+    return { statusCode: 404, body: { error: error.message } };
+  }
+
   if (error instanceof ErrorEnvioDeInvitacion) {
-    return { statusCode: 502, body: { error: error.message } };
+    return {
+      statusCode: 502,
+      body: {
+        error: error.message,
+        // El cliente necesita el id para reintentar la invitación y no el registro.
+        ...(error.idOperador ? { id: error.idOperador } : {}),
+      },
+    };
   }
 
   return null;
@@ -34,13 +46,26 @@ export function mapearError(error: unknown): RespuestaDeError | null {
  * Manejador global: normaliza la validación de esquema, los 4xx que emite
  * Fastify y el error inesperado.
  *
+ * Es el único lugar que decide el código HTTP de una excepción, así que
+ * también es el único que la registra: un 502 por SMTP caído deja su causa en
+ * el log, mientras el cliente recibe un mensaje sin detalles internos.
+ *
  * Un 500 nunca devuelve `stack`, el mensaje original ni detalles de Prisma o
  * SMTP: esos datos sólo van al log del servidor.
  */
 export function registrarManejadorDeErrores(app: FastifyInstance): void {
   app.setErrorHandler((error: FastifyError, request, reply) => {
     const mapeado = mapearError(error);
+
     if (mapeado) {
+      if (mapeado.statusCode >= 500) {
+        // La causa original (ECONNREFUSED, timeout, etc.) sólo va al log.
+        request.log.error(
+          { err: error.cause ?? error },
+          'Error de dominio con respuesta 5xx',
+        );
+      }
+
       return reply.code(mapeado.statusCode).send(mapeado.body);
     }
 

@@ -21,7 +21,7 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-01** | Registro con campos mínimos por rol | CU-01 | HU-01 | Alta | **Parcial** — `POST /api/operadores` de extremo a extremo (email + contraseña); faltan los demás roles y sus campos propios |
 | **RF-02** | Validación de correo y campos obligatorios | CU-01 | HU-01 | Alta | **Implementado** — JSON Schema (`required`, `additionalProperties: false`, `maxLength`) + `Usuario.validarEmail` |
 | **RF-03** | Token de invitación con 24 h de vigencia | CU-01 | HU-02 | Alta | **Implementado (dominio)** — `RegistrarOperador.ejecutar` |
-| **RF-04** | Correo automatizado con enlace de activación | CU-01 | HU-02 | Alta | **Parcial** — `EmailConsola` en desarrollo imprime el enlace; falta el adaptador SMTP |
+| **RF-04** | Correo automatizado con enlace de activación | CU-01 | HU-02 | Alta | **Implementado** — `SmtpEmailService` (nodemailer, timeouts de 10 s) + `EmailConsola` en desarrollo + reinvitación con token nuevo y reenvío |
 | **RF-05** | Validar token no expirado ni usado | CU-01 | HU-02, HU-05 | Alta | **Parcial** — `Usuario.tokenHaExpirado`; no hay marca de "usado" |
 | **RF-06** | Contraseña con política de complejidad | CU-01 | HU-01 | Alta | **Implementado** — `PoliticaPassword` (12–128, 4 categorías, 100 comunes) + Argon2id; validada antes del hasher |
 | **RF-07** | Activación: guardar contraseña y pasar a ACTIVO | CU-01 | HU-02 | Alta | **No implementado** — no existe caso de uso de activación |

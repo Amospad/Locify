@@ -1,5 +1,6 @@
 // Punto de entrada del módulo admin-api: construye el servidor HTTP y lo pone a escuchar.
 import 'dotenv/config';
+import type { EmailService } from './domain/ports/EmailService.js';
 
 const PUERTO_POR_DEFECTO = 3000;
 const puerto = Number(process.env['PORT'] ?? PUERTO_POR_DEFECTO);
@@ -26,6 +27,7 @@ const [
   { CryptoGeneradorId },
   { RelojSistema },
   { EmailConsola },
+  { SmtpEmailService, opcionesSmtpDesdeEntorno },
   { AdminService },
 ] = await Promise.all([
   import('./interfaces/http/server.js'),
@@ -35,15 +37,29 @@ const [
   import('./infrastructure/id/CryptoGeneradorId.js'),
   import('./infrastructure/time/RelojSistema.js'),
   import('./infrastructure/email/EmailConsola.js'),
+  import('./infrastructure/notifications/SmtpEmailService.js'),
   import('./application/services/AdminService.js'),
 ]);
 
 const db = new PostgresConsultadorDeBaseDeDatos();
 
-// El adaptador de correo es el único que puede negarse a arrancar en
-// producción (imprimir el token de invitación en un log sería una fuga).
-const emailService = (() => {
+// Adaptador de correo según EMAIL_DRIVER. `console` imprime el enlace y sólo
+// vale para desarrollo; `smtp` exige SMTP_HOST, SMTP_FROM y credenciales
+// coherentes. Cualquier fallo de configuración detiene el arranque.
+const EMAIL_DRIVER = (process.env['EMAIL_DRIVER'] ?? 'console').trim().toLowerCase();
+
+const emailService: EmailService = (() => {
   try {
+    if (EMAIL_DRIVER === 'smtp') {
+      return new SmtpEmailService(opcionesSmtpDesdeEntorno());
+    }
+
+    if (EMAIL_DRIVER !== 'console') {
+      throw new Error(
+        `EMAIL_DRIVER desconocido: "${EMAIL_DRIVER}". Valores admitidos: console, smtp.`,
+      );
+    }
+
     return new EmailConsola();
   } catch (error) {
     console.error(
@@ -71,13 +87,15 @@ try {
   await app.listen({ port: puerto, host: process.env['HOST'] ?? '0.0.0.0' });
 } catch (error) {
   app.log.error({ err: error }, 'No se pudo iniciar el servidor HTTP');
+  await emailService.cerrar?.();
   await db.cerrar();
   process.exit(1);
 }
 
 async function apagar(senal: string): Promise<void> {
-  app.log.info(`Señal ${senal} recibida: cerrando servidor y base de datos`);
+  app.log.info(`Señal ${senal} recibida: cerrando servidor, correo y base de datos`);
   await app.close();
+  await emailService.cerrar?.();
   await db.cerrar();
 }
 

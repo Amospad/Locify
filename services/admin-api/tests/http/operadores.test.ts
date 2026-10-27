@@ -5,7 +5,11 @@ import type { FastifyInstance } from 'fastify';
 import { buildServer } from '../../src/interfaces/http/server.js';
 import { AdminService } from '../../src/application/services/AdminService.js';
 import type { ConsultadorDeBaseDeDatos } from '../../src/application/ports/ConsultadorDeBaseDeDatos.js';
-import { Usuario } from '../../src/domain/entities/Usuario.js';
+import {
+  Usuario,
+  RolUsuario,
+  EstadoUsuario,
+} from '../../src/domain/entities/Usuario.js';
 import type { UsuarioRepository } from '../../src/domain/ports/UsuarioRepository.js';
 import type { EmailService } from '../../src/domain/ports/EmailService.js';
 import type { GeneradorId } from '../../src/domain/ports/GeneradorId.js';
@@ -261,7 +265,7 @@ describe('POST /api/operadores', () => {
     }
   });
 
-  it('responde 502 si el operador se guardó pero el correo falló, sin filtrar el detalle', async () => {
+  it('responde 502 con el id si el operador se guardó pero el correo falló, sin filtrar el detalle', async () => {
     const { app, repositorio, correo } = await levantarApp();
     correo.fallar = true;
     try {
@@ -273,6 +277,8 @@ describe('POST /api/operadores', () => {
 
       assert.equal(res.statusCode, 502);
       assert.match(String(res.json().error), /invitación/);
+      // El id viaja en el 502: sin él, el cliente no podría reinvitar.
+      assert.equal(res.json().id, repositorio.guardados[0]?.id);
       // El detalle interno (SMTP, credenciales, stack) no llega al cliente.
       assert.equal(res.body.includes('SMTP caído'), false);
       // Riesgo conocido y documentado: no hay outbox, el usuario queda PENDIENTE.
@@ -298,6 +304,145 @@ describe('POST /api/operadores', () => {
         password: PASSWORD,
       });
       assert.equal(statusCode, 429);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+describe('POST /api/operadores/:id/reinvitar', () => {
+  /** Registra un operador válido y devuelve su id. */
+  async function crearOperador(app: FastifyInstance): Promise<string> {
+    const { statusCode, body } = await registrar(app, {
+      email: 'operador@locify.co',
+      password: PASSWORD,
+    });
+
+    assert.equal(statusCode, 201);
+    return String(body['id']);
+  }
+
+  it('responde 200, renueva el token y reenvía la invitación', async () => {
+    const { app, repositorio, correo } = await levantarApp();
+    try {
+      const id = await crearOperador(app);
+      const tokenAnterior = repositorio.guardados[0]?.tokenInvitacion;
+
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/operadores/${id}/reinvitar`,
+      });
+
+      assert.equal(res.statusCode, 200);
+      assert.deepEqual(res.json(), { id, email: 'operador@locify.co' });
+
+      const actualizado = repositorio.guardados[0]!;
+      assert.notEqual(actualizado.tokenInvitacion, tokenAnterior);
+      assert.equal(actualizado.estado, EstadoUsuario.PENDIENTE);
+
+      // Un envío del registro + uno de la reinvitación, ambos al mismo correo.
+      assert.equal(correo.enviados.length, 2);
+      assert.deepEqual(correo.enviados[1], {
+        destino: 'operador@locify.co',
+        token: actualizado.tokenInvitacion,
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('responde 404 si el id no existe', async () => {
+    const { app, correo } = await levantarApp();
+    try {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/operadores/no-existe/reinvitar',
+      });
+
+      assert.equal(res.statusCode, 404);
+      assert.match(String(res.json().error), /no existe/i);
+      assert.equal(correo.enviados.length, 0);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('responde 400 si el operador ya está ACTIVO', async () => {
+    const { app, repositorio } = await levantarApp();
+    try {
+      const id = await crearOperador(app);
+      const registrado = repositorio.guardados[0]!;
+
+      repositorio.guardados[0] = Usuario.reconstituir({
+        id: registrado.id,
+        email: registrado.email,
+        passwordHash: registrado.passwordHash,
+        rol: RolUsuario.OPERADOR,
+        estado: EstadoUsuario.ACTIVO,
+      });
+
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/operadores/${id}/reinvitar`,
+      });
+
+      assert.equal(res.statusCode, 400);
+      assert.match(String(res.json().error), /PENDIENTE/);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('responde 502 con el id si el correo falla, pero el token queda renovado', async () => {
+    const { app, repositorio, correo } = await levantarApp();
+    try {
+      const id = await crearOperador(app);
+      const tokenAnterior = repositorio.guardados[0]?.tokenInvitacion;
+
+      correo.fallar = true;
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/operadores/${id}/reinvitar`,
+      });
+
+      assert.equal(res.statusCode, 502);
+      assert.equal(res.json().id, id);
+      assert.match(String(res.json().error), /invitación/);
+      assert.equal(res.body.includes('SMTP caído'), false);
+      assert.notEqual(repositorio.guardados[0]?.tokenInvitacion, tokenAnterior);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('permite reinvitar cuando el correo falló durante el registro', async () => {
+    const { app, repositorio, correo } = await levantarApp();
+    correo.fallar = true;
+    try {
+      const registro = await app.inject({
+        method: 'POST',
+        url: '/api/operadores',
+        payload: { email: 'operador@locify.co', password: PASSWORD },
+      });
+
+      assert.equal(registro.statusCode, 502);
+      const id = String(registro.json().id);
+      assert.equal(id, repositorio.guardados[0]?.id);
+      assert.equal(repositorio.guardados[0]?.estado, EstadoUsuario.PENDIENTE);
+      const tokenSinEnviar = repositorio.guardados[0]?.tokenInvitacion;
+
+      // El correo se recupera: la reinvitación usa el id del 502.
+      correo.fallar = false;
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/operadores/${id}/reinvitar`,
+      });
+
+      assert.equal(res.statusCode, 200);
+      assert.deepEqual(res.json(), { id, email: 'operador@locify.co' });
+      assert.notEqual(repositorio.guardados[0]?.tokenInvitacion, tokenSinEnviar);
+      assert.equal(repositorio.guardados.length, 1, 'no se duplica el operador');
+      assert.equal(correo.enviados.length, 1);
     } finally {
       await app.close();
     }

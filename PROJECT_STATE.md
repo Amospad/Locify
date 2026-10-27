@@ -8,6 +8,7 @@
 - [x] Ratificación del ADR-003: monolito modular con un esquema por módulo (2026-10-27)
 - [x] Capa HTTP mínima: `buildServer()` (sin `listen`) + `GET /health` con Fastify, helmet, CORS y rate limit (2026-10-27)
 - [x] Registro de operadores por HTTP: `POST /api/operadores` + composition root en `src/index.ts` (2026-10-27)
+- [x] Correo SMTP y reinvitación: `SmtpEmailService` (nodemailer, timeouts de 10 s) + `POST /api/operadores/:id/reinvitar` (2026-10-27)
 - [x] Cambio de alcance: App del Cliente como PWA *mobile-first* usable también desde escritorio (2026-10-27)
 - [x] Trazabilidad RF→HU al 100 % (32/32) con 30 historias de usuario (2026-10-27)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
@@ -36,6 +37,7 @@
 - [x] Hashing de contraseñas con Argon2id: puerto `PasswordHasher`, adaptador `Argon2Hasher` y `RegistrarOperador` hasheando antes de persistir. (`npm test` → 33/33)
 - [x] Política de complejidad de contraseñas (RF-06): 12–128 caracteres, 4 categorías, 100 contraseñas comunes rechazadas, validada antes del hasher. (`npm test` → 53/53)
 - [x] Registro de operadores de extremo a extremo: `POST /api/operadores` (201/400/409/502/429) con composition root real y verificación contra PostgreSQL. (`npm test` → 64/64)
+- [x] Bloqueante 3 (correo): `SmtpEmailService` con timeouts de 10 s, `EmailConsola` para desarrollo, reinvitación con token nuevo y 502 que devuelve el id para reintentar la invitación. (`npm test` → 88/88)
 
 ## Auditoría Técnica (2026-10-27)
 
@@ -69,7 +71,7 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 | :--- | :--- | :--- |
 | Sin capa HTTP ni autenticación | `src/interfaces/http/` (antes inexistente) | **Parcial:** `POST /api/operadores` verificado E2E (201/400/409/502/429) y `GET /health` en 200; faltan autenticación/RBAC y pruebas de allowlist CORS |
 | Sin hashing real de contraseñas | `package.json` no incluía bcrypt/argon2 | **Resuelto (2026-10-27):** puerto `PasswordHasher` + `Argon2Hasher` (Argon2id, m=65536 t=3 p=4) + `RegistrarOperador` hashea antes de persistir |
-| Sin adaptador de correo | `EmailService` sin implementación | Requiere proveedor y credenciales |
+| Sin adaptador de correo | `EmailService` sin implementación | **Resuelto (2026-10-27):** `SmtpEmailService` (nodemailer, timeouts de 10 s) + `EmailConsola` para desarrollo + reinvitación. Pendiente probar contra un proveedor real (Mailtrap/SMTP) |
 | CI roto | `.gitlab-ci.yml:20-40`: imagen `ubuntu:24.04` sin Node y `verify.sh` inexistente | Requiere reescribir el pipeline completo |
 | `init.ps1` no parsea | Error en la línea 30 (`—` mal codificado) | Rompe el paso "Resume" del harness |
 | Registro sin transacción ni outbox | `RegistrarOperador` guarda y luego envía correo | Requiere una decisión de diseño (ADR) |
@@ -112,9 +114,35 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 **Riesgos que siguen abiertos**
 
-- Si el correo falla, el operador queda persistido y la respuesta es 502: reintentar el registro da 409. Falta el endpoint de reinvitación (bloqueante 3) o un outbox.
+- Si el correo falla, el operador queda persistido y la respuesta es **502 con su `id`**: reintentar el registro da 409, pero `POST /api/operadores/:id/reinvitar` reenvía la invitación (2026-10-27).
 - Una colisión real del índice UNIQUE (dos peticiones concurrentes) no se traduce a 409: llega como 500, porque la comprobación previa no es atómica.
 - No hay autenticación ni RBAC: `POST /api/operadores` queda protegido sólo por rate limit. **No debe exponerse a Internet** hasta implementar login/sesión.
+
+## Correo SMTP y reinvitación (2026-10-27)
+
+- **`src/infrastructure/notifications/SmtpEmailService.ts`**: adaptador del puerto `EmailService` sobre `nodemailer@10.2.1`. Configura `connectionTimeout`, `greetingTimeout` y `socketTimeout` en **10 000 ms**; sin ellos, un servidor SMTP lento deja la petición HTTP colgada. El transporte se reutiliza y se libera con `cerrar()` en el apagado ordenado.
+- **Configuración validada al arrancar** (`opcionesSmtpDesdeEntorno`): `SMTP_HOST` y `SMTP_FROM` obligatorias; `SMTP_PORT` entero 1–65535 (587 STARTTLS, 465 TLS directo, o `SMTP_SECURE`); `SMTP_USER` y `SMTP_PASS` van juntas; el servidor local sin autenticación se admite. `EMAIL_DRIVER=console|smtp` elige el adaptador; un valor desconocido detiene el proceso nombrándolo.
+- **Plantilla** (`notifications/plantillas/invitacion.ts`): HTML + texto plano con enlace `APP_URL/activar?token=…`, el token como código y la vigencia de 24 h; los valores se escapan antes de tocar el HTML.
+- **Reinvitación**: `ReinvitarOperadorUseCase` busca por id (404 si no existe), delega en `Usuario.regenerarInvitacion` la regla "sólo PENDIENTE" (400 si está ACTIVO o SUSPENDIDO) y devuelve una **instancia nueva** —la entidad sigue siendo inmutable—, persiste el token nuevo y reenvía el correo. El token anterior deja de ser válido porque sólo se guarda uno.
+- **502 con `id`**: el registro que falla al enviar devuelve `{ error, id }` para que el cliente pueda reinvitar en vez de duplicar el usuario (que daría 409).
+- **Log de la causa**: el manejador global registra el `cause` real (p. ej. `connect ECONNREFUSED 127.0.0.1:2525`) sólo en el log; el cliente recibe un mensaje genérico.
+
+**Evidencia ejecutada**
+
+- `npm test` → **88/88** (65 unitarios + 20 HTTP + 3 de integración), 0 fallos.
+  - `tests/unit/ReinvitarOperador.test.ts` (5): renueva token y expiración, 404, ACTIVO, SUSPENDIDO, fallo de correo con token persistido.
+  - `tests/unit/SmtpEmailService.test.ts` (11): lectura y validación de entorno, `secure` por puerto, auth opcional, los tres timeouts, mensaje con enlace y token, barra final en `APP_URL`.
+  - `tests/http/operadores.test.ts` (+5): 200 con token rotado, 404, 400 si está ACTIVO, 502 en reinvitación y **registro fallido → 502 con id → reinvitación 200 sin duplicar**.
+- `npm run build` → `tsc` sin errores.
+- **SMTP real (sin servidor levantado)**: `EMAIL_DRIVER=smtp` sin `SMTP_HOST` → `[admin-api] SMTP_HOST no está definida…` y salida 1. Con `SMTP_HOST=127.0.0.1:2525` apagado, el registro devuelve **502 con id**, la reinvitación **502**, y el log registra `connect ECONNREFUSED 127.0.0.1:2525`.
+- **Reinvitación contra PostgreSQL**: registro → 201; reinvitación → 200; los dos tokens impresos por `EmailConsola` son distintos y el persistido coincide con el segundo; `estado=PENDIENTE`, expiración a 24 h. La fila de prueba se eliminó.
+
+**Pendiente / riesgos**
+
+- No se ha validado contra un proveedor SMTP real (Mailtrap, SES, Brevo): hace falta credenciales y un remitente verificado. La lógica de error y timeout está probada, el envío feliz real no.
+- Sigue sin outbox: si el proceso muere entre `guardar` y `sendMail`, el operador queda PENDIENTE sin correo; la reinvitación manual lo resuelve.
+- `POST /api/operadores/:id/reinvitar` no está autenticado ni limitado por rol: cualquiera con el id puede provocar correos. El rate limit (10/min) acota el abuso, no la autorización.
+- El HTML de la plantilla es deliberadamente simple y no se ha probado en clientes de correo (Outlook/Gmail) ni con un verificador de spam.
 
 ## Hashing con Argon2id (2026-10-27)
 
@@ -228,6 +256,8 @@ El negocio pidió que la App del Cliente (conductores) deje de plantearse como a
 
 ### Bloqueante 3 — Adaptador de correo (2 días, paralelizable)
 
+**Estado: cerrado el 2026-10-27.** `EmailConsola`, `SmtpEmailService` con timeouts de 10 s, plantilla HTML/texto y `POST /api/operadores/:id/reinvitar` implementados y probados; ver "Correo SMTP y reinvitación". Desviaciones: el adaptador vive en `src/infrastructure/notifications/` (no en `email/`) y la plantilla en `notifications/plantillas/`. Queda pendiente el criterio de aceptación contra un proveedor real.
+
 1. `npm i nodemailer` + `npm i -D @types/nodemailer`.
 2. `src/infrastructure/email/EmailConsola.ts` para desarrollo (`EMAIL_DRIVER=console`): imprime el enlace y no falla si no hay SMTP.
 3. `src/infrastructure/email/SmtpEmailService.ts`: `connectionTimeout` y `socketTimeout` de 10 s, `FROM` obligatorio, credenciales desde `env.ts` (nunca en el repositorio).
@@ -245,9 +275,10 @@ El negocio pidió que la App del Cliente (conductores) deje de plantearse como a
 
 ### Definición de hecho del sprint
 
-- [x] `npm run build` y `npm test` verdes en local. (`npm test` → 64/64)
+- [x] `npm run build` y `npm test` verdes en local. (`npm test` → 88/88)
 - [x] `npm start` deja `/health` en 200 contra la base real.
-- [x] Registro por HTTP → 201, solo hash en la base e invitación generada por `EmailConsola` (SMTP real sigue pendiente).
+- [x] Registro por HTTP → 201, solo hash en la base e invitación generada (consola en local; `SmtpEmailService` implementado, **sin validar contra un proveedor real**).
+- [x] Reinvitación → 200 con token nuevo persistido y correo reenviado; 404/400/502 según el caso.
 - [x] `.env.example` actualizado y ningún secreto en el repositorio.
 - [x] `PROJECT_STATE.md` con la evidencia de cada bloqueante cerrado.
 

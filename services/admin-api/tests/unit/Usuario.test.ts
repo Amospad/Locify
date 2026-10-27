@@ -142,3 +142,41 @@ describe('Usuario — reglas temporales', () => {
     assert.equal(usuario.puedeAccederAlDashboard(new Date('2026-10-27T13:00:00.000Z')), false);
   });
 });
+
+describe('Usuario.regenerarInvitacion', () => {
+  it('devuelve una instancia nueva con el token renovado sin mutar la original', () => {
+    const original = Usuario.reconstituir({
+      ...propsValidas,
+      tokenInvitacion: 'token-viejo',
+    });
+    const nuevaExpiracion = new Date('2026-10-29T12:00:00.000Z');
+
+    const renovado = original.regenerarInvitacion('token-nuevo', nuevaExpiracion);
+
+    assert.notEqual(renovado, original);
+    assert.equal(renovado.tokenInvitacion, 'token-nuevo');
+    assert.deepEqual(renovado.tokenExpiracion, nuevaExpiracion);
+    // La instancia original conserva el token anterior: nadie muta en silencio.
+    assert.equal(original.tokenInvitacion, 'token-viejo');
+    assert.deepEqual(original.tokenExpiracion, propsValidas.tokenExpiracion);
+  });
+
+  it('rechaza reinvitar a un operador que no está PENDIENTE', () => {
+    for (const estado of [EstadoUsuario.ACTIVO, EstadoUsuario.SUSPENDIDO]) {
+      const usuario = Usuario.reconstituir({ ...propsValidas, estado });
+      assert.throws(
+        () => usuario.regenerarInvitacion('token-nuevo', new Date()),
+        /PENDIENTE/,
+      );
+    }
+  });
+
+  it('exige un token no vacío', () => {
+    const usuario = Usuario.reconstituir(propsValidas);
+
+    assert.throws(
+      () => usuario.regenerarInvitacion('   ', new Date()),
+      /token de invitación es obligatorio/,
+    );
+  });
+});

@@ -1,13 +1,13 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { OperadorRegistrado } from '../../../domain/use-cases/RegistrarOperador.js';
-import { mapearError } from '../errores.js';
 
 /**
- * Puerto de entrada que consume la ruta. `AdminService` lo cumple por
+ * Puerto de entrada que consumen las rutas. `AdminService` lo cumple por
  * estructura, y las pruebas pueden sustituirlo sin instanciar el servicio.
  */
 export interface RegistradorDeOperadores {
   registrarOperador(email: string, password: string): Promise<OperadorRegistrado>;
+  reinvitarOperador(id: string): Promise<OperadorRegistrado>;
 }
 
 interface OpcionesOperadores {
@@ -17,6 +17,10 @@ interface OpcionesOperadores {
 interface CuerpoRegistro {
   email: string;
   password: string;
+}
+
+interface ParametrosId {
+  id: string;
 }
 
 /**
@@ -32,6 +36,17 @@ const esquemaCuerpo = {
     email: { type: 'string', minLength: 3, maxLength: 254 },
     // 128 es también el máximo de la política: acota lo que llega a Argon2.
     password: { type: 'string', minLength: 1, maxLength: 128 },
+  },
+} as const;
+
+const esquemaParametrosId = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['id'],
+  properties: {
+    // Los ids son UUID (36), pero no se fija el formato: el repositorio decide
+    // si existe, y un id con otro formato simplemente dará 404.
+    id: { type: 'string', minLength: 1, maxLength: 64 },
   },
 } as const;
 
@@ -54,13 +69,39 @@ const esquemaError = {
   },
 } as const;
 
+/** El 502 incluye el id del operador que sí quedó creado: permite reinvitar. */
+const esquemaErrorConId = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['error'],
+  properties: {
+    error: { type: 'string' },
+    id: { type: 'string' },
+  },
+} as const;
+
+const LIMITE_REGISTRO = {
+  config: {
+    // Registro y reinvitación: mucho más restrictivos que el límite global.
+    rateLimit: { max: 10, timeWindow: '1 minute' },
+  },
+} as const;
+
 /**
  * `POST /api/operadores`: registra un operador PENDIENTE y envía la invitación.
  *
  * - 201 `{ id, email }` — creado; nunca devuelve hash, token ni contraseña.
  * - 400 — email inválido, contraseña débil o cuerpo fuera de esquema.
  * - 409 — email ya registrado.
- * - 502 — operador creado, correo de invitación no enviado.
+ * - 502 `{ error, id }` — operador creado, correo de invitación no enviado.
+ *
+ * `POST /api/operadores/:id/reinvitar`: renueva el token de un operador
+ * PENDIENTE y reenvía la invitación.
+ *
+ * - 200 `{ id, email }` — token renovado y correo enviado.
+ * - 400 — el operador no está PENDIENTE (activo o suspendido).
+ * - 404 — no existe un operador con ese id.
+ * - 502 — token renovado, correo no enviado.
  */
 export const rutasOperadores: FastifyPluginAsync<OpcionesOperadores> = async (
   app,
@@ -69,36 +110,45 @@ export const rutasOperadores: FastifyPluginAsync<OpcionesOperadores> = async (
   app.post<{ Body: CuerpoRegistro }>(
     '/api/operadores',
     {
-      config: {
-        // Registro de operadores: mucho más restrictivo que el límite global.
-        rateLimit: { max: 10, timeWindow: '1 minute' },
-      },
+      ...LIMITE_REGISTRO,
       schema: {
         body: esquemaCuerpo,
         response: {
           201: esquemaOperador,
           400: esquemaError,
           409: esquemaError,
-          502: esquemaError,
           500: esquemaError,
+          502: esquemaErrorConId,
         },
       },
     },
     async (request, reply) => {
       const { email, password } = request.body;
+      const operador = await opciones.adminService.registrarOperador(email, password);
 
-      try {
-        const operador = await opciones.adminService.registrarOperador(email, password);
-        return reply.code(201).send(operador);
-      } catch (error) {
-        const mapeado = mapearError(error);
-        if (mapeado) {
-          return reply.code(mapeado.statusCode).send(mapeado.body);
-        }
+      return reply.code(201).send(operador);
+    },
+  );
 
-        // Desconocido: lo resuelve el manejador global (500 sin filtrar detalles).
-        throw error;
-      }
+  app.post<{ Params: ParametrosId }>(
+    '/api/operadores/:id/reinvitar',
+    {
+      ...LIMITE_REGISTRO,
+      schema: {
+        params: esquemaParametrosId,
+        response: {
+          200: esquemaOperador,
+          400: esquemaError,
+          404: esquemaError,
+          500: esquemaError,
+          502: esquemaErrorConId,
+        },
+      },
+    },
+    async (request, reply) => {
+      const operador = await opciones.adminService.reinvitarOperador(request.params.id);
+
+      return reply.code(200).send(operador);
     },
   );
 };

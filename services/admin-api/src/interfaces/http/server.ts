@@ -3,13 +3,19 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import type { ConsultadorDeBaseDeDatos } from '../../application/ports/ConsultadorDeBaseDeDatos.js';
+import type { ServicioDeTokens } from '../../domain/ports/ServicioDeTokens.js';
 import { rutasSalud } from './routes/health.js';
 import { rutasOperadores, type RegistradorDeOperadores } from './routes/operadores.js';
+import { rutasAuth, type IniciadorDeSesion } from './routes/auth.js';
+import { crearAutenticacion } from './auth.js';
 import { registrarManejadorDeErrores } from './errores.js';
 
 export interface DependenciasHttp {
   db: ConsultadorDeBaseDeDatos;
   adminService: RegistradorDeOperadores;
+  authService: IniciadorDeSesion;
+  /** Verifica los tokens de acceso de las rutas protegidas. */
+  servicioTokens: ServicioDeTokens;
 }
 
 export interface OpcionesServidor {
@@ -71,8 +77,14 @@ export async function buildServer(
 
   registrarManejadorDeErrores(app);
 
+  const autenticar = crearAutenticacion(deps.servicioTokens);
+
   await app.register(rutasSalud, { db: deps.db });
-  await app.register(rutasOperadores, { adminService: deps.adminService });
+  await app.register(rutasAuth, { authService: deps.authService });
+  await app.register(rutasOperadores, {
+    adminService: deps.adminService,
+    autenticar,
+  });
 
   return app;
 }

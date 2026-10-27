@@ -3,6 +3,10 @@ import { ErrorDeValidacion } from '../../domain/errors/ErrorDeValidacion.js';
 import { ErrorDeConflicto } from '../../domain/errors/ErrorDeConflicto.js';
 import { ErrorEnvioDeInvitacion } from '../../domain/errors/ErrorEnvioDeInvitacion.js';
 import { ErrorNoEncontrado } from '../../domain/errors/ErrorNoEncontrado.js';
+import { CredencialesInvalidasError } from '../../domain/errors/CredencialesInvalidasError.js';
+import { TokenInvalidoError } from '../../domain/errors/TokenInvalidoError.js';
+import { UsuarioNoActivoError } from '../../domain/errors/UsuarioNoActivoError.js';
+import { AccesoDenegadoError } from '../../domain/errors/AccesoDenegadoError.js';
 
 export interface RespuestaDeError {
   statusCode: number;
@@ -26,6 +30,14 @@ export function mapearError(error: unknown): RespuestaDeError | null {
 
   if (error instanceof ErrorNoEncontrado) {
     return { statusCode: 404, body: { error: error.message } };
+  }
+
+  if (error instanceof CredencialesInvalidasError || error instanceof TokenInvalidoError) {
+    return { statusCode: 401, body: { error: error.message } };
+  }
+
+  if (error instanceof UsuarioNoActivoError || error instanceof AccesoDenegadoError) {
+    return { statusCode: 403, body: { error: error.message } };
   }
 
   if (error instanceof ErrorEnvioDeInvitacion) {

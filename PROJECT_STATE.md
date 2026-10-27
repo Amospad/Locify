@@ -9,6 +9,7 @@
 - [x] Capa HTTP mínima: `buildServer()` (sin `listen`) + `GET /health` con Fastify, helmet, CORS y rate limit (2026-10-27)
 - [x] Registro de operadores por HTTP: `POST /api/operadores` + composition root en `src/index.ts` (2026-10-27)
 - [x] Correo SMTP y reinvitación: `SmtpEmailService` (nodemailer, timeouts de 10 s) + `POST /api/operadores/:id/reinvitar` (2026-10-27)
+- [x] Autenticación JWT y RBAC: `POST /api/auth/login` + `preHandler` Bearer y reinvitación sólo para ADMIN (2026-10-27)
 - [x] Cambio de alcance: App del Cliente como PWA *mobile-first* usable también desde escritorio (2026-10-27)
 - [x] Trazabilidad RF→HU al 100 % (32/32) con 30 historias de usuario (2026-10-27)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
@@ -38,6 +39,7 @@
 - [x] Política de complejidad de contraseñas (RF-06): 12–128 caracteres, 4 categorías, 100 contraseñas comunes rechazadas, validada antes del hasher. (`npm test` → 53/53)
 - [x] Registro de operadores de extremo a extremo: `POST /api/operadores` (201/400/409/502/429) con composition root real y verificación contra PostgreSQL. (`npm test` → 64/64)
 - [x] Bloqueante 3 (correo): `SmtpEmailService` con timeouts de 10 s, `EmailConsola` para desarrollo, reinvitación con token nuevo y 502 que devuelve el id para reintentar la invitación. (`npm test` → 88/88)
+- [x] Autenticación JWT y RBAC: login con Argon2id, JWT HS256 (`jose`), `preHandler` Bearer y `exigirRol(ADMIN)` en la reinvitación. (`npm test` → 117/117)
 
 ## Auditoría Técnica (2026-10-27)
 
@@ -69,7 +71,7 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 | Bloqueante | Evidencia | Motivo |
 | :--- | :--- | :--- |
-| Sin capa HTTP ni autenticación | `src/interfaces/http/` (antes inexistente) | **Parcial:** `POST /api/operadores` verificado E2E (201/400/409/502/429) y `GET /health` en 200; faltan autenticación/RBAC y pruebas de allowlist CORS |
+| Sin capa HTTP ni autenticación | `src/interfaces/http/` (antes inexistente) | **Resuelto en lo esencial (2026-10-27):** `POST /api/operadores`, `GET /health` y `POST /api/auth/login` verificados E2E; la reinvitación exige JWT de ADMIN. Quedan: registro público, activación de cuenta y pruebas de allowlist CORS |
 | Sin hashing real de contraseñas | `package.json` no incluía bcrypt/argon2 | **Resuelto (2026-10-27):** puerto `PasswordHasher` + `Argon2Hasher` (Argon2id, m=65536 t=3 p=4) + `RegistrarOperador` hashea antes de persistir |
 | Sin adaptador de correo | `EmailService` sin implementación | **Resuelto (2026-10-27):** `SmtpEmailService` (nodemailer, timeouts de 10 s) + `EmailConsola` para desarrollo + reinvitación. Pendiente probar contra un proveedor real (Mailtrap/SMTP) |
 | CI roto | `.gitlab-ci.yml:20-40`: imagen `ubuntu:24.04` sin Node y `verify.sh` inexistente | Requiere reescribir el pipeline completo |
@@ -91,7 +93,7 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 - `src/application/ports/ConsultadorDeBaseDeDatos.ts` + `src/infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.ts`: puerto y adaptador del chequeo; el dominio y la capa HTTP no conocen Prisma.
 - `src/index.ts`: valida `PORT` (1–65535) y `DATABASE_URL`, construye el servidor, escucha en `PORT` (3000 por defecto) y cierra ordenadamente con `SIGINT`/`SIGTERM`.
 - **Evidencia:** `npm run test:http` → **4/4**; `npm test` → **27/27**; `node dist/index.js` en el puerto 3100 + `Invoke-WebRequest /health` → `200 {"status":"ok","db":"up"}` con `x-content-type-options: nosniff`.
-- **Pendiente de este bloqueante:** autenticación/RBAC y pruebas de allowlist CORS. (`POST /api/operadores` y el 429 quedaron cerrados el 2026-10-27; ver la sección siguiente.)
+- **Pendiente de este bloqueante:** pruebas de allowlist CORS y protección del resto de rutas. (Autenticación/RBAC y `POST /api/operadores` quedaron cerrados el 2026-10-27; ver las secciones siguientes.)
 
 ## Registro de operadores por HTTP (2026-10-27)
 
@@ -116,9 +118,11 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 - Si el correo falla, el operador queda persistido y la respuesta es **502 con su `id`**: reintentar el registro da 409, pero `POST /api/operadores/:id/reinvitar` reenvía la invitación (2026-10-27).
 - Una colisión real del índice UNIQUE (dos peticiones concurrentes) no se traduce a 409: llega como 500, porque la comprobación previa no es atómica.
-- No hay autenticación ni RBAC: `POST /api/operadores` queda protegido sólo por rate limit. **No debe exponerse a Internet** hasta implementar login/sesión.
+- El registro (`POST /api/operadores`) sigue sin autenticación: sólo lo protege el rate limit. La reinvitación ya exige un ADMIN (2026-10-27). **No debe exponerse a Internet** hasta cerrar el registro y el flujo de activación.
 
 ## Correo SMTP y reinvitación (2026-10-27)
+
+**Estado: cerrado.** Commits: `9081f17` (adaptador SMTP y reinvitación) y `d939a58` (política de contraseñas, base del flujo de autenticación).
 
 - **`src/infrastructure/notifications/SmtpEmailService.ts`**: adaptador del puerto `EmailService` sobre `nodemailer@10.2.1`. Configura `connectionTimeout`, `greetingTimeout` y `socketTimeout` en **10 000 ms**; sin ellos, un servidor SMTP lento deja la petición HTTP colgada. El transporte se reutiliza y se libera con `cerrar()` en el apagado ordenado.
 - **Configuración validada al arrancar** (`opcionesSmtpDesdeEntorno`): `SMTP_HOST` y `SMTP_FROM` obligatorias; `SMTP_PORT` entero 1–65535 (587 STARTTLS, 465 TLS directo, o `SMTP_SECURE`); `SMTP_USER` y `SMTP_PASS` van juntas; el servidor local sin autenticación se admite. `EMAIL_DRIVER=console|smtp` elige el adaptador; un valor desconocido detiene el proceso nombrándolo.
@@ -144,6 +148,47 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 - `POST /api/operadores/:id/reinvitar` no está autenticado ni limitado por rol: cualquiera con el id puede provocar correos. El rate limit (10/min) acota el abuso, no la autorización.
 - El HTML de la plantilla es deliberadamente simple y no se ha probado en clientes de correo (Outlook/Gmail) ni con un verificador de spam.
 
+## Autenticación JWT y RBAC (2026-10-27)
+
+**RF-07 (nombre usado en el sprint: login): implementado.** En la matriz de trazabilidad RF-07 es la *activación* de la cuenta, que sigue parcial; la nota al final lo aclara.
+
+- **`LoginUsuarioUseCase`** (`src/domain/use-cases/LoginUsuario.ts`): normaliza el email (`trim` + minúsculas), busca por email, compara con Argon2id y **sólo entonces** revela el estado de la cuenta.
+  - Email inexistente → comparación **señuelo** contra un hash Argon2id descartado y `CredencialesInvalidasError` (401). Igualar el costo de Argon2 evita enumerar cuentas midiendo latencia.
+  - Contraseña incorrecta → el mismo `CredencialesInvalidasError`. La respuesta es idéntica byte a byte (probado).
+  - PENDIENTE o SUSPENDIDO con contraseña correcta → `UsuarioNoActivoError` (403). La contraseña se verifica antes del estado: sin credenciales válidas no se aprende nada de la cuenta.
+  - Éxito → `{ token, usuario: { id, email, rol } }`; nunca hash, token de invitación ni contraseña.
+- **Puerto `ServicioDeTokens`** + **`JwtService`** (`jose@6.2.13`): HS256, `iss`/`aud` verificados, `sub` = id, claims `email` y `rol`, expiración de 1 h por defecto. Sin `JWT_SECRET` (≥ 32 caracteres) el proceso no arranca. Se eligió `jose` sobre `jsonwebtoken` por ser ESM nativo y no necesitar `@types`.
+- **`POST /api/auth/login`**: body estricto (`additionalProperties: false`), rate limit **5/min**, respuestas 200/400/401/403/429. La política de contraseñas no se aplica aquí: un usuario con contraseña antigua debe poder entrar y repetir la política permitiría deducirla.
+- **PreHandler** (`src/interfaces/http/auth.ts`): exige `Authorization: Bearer <token>`, verifica el JWT y deja el contenido en `request.usuarioAutenticado`; `exigirRol(ADMIN)` devuelve 403 si el rol no alcanza. Aplicado a `POST /api/operadores/:id/reinvitar`; el registro sigue público.
+- **Decisión:** cuenta no activa → **403** (no 401) para que el dueño de las credenciales sepa que debe activar; un atacante sin contraseña sólo ve 401.
+
+**Evidencia ejecutada**
+
+- `npm test` → **117/117** (81 unitarios + 33 HTTP + 3 de integración), 0 fallos.
+  - `tests/unit/LoginUsuario.test.ts` (8): éxito con token, normalización del email, email inexistente con comparación señuelo, contraseña incorrecta, PENDIENTE, SUSPENDIDO, contraseña incorrecta sobre cuenta suspendida y ausencia de token en los fallos.
+  - `tests/unit/JwtService.test.ts` (8): configuración y valores por defecto, secreto corto, ida y vuelta de la firma, token manipulado, otro secreto, token expirado y rol desconocido.
+  - `tests/http/auth.test.ts` (10): login 200 con JWT real de tres segmentos, normalización, 401, **401 idéntico para email inexistente**, 403 PENDIENTE y 400 de esquema; reinvitación 401 sin token, 401 con token inválido, 200 con el token ADMIN emitido por el login y 403 con token de OPERADOR.
+  - `tests/http/operadores.test.ts` (+3): 401 sin header, 401 con token inválido y 403 por rol.
+- `npm run build` → `tsc` sin errores.
+- **E2E contra PostgreSQL real** (puerto 3135, JWT HS256 real):
+  - `JWT_SECRET` vacío → `[admin-api] JWT_SECRET no está definida…`, salida 1.
+  - Login ADMIN → 200, JWT de tres segmentos, `rol=ADMIN`, sin hash ni contraseña en el cuerpo.
+  - Contraseña incorrecta y email inexistente → 401 con el **mismo** cuerpo.
+  - Usuario SUSPENDIDO con contraseña correcta → 403.
+  - Reinvitar sin token → 401 y el operador PENDIENTE quedó **sin** token en la base.
+  - Reinvitar con JWT de OPERADOR → 403; el token del operador PENDIENTE siguió vacío.
+  - Reinvitar con JWT de ADMIN → 200; el token impreso por `EmailConsola` coincide con el persistido (`PENDIENTE`, expiración +24 h). Filas de prueba eliminadas.
+
+**Riesgos abiertos**
+
+- No hay *refresh token* ni revocación: el token de una cuenta suspendida sigue siendo válido hasta expirar (1 h). Mitigación: vigencia corta y autorización por rol en cada petición.
+- `POST /api/operadores` (registro) sigue sin autenticación; sólo lo protege el rate limit.
+- No existe endpoint de activación: el enlace del correo aún no puede consumirse (RF-07 de la matriz).
+- El rate limit usa la IP del socket; detrás de un proxy hay que configurar `trustProxy` o todos los clientes comparten el mismo cubo.
+- Sin pruebas de allowlist CORS (heredado).
+
+> **Nota de nomenclatura.** El sprint llamó "RF-07" al login; la matriz numeró RF-07 como *activación* y no tiene RF propio para el login. Para no falsear la trazabilidad, la matriz marca RF-07 como **Parcial** (login hecho, activación pendiente), RF-05/RF-08 como parciales por la expiración y el bloqueo de cuentas inactivas, y RF-32 (RBAC) como parcial. Si el equipo renumera RF-07 como "autenticación", el estado pasa a Implementado sin cambios de código.
+
 ## Hashing con Argon2id (2026-10-27)
 
 - **Puerto:** `src/domain/ports/PasswordHasher.ts` con `hash(password)` y `compare(password, hash)`. El dominio no conoce Argon2.
@@ -160,7 +205,7 @@ La revisión se hizo por lectura directa con evidencia `archivo:línea`, sin sim
 
 **Pendiente de este bloqueante**
 
-- Flujo de activación/login que use `compare` (RF-07): el adaptador está listo, no hay ruta HTTP que lo consuma.
+- Flujo de activación (consumir el token de invitación y pasar a ACTIVO): `compare` ya lo consume el login (2026-10-27), pero la activación sigue pendiente (RF-07 de la matriz).
 
 ## Política de contraseñas (RF-06) — 2026-10-27
 
@@ -270,7 +315,8 @@ El negocio pidió que la App del Cliente (conductores) deje de plantearse como a
 ### Fuera de este sprint
 
 - Outbox transaccional con reintentos y *backoff* (sprint siguiente, con ADR de mensajería).
-- Login, JWT y RBAC: necesitan el módulo de sesiones, no solo el registro.
+- Login, JWT y RBAC: **implementados el 2026-10-27** (ver "Autenticación JWT y RBAC").
+- Activación de la cuenta: consumir el token de invitación y pasar a ACTIVO (RF-07 de la matriz; el login ya está hecho).
 - CI con PostgreSQL de servicio, cobertura (`c8`) y `verify.sh`: se abordan en el sprint de infraestructura.
 
 ### Definición de hecho del sprint

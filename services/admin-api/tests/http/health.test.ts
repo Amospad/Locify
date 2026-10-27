@@ -3,6 +3,9 @@ import { test } from 'node:test';
 import type { FastifyInstance } from 'fastify';
 import { buildServer } from '../../src/interfaces/http/server.js';
 import type { ConsultadorDeBaseDeDatos } from '../../src/application/ports/ConsultadorDeBaseDeDatos.js';
+import type { ServicioDeTokens } from '../../src/domain/ports/ServicioDeTokens.js';
+import { RolUsuario } from '../../src/domain/entities/Usuario.js';
+import { TokenInvalidoError } from '../../src/domain/errors/TokenInvalidoError.js';
 
 /** Doble de la base de datos: no abre conexiones, responde lo que el test diga. */
 function dbFalsa(consultar: () => Promise<readonly unknown[]>): ConsultadorDeBaseDeDatos {
@@ -18,9 +21,30 @@ const REGISTRADOR_FALSO = {
   reinvitarOperador: async () => ({ id: 'id-1', email: 'operador@locify.co' }),
 };
 
+/** El login no participa en /health: doble inerte. */
+const INICIADOR_FALSO = {
+  iniciarSesion: async () => ({
+    token: 'jwt-1',
+    usuario: { id: 'usr-1', email: 'operador@locify.co', rol: RolUsuario.OPERADOR },
+  }),
+};
+
+/** Sin rutas protegidas ejercitadas aquí, ningún token es válido. */
+const TOKENS_FALSOS: ServicioDeTokens = {
+  firmar: async () => 'jwt-1',
+  verificar: async () => {
+    throw new TokenInvalidoError();
+  },
+};
+
 async function servidorCon(db: ConsultadorDeBaseDeDatos): Promise<FastifyInstance> {
   // Sin `listen`: `inject` atiende la petición en memoria y no ocupa puerto.
-  return buildServer({ db, adminService: REGISTRADOR_FALSO });
+  return buildServer({
+    db,
+    adminService: REGISTRADOR_FALSO,
+    authService: INICIADOR_FALSO,
+    servicioTokens: TOKENS_FALSOS,
+  });
 }
 
 test('GET /health responde 200 cuando la base responde', async () => {

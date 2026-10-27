@@ -1,5 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { OperadorRegistrado } from '../../../domain/use-cases/RegistrarOperador.js';
+import { RolUsuario } from '../../../domain/entities/Usuario.js';
+import { exigirRol, type PreHandler } from '../auth.js';
 
 /**
  * Puerto de entrada que consumen las rutas. `AdminService` lo cumple por
@@ -12,6 +14,8 @@ export interface RegistradorDeOperadores {
 
 interface OpcionesOperadores {
   adminService: RegistradorDeOperadores;
+  /** PreHandler de autenticación compartido con el resto de rutas protegidas. */
+  autenticar: PreHandler;
 }
 
 interface CuerpoRegistro {
@@ -96,10 +100,12 @@ const LIMITE_REGISTRO = {
  * - 502 `{ error, id }` — operador creado, correo de invitación no enviado.
  *
  * `POST /api/operadores/:id/reinvitar`: renueva el token de un operador
- * PENDIENTE y reenvía la invitación.
+ * PENDIENTE y reenvía la invitación. **Requiere un ADMIN autenticado.**
  *
  * - 200 `{ id, email }` — token renovado y correo enviado.
  * - 400 — el operador no está PENDIENTE (activo o suspendido).
+ * - 401 — falta el token, es inválido o expiró.
+ * - 403 — el token es válido, pero el rol no es ADMIN.
  * - 404 — no existe un operador con ese id.
  * - 502 — token renovado, correo no enviado.
  */
@@ -134,11 +140,15 @@ export const rutasOperadores: FastifyPluginAsync<OpcionesOperadores> = async (
     '/api/operadores/:id/reinvitar',
     {
       ...LIMITE_REGISTRO,
+      // Sólo un administrador puede disparar invitaciones.
+      preHandler: [opciones.autenticar, exigirRol(RolUsuario.ADMIN)],
       schema: {
         params: esquemaParametrosId,
         response: {
           200: esquemaOperador,
           400: esquemaError,
+          401: esquemaError,
+          403: esquemaError,
           404: esquemaError,
           500: esquemaError,
           502: esquemaErrorConId,

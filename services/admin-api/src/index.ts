@@ -29,6 +29,8 @@ const [
   { EmailConsola },
   { SmtpEmailService, opcionesSmtpDesdeEntorno },
   { AdminService },
+  { AuthService },
+  { JwtService, opcionesJwtDesdeEntorno },
 ] = await Promise.all([
   import('./interfaces/http/server.js'),
   import('./infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.js'),
@@ -39,6 +41,8 @@ const [
   import('./infrastructure/email/EmailConsola.js'),
   import('./infrastructure/notifications/SmtpEmailService.js'),
   import('./application/services/AdminService.js'),
+  import('./application/services/AuthService.js'),
+  import('./infrastructure/security/JwtService.js'),
 ]);
 
 const db = new PostgresConsultadorDeBaseDeDatos();
@@ -69,19 +73,46 @@ const emailService: EmailService = (() => {
   }
 })();
 
+const usuarioRepository = new PostgresUsuarioRepository();
+const passwordHasher = new Argon2Hasher();
+const generadorId = new CryptoGeneradorId();
+const reloj = new RelojSistema();
+
+// JWT: sin un secreto de al menos 32 caracteres no se firma nada. Un fallo de
+// configuración detiene el arranque en lugar de emitir tokens adivinables.
+const servicioTokens = (() => {
+  try {
+    return new JwtService(opcionesJwtDesdeEntorno());
+  } catch (error) {
+    console.error(
+      `[admin-api] ${error instanceof Error ? error.message : String(error)}`,
+    );
+    process.exit(1);
+  }
+})();
+
 /**
  * Composition root: único lugar que conoce adaptadores concretos.
  * El dominio y la capa HTTP sólo ven puertos.
  */
 const adminService = new AdminService(
-  new PostgresUsuarioRepository(),
+  usuarioRepository,
   emailService,
-  new CryptoGeneradorId(),
-  new RelojSistema(),
-  new Argon2Hasher(),
+  generadorId,
+  reloj,
+  passwordHasher,
 );
 
-const app = await buildServer({ db, adminService }, { logger: true });
+const authService = new AuthService(
+  usuarioRepository,
+  passwordHasher,
+  servicioTokens,
+);
+
+const app = await buildServer(
+  { db, adminService, authService, servicioTokens },
+  { logger: true },
+);
 
 try {
   await app.listen({ port: puerto, host: process.env['HOST'] ?? '0.0.0.0' });

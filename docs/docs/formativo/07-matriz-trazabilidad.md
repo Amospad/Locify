@@ -22,10 +22,10 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-02** | Validación de correo y campos obligatorios | CU-01 | HU-01 | Alta | **Implementado** — JSON Schema (`required`, `additionalProperties: false`, `maxLength`) + `Usuario.validarEmail` |
 | **RF-03** | Token de invitación con 24 h de vigencia | CU-01 | HU-02 | Alta | **Implementado (dominio)** — `RegistrarOperador.ejecutar` |
 | **RF-04** | Correo automatizado con enlace de activación | CU-01 | HU-02 | Alta | **Implementado** — `SmtpEmailService` (nodemailer, timeouts de 10 s) + `EmailConsola` en desarrollo + reinvitación con token nuevo y reenvío |
-| **RF-05** | Validar token no expirado ni usado | CU-01 | HU-02, HU-05 | Alta | **Parcial** — `Usuario.tokenHaExpirado`; no hay marca de "usado" |
+| **RF-05** | Validar token no expirado ni usado | CU-01 | HU-02, HU-05 | Alta | **Parcial** — JWT con expiración verificada en cada petición protegida + `Usuario.tokenHaExpirado`; no hay marca de "usado" ni revocación |
 | **RF-06** | Contraseña con política de complejidad | CU-01 | HU-01 | Alta | **Implementado** — `PoliticaPassword` (12–128, 4 categorías, 100 comunes) + Argon2id; validada antes del hasher |
-| **RF-07** | Activación: guardar contraseña y pasar a ACTIVO | CU-01 | HU-02 | Alta | **No implementado** — no existe caso de uso de activación |
-| **RF-08** | Bloquear dashboard si la cuenta no está activa | CU-01 | HU-05 | Alta | **Parcial** — `Usuario.puedeAccederAlDashboard`; no hay capa de acceso que lo aplique |
+| **RF-07** | Activación: guardar contraseña y pasar a ACTIVO | CU-01 | HU-02 | Alta | **Parcial** — el login JWT (`POST /api/auth/login`) está implementado y consume `Argon2Hasher.compare`; la activación (consumir el token de invitación y pasar a ACTIVO) sigue pendiente |
+| **RF-08** | Bloquear dashboard si la cuenta no está activa | CU-01 | HU-05 | Alta | **Parcial** — el login rechaza PENDIENTE y SUSPENDIDO con 403 (`UsuarioNoActivoError`); falta el guard de las rutas del dashboard, que aún no existe |
 | **RF-09** | Dashboard del cliente con reserva o check-in activo | — | HU-27 | Alta | **No implementado** |
 | **RF-10** | Cronómetro desde el check-in | CU-07 | HU-19 | Alta | **No implementado** |
 | **RF-11** | Mapa interactivo con ubicación de sedes | CU-05 | HU-10 | Alta | **No implementado** |
@@ -49,9 +49,11 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-29** | Auditoría de tickets KYB | CU-03 | HU-07 | Alta | **No implementado** |
 | **RF-30** | Vista de disputas con línea de tiempo | CU-10 | HU-24 | Alta | **No implementado** |
 | **RF-31** | Motor de reglas configurable | — | HU-22 | Alta | **No implementado** |
-| **RF-32** | RBAC con roles internos | — | HU-04 | Alta | **No implementado** |
+| **RF-32** | RBAC con roles internos | — | HU-04 | Alta | **Parcial** — el JWT lleva el `rol` y `POST /api/operadores/:id/reinvitar` exige ADMIN; no hay política por rol ni protección del resto de rutas |
 
-**Cobertura:** 32/32 requerimientos listados. Implementados o parciales: 8 (RF-01 a RF-08, todos del módulo de onboarding). El resto está especificado pero sin código.
+**Cobertura:** 32/32 requerimientos listados. Implementados o parciales: 9 (RF-01 a RF-08 del onboarding y RF-32 con RBAC parcial). El resto está especificado pero sin código.
+
+> **Nota de nomenclatura (2026-10-27).** El sprint de autenticación llamó "RF-07" al **login**. En esta matriz RF-07 es la **activación** de la cuenta, que sigue pendiente. El login es una capacidad transversal ya implementada (`POST /api/auth/login`, JWT HS256, `LoginUsuarioUseCase`); no se le asignó un RF propio. Ver `PROJECT_STATE.md`, "Autenticación JWT y RBAC".
 
 ## 2. Matriz de requerimientos no funcionales
 

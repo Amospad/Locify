@@ -19,6 +19,7 @@
 - [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
 - [x] Auditoría de seguridad ofensiva + sincronización docs↔código del backend (17 pruebas AN-A…AN-E, `bodyLimit` 32 KiB, `TRUST_PROXY`; correcciones en 03/07/modelo-datos) (2026-10-29)
 - [x] PWA del cliente inicializada: Next.js 16 (`apps/web-cliente`) con identidad visual LOCIFY y Hero de la landing (2026-10-29)
+- [x] Login conectado al backend (`POST /api/auth/login` vía `NEXT_PUBLIC_API_URL`), dashboard placeholder y manifiesto PWA — validado E2E con el admin-api real (401/403/200/logout/guard) (2026-10-29)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -439,6 +440,32 @@ logo cargado (`naturalWidth 542`), `favicon.ico` servido.
 conectado; los CTAs son `#buscar`/`#iniciar-sesion` a la espera de las rutas
 reales. El modo oscuro está desactivado deliberadamente (la marca se diseña en
 claro, §5 de la guía de diseño).
+
+### Login + PWA (2026-10-29)
+
+| Pieza | Qué hizo |
+| :--- | :--- |
+| `src/lib/api.ts` | Cliente del `admin-api` en el navegador: `login()` contra `${NEXT_PUBLIC_API_URL:-http://localhost:3000}/api/auth/login` con traducción de errores (400/401/403/429 → mensajes accionables, 0 = backend caído) y helpers de sesión en localStorage (`guardar/obtener/cerrar`) |
+| `src/app/iniciar-sesion/page.tsx` | Formulario Email + Contraseña (tokens de marca, `aria-live` con `role=alert`, botón con estado «Ingresando…», `autoComplete`) |
+| `src/app/dashboard/page.tsx` | Placeholder: lee la sesión con `useSyncExternalStore` (regla `react-hooks/set-state-in-effect` de React/Next 16 prohíbe `setState` directo en efectos), guard → login si no hay sesión, botón de cierre |
+| `src/app/manifest.ts` | PWA `standalone` con nombre corto, fondo `#F4F6F8`, `theme_color` `#2F5D9F` e iconos 192/512; Next 16 expone `/manifest.webmanifest` y enlaza el `<link rel="manifest">` automáticamente |
+| `layout.tsx` | `viewport.themeColor = #2F5D9F` (patrón `Viewport`, separado de `metadata`) |
+| Puertas | `.env.example` con `NEXT_PUBLIC_API_URL=http://localhost:3001` (front 3000 / admin-api 3001; `CORS_ORIGINS=http://localhost:3000` del lado del backend) |
+
+**Validación E2E real** (web de producción `next start` en 3000 + admin-api dev en 3001,
+con un operador creado por `POST /api/operadores` y promocionado a ACTIVO por SQL):
+
+| Caso | Resultado |
+| :--- | :--- |
+| Contraseña incorrecta | **401** → «Email o contraseña incorrectos.» en pantalla |
+| Cuenta PENDIENTE | **403** → «Tu cuenta no está activa. Actívala desde la invitación…» |
+| Cuenta ACTIVA | **200** → token JWT en `localStorage`, redirect a `/dashboard` con email + rol OPERADOR, badge «Sesión activa» |
+| Cerrar sesión | localStorage vacío + redirect al login |
+| Guard del dashboard sin sesión | redirect a `/iniciar-sesion` |
+| PWA | `<link rel=manifest>` en `<head>`, `theme-color #2F5D9F`, manifiesto servido con los campos correctos |
+
+Pendiente registrado: cookie **httpOnly** (hoy localStorage; §2.2 del SRS exige
+cookie) y Service Worker/offline (RNF-08), para el sprint de seguridad.
 ## Plan del Próximo Sprint (bloqueantes de producción)
 
 - **Objetivo:** que `admin-api` atienda peticiones HTTP reales, guarde contraseñas hasheadas y envíe la invitación por correo.

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 
@@ -29,6 +29,14 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
+};
+
+/**
+ * El color del tema pinta la barra del navegador/instalador de la PWA con el
+ * Azul Acero de la marca (complementa theme_color del manifest).
+ */
+export const viewport: Viewport = {
+  themeColor: "#2F5D9F",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

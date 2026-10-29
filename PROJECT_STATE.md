@@ -20,6 +20,7 @@
 - [x] Auditoría de seguridad ofensiva + sincronización docs↔código del backend (17 pruebas AN-A…AN-E, `bodyLimit` 32 KiB, `TRUST_PROXY`; correcciones en 03/07/modelo-datos) (2026-10-29)
 - [x] PWA del cliente inicializada: Next.js 16 (`apps/web-cliente`) con identidad visual LOCIFY y Hero de la landing (2026-10-29)
 - [x] Login conectado al backend (`POST /api/auth/login` vía `NEXT_PUBLIC_API_URL`), dashboard placeholder y manifiesto PWA — validado E2E con el admin-api real (401/403/200/logout/guard) (2026-10-29)
+- [x] Mapa interactivo `/buscar` con MapLibre GL + OpenFreeMap, marcadores mock (RF-11), buscador de direcciones (Nominatim) y geolocalización — validado en navegador (2026-10-29)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -466,6 +467,32 @@ con un operador creado por `POST /api/operadores` y promocionado a ACTIVO por SQ
 
 Pendiente registrado: cookie **httpOnly** (hoy localStorage; §2.2 del SRS exige
 cookie) y Service Worker/offline (RNF-08), para el sprint de seguridad.
+
+### Mapa `/buscar` — RF-11 (2026-10-29)
+
+Stack: **MapLibre GL JS 6.16** (BSD-3-Clause, MapLibre Foundation; tipos
+TypeScript incluidos — `@types/maplibre-gl` está deprecado y NO se instaló) sobre
+**OpenFreeMap** (tiles vectoriales sin API key, estilo `liberty`).
+
+| Pieza | Qué hizo |
+| :--- | :--- |
+| `src/lib/mockSedes.ts` | 5 sedes mock de Medellín (id, nombre, dirección, lat/lng, precio COP, disponibles/total). Se reemplaza por `GET /api/sedes` del futuro `operador-api` (RF-25) manteniendo la forma |
+| `src/components/MapaParqueaderos.tsx` | Client component: mapa centrado en Medellín `[-75.5636, 6.2442]` zoom 13, controles navegación + escala, marcadores custom (pin circular **Verde Esmeralda `#00C853`** con check blanco = celdas disponibles; **gris** = lleno; uso legítimo del color de estado de la marca), popup con nombre/dirección/precio format `Intl COP`/celdas + botón «Reservar» placeholder |
+| Búsqueda flotante | Estilo Google Maps; geocodificación real vía **Nominatim** (OSM, sin key) → `flyTo` zoom 16; estados «Buscando…», «Sin resultados», error de red |
+| Geolocalización | Botón flotante; `navigator.geolocation` → `flyTo` zoom 15; manejo de `PERMISSION_DENIED` y navegador sin soporte |
+
+**Validación en navegador** (`next start` de producción):
+
+| Caso | Resultado |
+| :--- | :--- |
+| Carga del mapa | canvas Web GL vivo, overlay «Cargando…» desaparece tras `load` |
+| Marcadores | 5 renderizados; 4 verdes `rgb(0,200,83)` + 1 gris (Centro, 0 disponibles); `aria-label` con nombre y disponibilidad |
+| Popup | nombre, dirección, `$ 4.500 /hora`, «12 de 30 celdas disponibles», botón Reservar |
+| Búsqueda | «Parque Berrío, Medellín» → mensaje «Parque Berrío» + `flyTo` real |
+
+Pendiente registrado: consumidores del `operador-api` (RF-25) para sedes reales;
+cierre de sesión de RNF-08 (offline) aplica también al mapa.
+
 ## Plan del Próximo Sprint (bloqueantes de producción)
 
 - **Objetivo:** que `admin-api` atienda peticiones HTTP reales, guarde contraseñas hasheadas y envíe la invitación por correo.

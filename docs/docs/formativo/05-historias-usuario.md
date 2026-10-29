@@ -64,6 +64,113 @@ Este documento contiene el Product Backlog completo del proyecto LOCIFY, organiz
 | **HU-24** | Como administrador, quiero gestionar los tickets escalados y resolver disputas con evidencia. | Alta | 3 |
 | **HU-25** | Como operador, quiero ver reportes financieros (ingresos, multas) de mi sede para conciliar mis cuentas. | Media | 5 |
 
+## Épica 6: Administrador (LOCIFY) — Operación del SaaS
+
+Necesidad declarada: el rol **Administrador de LOCIFY** (dueño de la plataforma, distinto del operador de sede)
+tiene pocas historias en el backlog. Esta épica le da funcionalidad propia de un SaaS: configuración del
+negocio, RBAC interno, disputas, moderación, auditoría y métricas globales. El este y el oeste de la
+trazabilidad está en [07. Matriz de Trazabilidad](./07-matriz-trazabilidad.md).
+
+> **Convención de IDs:** los identificadores `HU-A05…HU-A11` se unen a la serie `HU-A` reservada en el
+> backlog (las posiciones A01–A04 quedan disponibles para historias de administración propuesta si se abren).
+
+| ID | Historia de Usuario | RF asociado | Prioridad | Estimación |
+| :--- | :--- | :--- | :--- | :--- |
+| **HU-A05** | Como administrador, quiero configurar los minutos de gracia y las tarifas base desde un panel, para ajustar la estrategia del negocio sin tocar código. | RF-31 | Alta | 3 |
+| **HU-A06** | Como administrador, quiero crear cuentas para mi equipo de soporte y asignarles roles limitados, para que no todos tengan acceso total al sistema. | RF-32 | Alta | 5 |
+| **HU-A07** | Como administrador, quiero ver la línea de tiempo de una reserva (check-in, check-out, pagos) para resolver disputas y emitir reembolsos si es necesario. | RF-30 | Alta | 5 |
+| **HU-A08** | Como administrador, quiero suspender la cuenta de un operador si recibe muchas quejas, para garantizar la calidad del servicio. | *(sin RF propio; se ancla en RF-08)* | Alta | 3 |
+| **HU-A09** | Como administrador, quiero consultar un log inmutable de acciones críticas (ej. cambios de tarifas), para auditar el sistema en caso de fraude. | RNF-02 | Alta | 3 |
+| **HU-A10** | Como administrador, quiero ver métricas globales (reservas totales, ingresos por ciudad), para tomar decisiones estratégicas sobre la plataforma. | *(sin RF propio; se ancla en RF-28)* | Media | 5 |
+| **HU-A11** | Como administrador, quiero reenviar el correo de activación a un operador que lo haya perdido, para agilizar su proceso de Onboarding. | RF-04 | Alta | 2 |
+
+### Criterios de Aceptación de las HU-A05 a HU-A11
+
+### HU-A05 — Configuración de reglas del negocio (RF-31)
+
+- **Dado** que soy administrador con sesión activa (JWT con `rol=ADMIN`),
+- **Cuando** abro el panel de reglas y edito los minutos de gracia de 5 a 10 y la tarifa base,
+- **Entonces** el sistema guarda los valores y las reservas **nuevas** ya los aplican, sin afectar las
+  reservas en curso (coherente con [HU-22](#épica-5-administración-y-soporte)).
+- **Dado** que intento guardar un valor inválido (gracia negativa, tarifa 0, fracción mínima mayor a una hora),
+- **Cuando** envío el formulario,
+- **Entonces** el sistema lo rechaza con 400 y un mensaje accionable, sin alterar la configuración vigente.
+- **Dado** que guardo un cambio efectivo,
+- **Cuando** consulto el log de auditoría (HU-A09),
+- **Entonces** aparece el evento con actor, fecha, valor anterior y valor nuevo.
+
+### HU-A06 — RBAC para el equipo de soporte (RF-32)
+
+- **Dado** que soy administrador,
+- **Cuando** creo una cuenta con el rol SOPORTE y su informo el correo,
+- **Entonces** la cuenta queda en PENDIENTE y recibe el correo de activación con el mismo flujo del onboarding (HU-02).
+- **Dado** que un usuario con rol SOPORTE inicia sesión,
+- **Cuando** intenta cambiar las tarifas del motor de reglas (HU-A05) o suspender un operador (HU-A08),
+- **Entonces** el sistema devuelve 403 y la acción no se ejecuta.
+- **Dado** que una cuenta de soporte queda comprometida o sobra,
+- **Cuando** el administrador la suspende,
+- **Entonces** sus tokens dejan de tener efecto en la siguiente petición (la autorización por rol se evalúa en cada request, no solo en el login).
+
+### HU-A07 — Línea de tiempo de la reserva y reembolsos (RF-30)
+
+- **Dado** que soy administrador y abro una reserva desde la lista de disputas (HU-24),
+- **Cuando** veo el detalle,
+- **Entonces** aparece una línea de tiempo con los eventos: reserva creada, check-in, check-out, cobros y abonos, cada uno con fuente (operador/sistema), placa y hora.
+- **Dado** que la evidencia de la disputa confirma un cobro indebido,
+- **Cuando** el administrador emite el reembolso (total o parcial)
+- **Entonces** el abono queda registrado en la línea de tiempo, no suma como ingreso en los reportes (RF-28) y el cliente ve el crédito en su historial (HU-28).
+- **Dado** que la disputa se resuelve a favor del operador,
+- **Cuando** cierro el ticket,
+- **Entonces** la línea de tiempo queda como evidencia consultable y la reserva mantiene su estado económico original.
+
+### HU-A08 — Suspensión de operadores (moderación)
+
+- **Dado** que un operador acumula quejas soportadas por tickets (HU-23, HU-24),
+- **Cuando** el administrador marca su cuenta como SUSPENDIDO con un motivo obligatorio,
+- **Entonces** la sede deja de aparecer en el mapa (HU-08), su login devuelve 403 (RF-08) y su dashboard queda bloqueado (RF-24).
+- **Dado** que el operador corrige la causa,
+- **Cuando** el administrador reactiva la cuenta,
+- **Entonces** la sede vuelve a ser visible y el operador recupera el acceso, y el ciclo suspensión/reactivación queda registrado en el historial de la cuenta.
+
+### HU-A09 — Log de auditoría inmutable (RNF-02)
+
+- **Dado** que soy administrador con sesión activa,
+- **Cuando** consulto el log de acciones críticas (cambios de tarifas, suspensiones, emisión de reembolsos, aprobaciones KYB),
+- **Entonces** veo actor, rol, acción, fecha/hora, objeto afectado y detalle antes/después, con filtrado por actor y rango de fechas.
+- **Dado** que un evento crítico ya fue escrito en el log,
+- **Cuando** cualquier rol (incluso ADMIN) intenta modificarlo o eliminarlo,
+- **Entonces** la operación se rechaza: el log es *append-only*; solo se agregan eventos nuevos.
+- **Dado** que se sospecha de un fraude,
+- **Cuando** se solicita la reconstrucción de la secuencia de acciones de un objeto (ej. la tarifa de una sede),
+- **Entonces** se puede presentar la lista ordenada de eventos sin huecos ni duplicados.
+
+### HU-A10 — Dashboard global de la plataforma
+
+- **Dado** que soy administrador,
+- **Cuando** abro el dashboard global,
+- **Entonces** veo reservas totales, ingresos, tasa de disputas y sedes activas, con un rango de fechas seleccionable.
+- **Dado** que elijo un desglose,
+- **Cuando** selecciono "por ciudad",
+- **Entonces** obtengo reservas e ingresos por ciudad, ordenados de mayor a menor, con datos **agregados**: ninguna métrica expone datos personales de clientes u operadores (RNF-03).
+- **Dado** que el volumen de la plataforma crece,
+- **Cuando** el dashboard se consulta mientras ocurren operaciones en otros módulos,
+- **Entonces** las consultas pesadas se sirven de una réplica de lectura (RNF-10) y no degradan el check-out de las sedes.
+
+### HU-A11 — Reenvío de invitación de activación (RF-04)
+
+- **Dado** que un operador está PENDIENTE y afirmó no recibir el correo,
+- **Cuando** el administrador usa la reinvitación,
+- **Entonces** se genera un token nuevo con vigencia de 24 h, se reenvía el correo y **el token anterior deja de ser válido**.
+- **Dado** que la cuenta ya está ACTIVA o SUSPENDIDA,
+- **Cuando** se solicita la reinvitación,
+- **Entonces** el sistema responde 400 sin enviar correo (solo cuentas PENDIENTE pueden reinvitar).
+- **Dado** que el correo falla por el proveedor SMTP,
+- **Cuando** termina la petición,
+- **Entonces** el sistema responde 502, muestra el estado del contacto y la cuenta sigue PENDIENTE con token vigente, para reintentar sin duplicar registros (409).
+
+> **Estado en el código de HU-A11:** el caso de uso y `POST /api/operadores/:id/reinvitar` existen y están
+> probados (RBAC: solo ADMIN). Ver [07. Matriz de trazabilidad](./07-matriz-trazabilidad.md), fila RF-04.
+
 ## Formato de Criterios de Aceptación (Ejemplo HU-12)
 - **Dado** que estoy en la pantalla de reserva,
 - **Cuando** selecciono "Reserva Exprés",

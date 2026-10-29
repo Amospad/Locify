@@ -9,10 +9,11 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 
 > **Alcance de esta versión:** cubre los **32 requerimientos funcionales** y los **10 no funcionales** definidos en
 > [03. Alcance y Requerimientos](./03-alcance-requerimientos.md). Los identificadores de casos de uso (`CU-01…CU-10`)
-> corresponden a [04. Casos de Uso](./04-casos-uso.md) y los de historias (`HU-01…HU-30`) a
+> corresponden a [04. Casos de Uso](./04-casos-uso.md) y los de historias (`HU-01…HU-30` y `HU-A05…HU-A11`) a
 > [05. Historias de Usuario](./05-historias-usuario.md). La columna *Estado en el código* distingue lo implementado,
 > lo parcial y lo que solo está especificado. `HU-26` es transversal: exige que la App del Cliente funcione en móvil
-> y en escritorio, sin sustituir la historia propia de cada requerimiento.
+> y en escritorio, sin sustituir la historia propia de cada requerimiento. La serie `HU-A05…HU-A11`
+> (2026-10-28) expande la Épica del Administrador de LOCIFY; varias historias comparten requerimiento con otras HU.
 
 ## 1. Matriz de requerimientos funcionales
 
@@ -21,11 +22,11 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-01** | Registro con campos mínimos por rol | CU-01 | HU-01 | Alta | **Parcial** — `POST /api/operadores` de extremo a extremo (email + contraseña); faltan los demás roles y sus campos propios |
 | **RF-02** | Validación de correo y campos obligatorios | CU-01 | HU-01 | Alta | **Implementado** — JSON Schema (`required`, `additionalProperties: false`, `maxLength`) + `Usuario.validarEmail` |
 | **RF-03** | Token de invitación con 24 h de vigencia | CU-01 | HU-02 | Alta | **Implementado (dominio)** — `RegistrarOperador.ejecutar` |
-| **RF-04** | Correo automatizado con enlace de activación | CU-01 | HU-02 | Alta | **Implementado** — `SmtpEmailService` (nodemailer, timeouts de 10 s) + `EmailConsola` en desarrollo + reinvitación con token nuevo y reenvío |
+| **RF-04** | Correo automatizado con enlace de activación | CU-01 | HU-02, HU-A11 | Alta | **Implementado** — `SmtpEmailService` (nodemailer, timeouts de 10 s) + `EmailConsola` en desarrollo + reinvitación con token nuevo y reenvío |
 | **RF-05** | Validar token no expirado ni usado | CU-01 | HU-02, HU-05 | Alta | **Parcial** — JWT con expiración verificada en cada petición protegida + `Usuario.tokenHaExpirado`; no hay marca de "usado" ni revocación |
 | **RF-06** | Contraseña con política de complejidad | CU-01 | HU-01 | Alta | **Implementado** — `PoliticaPassword` (12–128, 4 categorías, 100 comunes) + Argon2id; validada antes del hasher |
 | **RF-07** | Activación: guardar contraseña y pasar a ACTIVO | CU-01 | HU-02 | Alta | **Parcial** — el login JWT (`POST /api/auth/login`) está implementado y consume `Argon2Hasher.compare`; la activación (consumir el token de invitación y pasar a ACTIVO) sigue pendiente |
-| **RF-08** | Bloquear dashboard si la cuenta no está activa | CU-01 | HU-05 | Alta | **Parcial** — el login rechaza PENDIENTE y SUSPENDIDO con 403 (`UsuarioNoActivoError`); falta el guard de las rutas del dashboard, que aún no existe |
+| **RF-08** | Bloquear dashboard si la cuenta no está activa | CU-01 | HU-05, HU-A08 (parcial) | Alta | **Parcial** — el login rechaza PENDIENTE y SUSPENDIDO con 403 (`UsuarioNoActivoError`); falta el guard de las rutas del dashboard, que aún no existe |
 | **RF-09** | Dashboard del cliente con reserva o check-in activo | — | HU-27 | Alta | **No implementado** |
 | **RF-10** | Cronómetro desde el check-in | CU-07 | HU-19 | Alta | **No implementado** |
 | **RF-11** | Mapa interactivo con ubicación de sedes | CU-05 | HU-10 | Alta | **No implementado** |
@@ -45,11 +46,11 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-25** | Parametrización de sedes y cupos | CU-04 | HU-09 | Alta | **No implementado** |
 | **RF-26** | Dashboard de ocupación con alertas | CU-04 (parcial) | HU-30 | Alta | **No implementado** |
 | **RF-27** | Búsqueda por placa y registro manual | CU-08 | HU-21 | Alta | **No implementado** |
-| **RF-28** | Reportes de ingresos, penalidades y caja | CU-09 | HU-25 | Alta | **No implementado** |
+| **RF-28** | Reportes de ingresos, penalidades y caja | CU-09 | HU-25, HU-A10 (parcial) | Alta | **No implementado** |
 | **RF-29** | Auditoría de tickets KYB | CU-03 | HU-07 | Alta | **No implementado** |
-| **RF-30** | Vista de disputas con línea de tiempo | CU-10 | HU-24 | Alta | **No implementado** |
-| **RF-31** | Motor de reglas configurable | — | HU-22 | Alta | **No implementado** |
-| **RF-32** | RBAC con roles internos | — | HU-04 | Alta | **Parcial** — el JWT lleva el `rol` y `POST /api/operadores/:id/reinvitar` exige ADMIN; no hay política por rol ni protección del resto de rutas |
+| **RF-30** | Vista de disputas con línea de tiempo | CU-10 | HU-24, HU-A07 | Alta | **No implementado** |
+| **RF-31** | Motor de reglas configurable | — | HU-22, HU-A05 | Alta | **No implementado** |
+| **RF-32** | RBAC con roles internos | — | HU-04, HU-A06 | Alta | **Parcial** — el JWT lleva el `rol` y `POST /api/operadores/:id/reinvitar` exige ADMIN; no hay política por rol ni protección del resto de rutas |
 
 **Cobertura:** 32/32 requerimientos listados. Implementados o parciales: 9 (RF-01 a RF-08 del onboarding y RF-32 con RBAC parcial). El resto está especificado pero sin código.
 
@@ -60,7 +61,7 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | ID | Requerimiento | Gate o evidencia verificable | Estado |
 | :--- | :--- | :--- | :--- |
 | **RNF-01** | HTTPS/TLS 1.3 y hashing BCrypt/Argon2 | Hashing: `Argon2Hasher` con Argon2id m=65536 t=3 p=4 y `PoliticaPassword` (24 pruebas). TLS: no hay terminación TLS ni proxy configurado | **Parcial** |
-| **RNF-02** | Logs de auditoría inmutables | No existe tabla ni escritor de eventos | **No implementado** |
+| **RNF-02** | Logs de auditoría inmutables | No existe tabla ni escritor de eventos; historia HU-A09 define el comportamiento esperado (*append-only*, reconstrucción por objeto) | **No implementado** |
 | **RNF-03** | Ley 1581: consentimiento antes de persistir | No existe entidad de aceptación ni validación | **No implementado** |
 | **RNF-04** | Peticiones críticas ≤ 3 s | Sin pruebas de carga ni métricas | **Sin medición** |
 | **RNF-05** | Disponibilidad ≥ 99.5 % mensual | Sin monitoreo ni SLA | **Sin medición** |
@@ -88,5 +89,5 @@ Alineada con la tabla de la sección 4 del SRS. Cualquier cambio en una de las d
 | RF sin historia de usuario | **Ninguno** (32 de 32 cubiertos) | Cerrado el 2026-10-27 con HU-27 (RF-09), HU-28 (RF-21), HU-29 (RF-17) y HU-30 (RF-26) |
 | RF sin caso de uso | RF-09, RF-21, RF-31, RF-32 | Añadir CU o justificar que se cubren como regla transversal |
 | RF con caso de uso parcial | RF-13, RF-20, RF-26 | Precisar el escenario en `04-casos-uso.md` |
-| Historia sin requerimiento | HU-03 (recuperación de contraseña), HU-16 (doble reserva), HU-26 (acceso multiplataforma) | Derivar el RF correspondiente o declararla transversal al alcance |
+| Historia sin requerimiento | HU-03 (recuperación de contraseña), HU-16 (doble reserva), HU-26 (acceso multiplataforma), HU-A08 (moderación; se ancla parcialmente en RF-08), HU-A10 (métricas globales; se ancla parcialmente en RF-28 y en RNF-10) | Derivar el RF correspondiente o declararla transversal al alcance |
 | RNF sin instrumento de verificación | RNF-01 a RNF-10 | Definir métrica, umbral y comando de verificación antes de afirmar cumplimiento |

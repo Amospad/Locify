@@ -7,6 +7,12 @@
       "skillPath": "skills/apple-hig/SKILL.md",
       "computedHash": "8fc3d15b0ad8879c26ddff4c73594187964449c80f19a669dc3d9bbe9c7956a8"
     },
+    "brand-identity": {
+      "source": "Esi-Abolfazl/skills",
+      "sourceType": "github",
+      "skillPath": "skills/brand-identity/SKILL.md",
+      "computedHash": "0090a5df010a1a9bcfd6c6e8ddcc0bd725f40e1048f242647d19465b93f93187"
+    },
     "rig": {
       "source": "slamb2k/mad-skills",
       "sourceType": "github",

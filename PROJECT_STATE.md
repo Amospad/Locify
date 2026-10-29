@@ -13,7 +13,8 @@
 - [x] Cambio de alcance: App del Cliente como PWA *mobile-first* usable también desde escritorio (2026-10-27)
 - [x] Trazabilidad RF→HU al 100 % (32/32) con 30 historias de usuario (2026-10-27)
 - [x] Backlog del Administrador: HU-A05…HU-A11 con criterios de aceptación (2026-10-28)
-- [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
+- [x] Skill de diseño de identidad visual **brand-identity** instalada (`.agents/skills/brand-identity/`, fuente `Esi-Abolfazl/skills`; evaluación de riesgo: Safe/0 alerts/Low) y fijada en `skills-lock.json` (2026-10-28)
+- [x] Conceptos de logo LOCIFY generados en `docs/static/img/brand/` (2026-10-28)- [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -290,6 +291,31 @@ escenarios Gherkin cada una. `HU-A11` (reinvitación) ya está implementada; las
   CU-13 a RF-30, y las filas nuevas de RF-33/RF-34. Los huecos se ajustaron: ya no existen
   "RF sin CU" por RF-31/RF-32 ni "historia sin RF" por HU-A08/HU-A10; restan RF-09, RF-21 y RF-34 sin CU.
 - **Verificación:** `npm run build` en `docs/` → verde (cliente y servidor compilados, sin enlaces rotos).
+
+## Identidad visual — Logo LOCIFY (2026-10-28)
+
+**Estado: conceptos entregados y recomendación construida; pendiente de aprobación.** No integrar en la UI.
+
+- **Skill:** `brand-identity` (instalada desde `Esi-Abolfazl/skills` con `npx skills add`; evaluación
+  Socket 0 alerts / Snyk Low). Live en `.agents/skills/brand-identity/` y fijada en `skills-lock.json`.
+- **Proceso (según la skill):** brief de 9 preguntas (fuente: brief del usuario + proyecto; suposiciones
+  marcadas) → posicionamiento → barrido de clichés del sector → 14 ideas de divergencia → 3 conceptos
+  en 3 direcciones → recomendación con racional → construcción del recomendado → **validación visual por
+  render** (16/32/48 px, claro y oscuro) → board autocontenido + spec.
+- **Pipeline técnico:** wordmark delineado desde **Poppins SemiBold (SIL OFL 1.1)** con
+  `uv run --with uharfbuzz --with fonttools` (snippet probado de la skill); composición y rasterizado con
+  `resvg-py`; todos los masters SVG son **paths only** (gate automatizado: 0 coincidencias de
+  `font-family|<text|<image|href`). Lección de la ronda 1: el anillo con barra diagonal leía como
+- **Conceptos** (`conceptos/`): C-1 «Vía libre» (celda con puerta + tick verde que sale por ella),
+  C-2 «La celda encendida» (rejilla 2×2 con la celda libre en verde), C-3 «Punto y seguido»
+  (wordmark + punto terminal verde).
+- **Recomendado y construido:** **C-1 «Vía libre»**. Masters en `svg/` (marca full-color/mono/reverse +
+  lockup horizontal full-color/mono/reverse; la marca se escala 1.12× sobre la cap-height en el lockup),
+  set de favicon en `png/` (16/32/48/180/192/512, apple-touch incluido) y **hoja-validacion.png**.
+- **Entregables para revisión:** `docs/static/img/brand/board-locify.html` (board, sección 1–9),
+  `especificacion-logo.md` (colores por rol, clearspace, mínimos, tres no-hacer), `png/` y `svg/`.
+- **Flag honesto:** no se pudo verificar colisión de nombre «LOCIFY» (búsqueda web no disponible
+  en la sesión); revisar dominio y registro de marca antes de invertir.
 
 ## Plan del Próximo Sprint (bloqueantes de producción)
 

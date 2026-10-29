@@ -17,13 +17,13 @@ Para garantizar el desacoplamiento, LOCIFY separa los datos por **dueño**. En e
 erDiagram
     %% MICROSERVICIO: ADMIN (KYB y Usuarios)
     USUARIO {
-        uuid id PK
-        string email
+        string id PK "UUID v4 materializado en text"
+        string email "único"
         string password_hash
         enum rol "CONDUCTOR, OPERADOR, ADMIN"
         enum estado "PENDIENTE, ACTIVO, SUSPENDIDO"
-        string token_invitacion
-        timestamp token_expiracion
+        string token_invitacion "opcional; NULL hasta llegar la activación"
+        timestamp token_expiracion "opcional; NULL sin invitación vigente"
     }
     
     TICKET_KYB {
@@ -97,9 +97,10 @@ erDiagram
 
 | Tabla | Campo | Tipo | Descripción |
 |---|---|---|---|
-| **USUARIO** | `id` | UUID | Llave primaria. |
+| **USUARIO** | `id` | TEXT | Llave primaria: un UUID v4 generado por Prisma (`@onCreate`), materializado como `text` (no como tipo `uuid` de PostgreSQL). |
 | | `email` | TEXT | Único en el sistema. El contrato usa `String` de Prisma, que se materializa como `text` (sin límite de 255). |
 | | `rol` | ENUM | Define los permisos (RBAC). Se persiste como `text` con `CHECK` de valores. |
+| | `token_invitacion` / `token_expiracion` | TEXT / TIMESTAMPTZ | Opcionales (`NULL`) según `contract.prisma`: sólo existen en cuentas PENDIENTES de activación. |
 
 ### 2.2 `operador-api` (Sedes y Capacidad)
 

@@ -47,7 +47,9 @@ Los requerimientos funcionales describen el comportamiento obligatorio del siste
 | **Móvil** | iOS Safari 16.4+ · Android Chrome 110+ | "Añadir a pantalla de inicio" desde el navegador (sin App Store ni Play Store en esta fase) |
 | **Escritorio** | Chrome, Edge y Firefox actuales · Safari 16.4+ | Uso directo en el navegador; ventana instalable en Chrome/Edge |
 
-La sesión es la misma en ambos entornos (cookie `httpOnly` emitida por el backend), de modo que un conductor puede reservar en el computador y abrir el QR en el celular sin volver a autenticarse.
+La sesión es la misma en ambos entornos: **JWT Bearer de vida corta** (`Authorization: Bearer …`, 1 h por defecto) emitido por `POST /api/auth/login` de `admin-api`; el token viaja con la app en cualquier dispositivo, de modo que un conductor puede reservar en el computador y abrir el QR en el celular sin volver a autenticarse.
+
+> **Corrección de auditoría (2026-10-29):** una versión anterior de este párrafo hablaba de una cookie `httpOnly`; ningún servicio la emite hoy. El mecanismo real es el JWT Bearer de `admin-api` (`LoginUsuarioUseCase`, código fuente como único estado del punto).
 
 **Aclaraciones por requerimiento** (los RF que podrían leerse como exclusivos de móvil):
 

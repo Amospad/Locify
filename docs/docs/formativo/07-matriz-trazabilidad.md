@@ -60,6 +60,8 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 
 > **Nota de nomenclatura (2026-10-27).** El sprint de autenticación llamó "RF-07" al **login**. En esta matriz RF-07 es la **activación** de la cuenta, que sigue pendiente. El login es una capacidad transversal ya implementada (`POST /api/auth/login`, JWT HS256, `LoginUsuarioUseCase`); no se le asignó un RF propio. Ver `PROJECT_STATE.md`, "Autenticación JWT y RBAC".
 
+> **Nota de auditoría de seguridad (2026-10-29).** Batería ofensiva de 17 casos (`tests/http/seguridad.test.ts`, AN-A1…AN-E1): JWT con `alg none`/secreto ajeno/expirado/payload alterado → 401; inyección en email → 401 genérico; 6.º intento en un minuto → 429; `X-Forwarded-For` rotado no evade el límite (sin `trustProxy`); sin `X-Powered-By`; helmet y CORS por defecto cerrados; fallo interno → 500 genérico sin detalles de Prisma. Corrección aplicada al hallazgo único real: `bodyLimit` de 32 KiB (antes aceptaba cuerpos de 1 MiB de Fastify por defecto). Además, `admin-api` expone `GET /health` (200/503) para monitores de disponibilidad: es observabilidad, no RF.
+
 ## 2. Matriz de requerimientos no funcionales
 
 | ID | Requerimiento | Gate o evidencia verificable | Estado |
@@ -82,9 +84,9 @@ Alineada con la tabla de la sección 4 del SRS. Cualquier cambio en una de las d
 | Criterio de Aceptación | Módulo | RF cubiertos | RNF cubiertos |
 | :--- | :--- | :--- | :--- |
 | **CA-01** Interoperabilidad y Sincronización | Todos | RF-01 a RF-04, RF-09 a RF-11, RF-26 a RF-28 | RNF-01, RNF-04, RNF-05, RNF-07, RNF-08 |
-| **CA-02** Validación de Roles y Seguridad | Onboarding/Admin | RF-05 a RF-08, RF-18, RF-24, RF-29, RF-32 | RNF-01, RNF-02 |
+| **CA-02** Validación de Roles y Seguridad | Onboarding/Admin | RF-05 a RF-08, RF-18, RF-24, RF-29, RF-32, RF-33 | RNF-01, RNF-02 |
 | **CA-03** Exactitud del Motor de Reservas | Cliente/Operador | RF-13 a RF-19, RF-31 | RNF-06, RNF-09 |
-| **CA-04** Trazabilidad y Cumplimiento | Onboarding/Admin | RF-01, RF-02, RF-21, RF-23, RF-30 | RNF-02, RNF-03, RNF-10 |
+| **CA-04** Trazabilidad y Cumplimiento | Onboarding/Admin | RF-01, RF-02, RF-21, RF-23, RF-30, RF-34 | RNF-02, RNF-03, RNF-10 |
 
 ## 4. Huecos de trazabilidad detectados
 

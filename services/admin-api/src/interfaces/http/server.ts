@@ -21,6 +21,14 @@ export interface DependenciasHttp {
 export interface OpcionesServidor {
   /** Activa el logger de Fastify (JSON). En pruebas se deja apagado. */
   logger?: boolean;
+  /**
+   * Confiar en `X-Forwarded-For` del cliente. Sólo cuando el servicio corre
+   * detrás de un proxy propio (nginx, Vercel, ALB): entonces la llave del rate
+   * limit y los logs son la IP real del cliente. Expuesto a Internet, debe
+   * quedarse en `false`: la cabecera es falsificable y rotarla evadiría el
+   * límite de peticiones.
+   */
+  trustProxy?: boolean;
 }
 
 /** Orígenes permitidos por CORS. Sin la variable no se permite otro origen. */
@@ -56,6 +64,14 @@ export async function buildServer(
         coerceTypes: false,
       },
     },
+    // 32 KiB: sobra para credenciales JSON (el cuerpo más grande útil es
+    // email + contraseña, ~0,5 KiB) y corta cuerpos de hasta 1 MiB que Fastify
+    // aceptaría por defecto. Un ataque de amplificación parsea y valida JSON
+    // gigantes sobre Argon2 de 64 MiB por petición: se corta antes del AJV.
+    bodyLimit: 32 * 1024,
+    // La IP del rate limit/log es la del par TCP salvo declaración explícita:
+    // rotar `X-Forwarded-For` no evada el límite cuando se expone directamente.
+    trustProxy: opciones.trustProxy ?? false,
     logger: opciones.logger
       ? {
           level: process.env['LOG_LEVEL'] ?? 'info',

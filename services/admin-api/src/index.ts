@@ -111,7 +111,14 @@ const authService = new AuthService(
 
 const app = await buildServer(
   { db, adminService, authService, servicioTokens },
-  { logger: true },
+  {
+    logger: true,
+    // Sólo true detrás de un reverse proxy propio (nginx, Vercel, ALB). A
+    // Internet directo la cabecera es falsificable y rotando evadía el límite.
+    trustProxy: ['1', 'true', 'yes', 'si'].includes(
+      (process.env['TRUST_PROXY'] ?? '').trim().toLowerCase(),
+    ),
+  },
 );
 
 try {

@@ -15,7 +15,9 @@
 - [x] Backlog del Administrador: HU-A05…HU-A11 con criterios de aceptación (2026-10-28)
 - [x] Skill de diseño de identidad visual **brand-identity** instalada (`.agents/skills/brand-identity/`, fuente `Esi-Abolfazl/skills`; evaluación de riesgo: Safe/0 alerts/Low) y fijada en `skills-lock.json` (2026-10-28)
 - [x] Conceptos de logo LOCIFY generados en `docs/static/img/brand/` (2026-10-28)
-- [x] Logo **C-1 «Vía libre» aprobado** por el equipo e integrado en Docusaurus: navbar (`logo.svg` + `logo-dark.svg`), favicon.ico multi-tamaño, set de favicon moderno en `headTags`, social card 1200×630 y guía de diseño §5 (2026-10-29)- [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
+- [x] Logo **C-1 «Vía libre» aprobado** por el equipo e integrado en Docusaurus: navbar (`logo.svg` + `logo-dark.svg`), favicon.ico multi-tamaño, set de favicon moderno en `headTags`, social card 1200×630 y guía de diseño §5 (2026-10-29)
+- [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
+- [x] Auditoría de seguridad ofensiva + sincronización docs↔código del backend (17 pruebas AN-A…AN-E, `bodyLimit` 32 KiB, `TRUST_PROXY`; correcciones en 03/07/modelo-datos) (2026-10-29)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -336,6 +338,77 @@ El equipo **aprueba** el concepto C-1. Cambios verificados con `npm run build` v
 
 Lección de build: Docusaurus rechaza enlaces Markdown a archivos fuera del plugin de docs
 (`static/**`), se referencian como rutas de código.
+
+## Auditoría de Seguridad y Docs del backend (2026-10-29)
+
+Auditoría en dos fases sobre `services/admin-api`: (1) docs vs código con el código
+como fuente de verdad, (2) ataque ofensivo Red Team escrito primero como pruebas
+fallidas (TDD) y luego parcheo.
+
+### Incongruencias docs ↔ código corregidas
+
+| Doc | Problema | Corrección |
+| :--- | :--- | :--- |
+| `07-matriz-trazabilidad.md` §3 | La tabla de Criterios de Aceptación omitía RF-33 (CA-02) y RF-34 (CA-04), que el SRS (03 §4) sí lista — la propia doc exige replicar los cambios | RF-33 añadido a CA-02 y RF-34 a CA-04 |
+| `03-alcance-requerimientos.md` §2.2 | La sesión se describía como "cookie `httpOnly` emitida por el backend"; ningún servicio emite cookies. El mecanismo real es JWT Bearer por `Authorization` (1 h) | Párrafo reescrito + nota de corrección honesta |
+| `modelo-datos.md` ER + diccionario | `USUARIO.id` dibujado como `uuid`; la BD real lo materializa como `text` (UUID v4 dentro), verificado con `\d usuario` | ER y fila del diccionario corregidos |
+| `modelo-datos.md` ER | `token_invitacion` / `token_expiracion` dibujados como obligatorios; en `contract.prisma` y la BD son `NULL`-ables | Marcados opcionales en ER y diccionario (campo nuevo en la §2.1) |
+| `07-matriz-trazabilidad.md` | El endpoint `GET /health` (200/503) no aparece en ningún doc | Añadido en la nota de auditoría (observabilidad, no RF) |
+
+Verificado y correcto sin cambio: `rol`/`estado` = `text` + `CHECK` (afirmación
+verificada contra la BD viva), `email` = `text` sin límite, todas las filas
+"Implementado/Parcial" de RF-01 a RF-08 y RF-32.
+
+### Seguridad: 17 ataques (AN-A1…AN-E1) en `tests/http/seguridad.test.ts`
+
+| Ataque | Resultado |
+| :--- | :--- |
+| **AN-A1** JWT con `alg: none` | ✅ contenido — 401 (jose fija `algorithms: ['HS256']`) |
+| **AN-A2** Token firmado con secreto ajeno | ✅ 401 |
+| **AN-A3** Token expirado con firma válida | ✅ 401 |
+| **AN-A4** Token con emisor o audiencia ajenos | ✅ 401 |
+| **AN-A5** Payload alterado conservando la firma | ✅ 401 |
+| **AN-A6** Token sin `sub` | ✅ 401 (verificación de claims a mano) |
+| **AN-B1** Email como objeto de inyección (`{"$gt":""}`) | ✅ 400 (`coerceTypes: false`) |
+| **AN-B2** Inyección SQL en email | ✅ 401 genérico, sin detalles (Prisma parametriza; honeypot de Argon2 anti-enumeración) |
+| **AN-B3** **Cuerpo gigante (40 KiB)** | ⚠️ **hallazgo real** — Fastify aceptaba 1 MiB por defecto y llegaba al parser/validación → **corregido: `bodyLimit: 32 KiB`, el ataque ahora da 413** |
+| **AN-C1** Fuerza bruta login | ✅ 429 en el 6.º intento del minuto |
+| **AN-C2** Rotación de `X-Forwarded-For` para evadir el límite | ✅ no evadió (sin `trustProxy` la llave es la IP del par TCP) |
+| **AN-C3** `/health` drena la cuota global | ✅ no (exenta con `rateLimit: false`) |
+| **AN-D1** `X-Powered-By` filtrado | ✅ no se expone |
+| **AN-D2** Cabeceras helmet | ✅ CSP + `nosniff` + `frame-ancestors` + CORP presentes |
+| **AN-D3** CORS con Origin foráneo sin `CORS_ORIGINS` | ✅ cerrado (sin `access-control-allow-origin`) |
+| **AN-D4** `trustProxy: true` tras proxy propio | ✅ la cuota pasa a la IP real del cliente (opción **nueva**: `TRUST_PROXY` en `.env.example`; por defecto `false`) |
+| **AN-E1** Error interno simulando caída de PostgreSQL | ✅ 500 genérico (`Error interno del servidor.`), sin stack ni detalles de Prisma |
+
+Lo que ya venía bien (evidencia `archivo:línea`): `JWT_SECRET` ≥ 32 chars y falta fatal
+(`JwtService.ts:33-49`); `removeAdditional: false` para rechazar props inesperadas con 400
+(`server.ts:53-58`); redacción de contraseñas/authorization en logs (`server.ts:63-66`);
+honeypot Argon2id con tiempo igual para email inexistente (`LoginUsuario.ts:15-16,52-55`);
+rate limit 5/min en login y 10/min en registro (`routes/auth.ts:82`,
+`routes/operadores.ts:90`); password máx 128 antes de Argon2 (`routes/auth.ts:33`,
+`routes/operadores.ts:42`).
+
+### Riesgos residuales (declarados, no parcheados)
+
+1. Sin revocación de JWT: un token sigue válido hasta su expiración aunque la
+   cuenta se suspenda después (mitigado por vigencia de 1 h; `LoginUsuario.ts:69-72`).
+   Requiere lista de revocación o versiones de token en la base.
+2. TLS: no hay terminación HTTPS en el stack local (RNF-01 "Parcial" en la matriz).
+   Debe resolverse en el proxy de producción; `TRUST_PROXY` ya está previsto.
+3. La cuota global de 100 req/min se comparte por IP: tras poner el servicio
+   detrás de un proxy sin `TRUST_PROXY=true`, todos los clientes comparten la
+   cuota (todos los clientes del proxy comparten 100/min y un solo atacante
+   puede agotarla) — documentado en `.env.example`.
+4. No hay flujo de recuperación de contraseña — HU-03
+   (recuperación de contraseña) sigue sin implementación (hueco histórico ya
+   declarado en la matriz §4).
+
+### Verificación de la pasada
+
+- `npm test` en `services/admin-api`: **134/134 verde** (117 previas + 17 de seguridad),
+  incluida la integración real contra PostgreSQL (`docker start locify-admin-db`).
+- `npm run build` (tsc): verde.
 
 ## Plan del Próximo Sprint (bloqueantes de producción)
 

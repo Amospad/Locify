@@ -68,8 +68,8 @@ Este documento contiene el Product Backlog completo del proyecto LOCIFY, organiz
 
 Necesidad declarada: el rol **Administrador de LOCIFY** (dueño de la plataforma, distinto del operador de sede)
 tiene pocas historias en el backlog. Esta épica le da funcionalidad propia de un SaaS: configuración del
-negocio, RBAC interno, disputas, moderación, auditoría y métricas globales. El este y el oeste de la
-trazabilidad está en [07. Matriz de Trazabilidad](./07-matriz-trazabilidad.md).
+negocio, RBAC interno, disputas, moderación, auditoría y métricas globales. La trazabilidad completa de la
+serie está en [07. Matriz de Trazabilidad](./07-matriz-trazabilidad.md).
 
 > **Convención de IDs:** los identificadores `HU-A05…HU-A11` se unen a la serie `HU-A` reservada en el
 > backlog (las posiciones A01–A04 quedan disponibles para historias de administración propuesta si se abren).
@@ -79,9 +79,9 @@ trazabilidad está en [07. Matriz de Trazabilidad](./07-matriz-trazabilidad.md).
 | **HU-A05** | Como administrador, quiero configurar los minutos de gracia y las tarifas base desde un panel, para ajustar la estrategia del negocio sin tocar código. | RF-31 | Alta | 3 |
 | **HU-A06** | Como administrador, quiero crear cuentas para mi equipo de soporte y asignarles roles limitados, para que no todos tengan acceso total al sistema. | RF-32 | Alta | 5 |
 | **HU-A07** | Como administrador, quiero ver la línea de tiempo de una reserva (check-in, check-out, pagos) para resolver disputas y emitir reembolsos si es necesario. | RF-30 | Alta | 5 |
-| **HU-A08** | Como administrador, quiero suspender la cuenta de un operador si recibe muchas quejas, para garantizar la calidad del servicio. | *(sin RF propio; se ancla en RF-08)* | Alta | 3 |
+| **HU-A08** | Como administrador, quiero suspender la cuenta de un operador si recibe muchas quejas, para garantizar la calidad del servicio. | RF-33 | Alta | 3 |
 | **HU-A09** | Como administrador, quiero consultar un log inmutable de acciones críticas (ej. cambios de tarifas), para auditar el sistema en caso de fraude. | RNF-02 | Alta | 3 |
-| **HU-A10** | Como administrador, quiero ver métricas globales (reservas totales, ingresos por ciudad), para tomar decisiones estratégicas sobre la plataforma. | *(sin RF propio; se ancla en RF-28)* | Media | 5 |
+| **HU-A10** | Como administrador, quiero ver métricas globales (reservas totales, ingresos por ciudad), para tomar decisiones estratégicas sobre la plataforma. | RF-34 | Media | 5 |
 | **HU-A11** | Como administrador, quiero reenviar el correo de activación a un operador que lo haya perdido, para agilizar su proceso de Onboarding. | RF-04 | Alta | 2 |
 
 ### Criterios de Aceptación de las HU-A05 a HU-A11
@@ -166,7 +166,7 @@ trazabilidad está en [07. Matriz de Trazabilidad](./07-matriz-trazabilidad.md).
 - **Entonces** el sistema responde 400 sin enviar correo (solo cuentas PENDIENTE pueden reinvitar).
 - **Dado** que el correo falla por el proveedor SMTP,
 - **Cuando** termina la petición,
-- **Entonces** el sistema responde 502, muestra el estado del contacto y la cuenta sigue PENDIENTE con token vigente, para reintentar sin duplicar registros (409).
+- **Entonces** el sistema responde 502 con el `id` del operador y la cuenta sigue PENDIENTE con token vigente, para reintentar sin duplicar registros (409).
 
 > **Estado en el código de HU-A11:** el caso de uso y `POST /api/operadores/:id/reinvitar` existen y están
 > probados (RBAC: solo ADMIN). Ver [07. Matriz de trazabilidad](./07-matriz-trazabilidad.md), fila RF-04.

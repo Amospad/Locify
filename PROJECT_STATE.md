@@ -12,6 +12,8 @@
 - [x] Autenticación JWT y RBAC: `POST /api/auth/login` + `preHandler` Bearer y reinvitación sólo para ADMIN (2026-10-27)
 - [x] Cambio de alcance: App del Cliente como PWA *mobile-first* usable también desde escritorio (2026-10-27)
 - [x] Trazabilidad RF→HU al 100 % (32/32) con 30 historias de usuario (2026-10-27)
+- [x] Backlog del Administrador: HU-A05…HU-A11 con criterios de aceptación (2026-10-28)
+- [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -254,6 +256,40 @@ El negocio pidió que la App del Cliente (conductores) deje de plantearse como a
 - No hay código de frontend todavía. El primer entregable de `web-cliente` debe nacer con `manifest.webmanifest`, *service worker* y layout de una columna antes de la versión de escritorio.
 - **Pendiente de decisión:** sigue sin existir un RF de notificaciones; la documentación describe el canal (Web Push + correo) pero no un requerimiento numerado con criterio de aceptación.
 - **Pendiente de decisión:** registrar la elección Next.js vs React + Vite en un ADR cuando se cree el módulo (hoy la doc admite ambas).
+
+## Backlog del Administrador (2026-10-28)
+
+Se expandió la **Épica 6: Administrador (LOCIFY) — Operación del SaaS** porque el rol dueño de la plataforma
+tenía apenas HU-04, HU-07 y HU-22…HU-24 en el backlog. Dos commits: `5745221` (historias) y el de esta
+sincronización, en la rama `docs/hu-admin` que se integró a `main`.
+
+### Historias de Usuario (HU-A05…HU-A11)
+
+Las siete historias viven en `docs/docs/formativo/05-historias-usuario.md` con prioridad, estimación y tres
+escenarios Gherkin cada una. `HU-A11` (reinvitación) ya está implementada; las otras seis no.
+
+| Historia | Tema | RF/CU |
+| :--- | :--- | :--- |
+| HU-A05 | Minutos de gracia y tarifas desde panel | RF-31 / CU-11 |
+| HU-A06 | RBAC para el equipo de soporte | RF-32 / CU-12 |
+| HU-A07 | Línea de tiempo de reserva y reembolsos | RF-30 / CU-13 |
+| HU-A08 | Suspensión de operadores (moderación) | **RF-33** / CU-14 |
+| HU-A09 | Log de auditoría inmutable | RNF-02 / CU-15 |
+| HU-A10 | Métricas globales agregadas | **RF-34** / *(sin CU)* |
+| HU-A11 | Reenvío de invitación | RF-04 / CU-16 (implementado) |
+
+### Sincronización de la documentación
+
+- **RF-33 y RF-34 (`03-alcance-requerimientos.md` §2.4):** al redactar las historias quedó claro que la
+  moderación de operadores y las métricas globales **no tenían RF propio**; se adicionaron con nota de origen.
+  El total pasa de 32 a **34 RF**, y CA-02/CA-04 de la matriz en ese documento los incluyen.
+- **CU-11 a CU-16 (`04-casos-uso.md`):** flujo principal, precondiciones, escenarios alternativos y estado
+  honesto en el código. El diagrama Mermaid suma al **Soporte** como actor (A5) y dependencias
+  (`CU-11 -.-> CU-9`, `CU-16 -.-> CU-1`, `CU-13 -.-> A4`).
+- **Matriz (`07-matriz-trazabilidad.md`):** cubre 34/34 RF; CU-11/CU-12 vinculados a RF-31/RF-32,
+  CU-13 a RF-30, y las filas nuevas de RF-33/RF-34. Los huecos se ajustaron: ya no existen
+  "RF sin CU" por RF-31/RF-32 ni "historia sin RF" por HU-A08/HU-A10; restan RF-09, RF-21 y RF-34 sin CU.
+- **Verificación:** `npm run build` en `docs/` → verde (cliente y servidor compilados, sin enlaces rotos).
 
 ## Plan del Próximo Sprint (bloqueantes de producción)
 

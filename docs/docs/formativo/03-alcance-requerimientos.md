@@ -90,6 +90,12 @@ La sesión es la misma en ambos entornos (cookie `httpOnly` emitida por el backe
 - **RF-30 (Disputas):** Proveer vista de casos escalados con línea de tiempo y evidencias. *(Prioridad: Alta)*
 - **RF-31 (Motor de Reglas):** Reconfigurar porcentajes de penalidades, minutos de gracia y tarifas base. *(Prioridad: Alta)*
 - **RF-32 (RBAC):** Crear personal interno y asignar permisos por roles (Superadmin, Financiero, Soporte). *(Prioridad: Alta)*
+- **RF-33 (Moderación):** Suspender y reactivar la cuenta de un operador con motivo obligatorio; al suspender, la sede deja de aparecer en el mapa y el operador pierde el acceso (coherente con RF-08 y RF-24). Derivado de HU-A08. *(Prioridad: Alta)*
+- **RF-34 (Métricas Globales):** Dashboard administrativo con reservas totales, ingresos por ciudad y tasa de disputas, con rango de fechas y sobre datos **agregados** que no exponen datos personales (RNF-03); las consultas pesadas se sirven de una réplica de lectura (RNF-10). Derivado de HU-A10. *(Prioridad: Media)*
+
+> **Nota (2026-10-28):** RF-33 y RF-34 se agregaron al formalizar el backlog del Administrador (HU-A05…HU-A11).
+> Antes eran capacidades implícitas; al escribillas como historias quedó claro que no había RF que las cubriera.
+> El reenvío de invitación (HU-A11) ya está cubierto por RF-04 y no pide un RF nuevo.
 
 ---
 
@@ -122,6 +128,6 @@ Los RNF establecen los atributos de calidad y restricciones técnicas.
 | Criterio de Aceptación | Módulo | RF Asociados | RNF Asociados |
 |---|---|---|---|
 | **CA-01** Interoperabilidad y Sincronización | Todos | RF-01 a RF-04, RF-09 a RF-11, RF-26 a RF-28 | RNF-01, RNF-04, RNF-05, RNF-07, RNF-08 |
-| **CA-02** Validación de Roles y Seguridad | Onboarding/Admin | RF-05 a RF-08, RF-18, RF-24, RF-29, RF-32 | RNF-01, RNF-02 |
+| **CA-02** Validación de Roles y Seguridad | Onboarding/Admin | RF-05 a RF-08, RF-18, RF-24, RF-29, RF-32, RF-33 | RNF-01, RNF-02 |
 | **CA-03** Exactitud del Motor de Reservas | Cliente/Operador | RF-13 a RF-19, RF-31 | RNF-06, RNF-09 |
-| **CA-04** Trazabilidad y Cumplimiento | Onboarding/Admin | RF-01, RF-02, RF-21, RF-23, RF-30 | RNF-02, RNF-03, RNF-10 |
+| **CA-04** Trazabilidad y Cumplimiento | Onboarding/Admin | RF-01, RF-02, RF-21, RF-23, RF-30, RF-34 | RNF-02, RNF-03, RNF-10 |

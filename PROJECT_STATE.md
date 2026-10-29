@@ -18,6 +18,7 @@
 - [x] Logo **C-1 «Vía libre» aprobado** por el equipo e integrado en Docusaurus: navbar (`logo.svg` + `logo-dark.svg`), favicon.ico multi-tamaño, set de favicon moderno en `headTags`, social card 1200×630 y guía de diseño §5 (2026-10-29)
 - [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
 - [x] Auditoría de seguridad ofensiva + sincronización docs↔código del backend (17 pruebas AN-A…AN-E, `bodyLimit` 32 KiB, `TRUST_PROXY`; correcciones en 03/07/modelo-datos) (2026-10-29)
+- [x] PWA del cliente inicializada: Next.js 16 (`apps/web-cliente`) con identidad visual LOCIFY y Hero de la landing (2026-10-29)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -410,6 +411,34 @@ rate limit 5/min en login y 10/min en registro (`routes/auth.ts:82`,
   incluida la integración real contra PostgreSQL (`docker start locify-admin-db`).
 - `npm run build` (tsc): verde.
 
+## Frontend del cliente — `apps/web-cliente` (2026-10-29)
+
+```
+npx create-next-app@latest apps/web-cliente --typescript --tailwind --eslint
+  --app --src-dir --import-alias "@/*" --use-npm --yes
+```
+
+Next.js **16.4.3** + React 19 + **Tailwind v4** dentro del monorepo npm ya
+existente (`package.json` raíz = `locify-monorepo` con `workspaces: [services/*,
+apps/*, packages/*]`: las dependencias se hoistean a la raíz).
+
+| Pieza | Qué se hizo |
+| :--- | :--- |
+| Tokens de color | **Tailwind v4 es CSS-first**: `tailwind.config.ts` ya no aplica (obsoleto sin `@config`); los tokens viven en `@theme` de `src/app/globals.css` → `bg-acero` `#2F5D9F`, `text-grafito` `#1F2937`, `verde-esmeralda` `#00C853` (solo estado), `bg-fondo` `#F4F6F8` |
+| Tipografía | **Poppins** (400/500/600, SIL OFL) con `next/font/google` en `layout.tsx`, expuesta como `--font-poppins` y conectada al token `--font-sans` |
+| Logos | `logo.svg`, `logo-dark.svg`, `favicon.ico`, `favicon-16/32`, `apple-touch-icon`, `android-chrome-192/512` y `social-card.png` copiados a `public/`; los SVG genéricos del scaffold se eliminaron |
+| Metadata | `lang="es"`; título + descripción del producto; `icons` apuntando al set de favicon |
+| Hero | `src/app/page.tsx`: logo lockup (`next/image` con `unoptimized` para SVG), titular «Encuentra tu parqueadero en segundos», subtítulo y dos CTAs (Buscar parqueadero / Iniciar sesión, enlaces placeholder hasta crear las rutas) |
+
+**Verificación:** `next build` verde (2 rutas estáticas), `eslint` 0 problemas, y
+screenshot-equivalente computado contra `next start`: fuente computada Poppins,
+fondo `rgb(244,246,248)`, texto `rgb(31,41,55)`, botón primario `rgb(47,93,159)`,
+logo cargado (`naturalWidth 542`), `favicon.ico` servido.
+
+**Notas de entorno:** el servidor de consumo HTTP del backend aún no está
+conectado; los CTAs son `#buscar`/`#iniciar-sesion` a la espera de las rutas
+reales. El modo oscuro está desactivado deliberadamente (la marca se diseña en
+claro, §5 de la guía de diseño).
 ## Plan del Próximo Sprint (bloqueantes de producción)
 
 - **Objetivo:** que `admin-api` atienda peticiones HTTP reales, guarde contraseñas hasheadas y envíe la invitación por correo.

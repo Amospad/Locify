@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de identidad visual de LOCIFY (Tailwind v4, CSS-first).
+ *
+ * La versión 4 de Tailwind ya no usa `tailwind.config.ts`: los tokens viven
+ * aquí y generan automáticamente sus clases (`bg-acero`, `text-grafito`,
+ * `border-verde-esmeralda`, …). La fuente completa vive en
+ * `docs/static/img/brand/especificacion-logo.md` y la guía de la UI en
+ * `docs/docs/tecnico/referencia/guia-diseno-ui.md` §1 y §5.
+ */
+@theme {
+  /* Azul Acero: acción primaria y estructura de la marca */
+  --color-acero: #2f5d9f;
+  /* Azul Profundo: hover del primario y fondos de la versión reverse */
+  --color-azul-profundo: #244a80;
+  /* Grafito: texto y versiones mono */
+  --color-grafito: #1f2937;
+  /* Verde Esmeralda: SOLO estado (disponible / confirmado), nunca decorativo */
+  --color-verde-esmeralda: #00c853;
+  /* Fondo: gris claro de superficie (§1 de la guía) */
+  --color-fondo: #f4f6f8;
+
+  /* Poppins (brand) como stack sans del sistema; se carga en layout.tsx
+   * con next/font y expone la variable --font-poppins. */
+  --font-sans: var(--font-poppins);
+}
+
+/* La marca se diseña en claro; no cambiamos de tema con el sistema. */

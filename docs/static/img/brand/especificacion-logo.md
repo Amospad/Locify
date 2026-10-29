@@ -6,7 +6,11 @@ title: Especificación del logo LOCIFY (v1)
 
 > Entrega de la skill `brand-identity` (2026-10-28). El board con conceptos, racional y
 > evidencia de render vive en `board-locify.html` (junto a este archivo).
-> **Estado: recomendación pendiente de aprobación.** No integrar en la UI hasta el visto bueno.
+> **Estado: aprobado por el equipo el 2026-10-29.** La versión full-color horizontal
+> integra la navbar de Docusaurus (`static/img/logo.svg`, reverse en modo oscuro),
+> con el set de favicon (`favicon.ico` + `favicon-16/32`, `apple-touch-icon`,
+> `android-chrome-192/512` en `docusaurus.config.ts → headTags`) y la tarjeta
+> social `static/img/social-card.png` (1200 × 630).
 
 ## Posicionamiento
 

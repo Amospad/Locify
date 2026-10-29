@@ -14,7 +14,8 @@
 - [x] Trazabilidad RF→HU al 100 % (32/32) con 30 historias de usuario (2026-10-27)
 - [x] Backlog del Administrador: HU-A05…HU-A11 con criterios de aceptación (2026-10-28)
 - [x] Skill de diseño de identidad visual **brand-identity** instalada (`.agents/skills/brand-identity/`, fuente `Esi-Abolfazl/skills`; evaluación de riesgo: Safe/0 alerts/Low) y fijada en `skills-lock.json` (2026-10-28)
-- [x] Conceptos de logo LOCIFY generados en `docs/static/img/brand/` (2026-10-28)- [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
+- [x] Conceptos de logo LOCIFY generados en `docs/static/img/brand/` (2026-10-28)
+- [x] Logo **C-1 «Vía libre» aprobado** por el equipo e integrado en Docusaurus: navbar (`logo.svg` + `logo-dark.svg`), favicon.ico multi-tamaño, set de favicon moderno en `headTags`, social card 1200×630 y guía de diseño §5 (2026-10-29)- [x] Casos de uso CU-11…CU-16 y RF-33/RF-34 sincronizados con el nuevo backlog (2026-10-28)
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -317,6 +318,25 @@ escenarios Gherkin cada una. `HU-A11` (reinvitación) ya está implementada; las
 - **Flag honesto:** no se pudo verificar colisión de nombre «LOCIFY» (búsqueda web no disponible
   en la sesión); revisar dominio y registro de marca antes de invertir.
 
+### Integración en Docusaurus (2026-10-29 — aprobado e integrado)
+
+El equipo **aprueba** el concepto C-1. Cambios verificados con `npm run build` verde
+(cliente + servidor, sin enlaces rotos):
+
+| Asset / config | Qué cambió |
+| :--- | :--- |
+| `static/img/logo.svg` | Sustituido por el **lockup horizontal full-color** (marca + LOCIFY Poppins delineada); sustituye el logo genérico de Docusaurus |
+| `static/img/logo-dark.svg` | Lockup **reverse** (blanco) — el grafito del full-color desaparecería en el navbar oscuro; vía `logo.srcDark` |
+| `static/img/favicon.ico` | Regenerado **multi-tamaño** (16/32/48) con Pillow desde el master 512 |
+| `static/img/favicon-16/32.png`, `apple-touch-icon.png`, `android-chrome-192/512.png` | Set moderno de favicons copiado desde `brand/png/` |
+| `static/img/social-card.png` | **Nueva tarjeta social 1200 × 630** (marca sola sobre Azul Profundo); sustituye a `docusaurus-social-card.jpg` (eliminada) |
+| `docusaurus.config.ts` | `themeConfig.image → img/social-card.png`; navbar sin `title` (el lockup ya trae el nombre) y `logo.src/srcDark`; `headTags` con los `<link>` de la familia de favicons |
+| `tecnico/referencia/guia-diseno-ui.md` | Nueva **§5 Logotipo Oficial**: concepto, colores por rol, Poppins OFL, clearspace, mínimos y las tres «no hacer»; enlaza (por ruta, no como página del sitio) a `especificacion-logo.md` |
+| `brand/especificacion-logo.md` + `board-locify.html` | Estado actualizado a **aprobado 2026-10-29** |
+
+Lección de build: Docusaurus rechaza enlaces Markdown a archivos fuera del plugin de docs
+(`static/**`), se referencian como rutas de código.
+
 ## Plan del Próximo Sprint (bloqueantes de producción)
 
 - **Objetivo:** que `admin-api` atienda peticiones HTTP reales, guarde contraseñas hasheadas y envíe la invitación por correo.
@@ -456,5 +476,5 @@ Medido cargando el build dentro de un viewport de 1440 × 900:
 - **Observación (no modificado):** a 1440 px el ancho de lectura ronda las 100 caracteres por línea frente a los 60–75 recomendados. Se dejó el valor de Docusaurus porque la documentación es intensiva en tablas y matrices: estrechar la columna las forzaría a scroll horizontal. Si se decide limitar, basta con `--doc-item-container-width` en `custom.css`.
 
 ### Pendiente
-- Reemplazar `static/img/docusaurus-social-card.jpg` (imagen social genérica) por una propia de LOCIFY.
+- ~~Reemplazar `static/img/docusaurus-social-card.jpg` (imagen social genérica) por una propia de LOCIFY~~ → **Hecho el 2026-10-29:** `static/img/social-card.png` (1200 × 630, marca «Vía libre» sobre Azul Profundo) y la tarjeta genérica fue eliminada.
 - `npm install` reportó 23 avisos de `npm audit` en el árbol de `docs` (dependencias transitivas del toolchain); no se aplicó `npm audit fix --force` porque introduce cambios incompatibles.

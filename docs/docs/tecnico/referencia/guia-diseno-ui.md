@@ -71,3 +71,58 @@ Los detalles de contraste, foco y movimiento reducido viven en [Principios de In
 ## 4. Referencias
 - [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/)
 - [Adaptivity — Apple HIG](https://developer.apple.com/design/human-interface-guidelines/layout)
+
+## 5. Logotipo Oficial (2026-10-29 — aprobado)
+
+La identidad oficial aprobada por el equipo es el concepto **C-1 «Vía libre»**. La
+especificación completa vive en `static/img/brand/especificacion-logo.md`
+(archivo de especificación, no página del sitio) y el board de decisión
+(conceptos, racional y renders) en `static/img/brand/board-locify.html`,
+ambos junto a los masters de la marca en `static/img/brand/`.
+
+> Los assets derivados ya están integrados en el build: `static/img/logo.svg`
+> (lockup full-color en la navbar), `static/img/favicon.ico` (16/32/48 px),
+> `static/img/social-card.png` (1200 × 630) y la familia `favicon-16/32`,
+> `apple-touch-icon` y `android-chrome-192/512`, declarados en
+> `docusaurus.config.ts → headTags`.
+
+### 5.1 El símbolo
+
+**Celda con puerta siempre abierta + tick verde que sale por ella.** Lectura:
+*celda libre confirmada*. El verde representa un **estado** (disponible /
+confirmado), el mismo rol que ese color tiene en la UI; la puerta siempre abierta
+significa que el sistema fluye (check-in → check-out → cobro).
+
+### 5.2 Colores por rol (los mismos tokens de la §1)
+
+| Elemento | HEX | Trabajo |
+| :--- | :--- | :--- |
+| Azul Acero | `#2F5D9F` | Celda (estructura de la marca); acción primaria |
+| Azul Profundo | `#244A80` | Fondos para la versión reverse; estados hover |
+| Grafito | `#1F2937` | Wordmark y versiones mono |
+| Verde | `#00C853` | **Solo estado**: check / celda libre / confirmación. Nunca relleno decorativo; nunca más de 25 % de la superficie |
+| Blanco | `#FFFFFF` | Versión reverse |
+
+### 5.3 Tipografía del wordmark
+
+**Poppins SemiBold** (SIL **OFL 1.1**, libre, con uso comercial). En los SVG
+masters el texto está **delineado a paths** (sin `<text>`, sin `font-family`):
+no se vuelve a componer la palabra con la fuente viva ni con otra; para
+cualquier uso nuevo se parte de los masters. El fallback para el resto del
+sistema visual es el stack tipográfico de la §2.
+
+### 5.4 Reglas de uso (resumen; el detalle completo y el clearspace viven en la espec)
+
+**Área de exclusión:** `x = 25 % de la altura de la marca` en los cuatro lados.
+**Tamaños mínimos:** marca sola 16 px (favicon, validado por render); lockup
+horizontal 96 px de alto en pantalla / 28 mm impreso.
+
+Tres «no hacer» específicas:
+
+1. **No recolorear ni rotar el check** — el verde es un estado del producto, no
+   un acento decorativo.
+2. **No reconstruir el wordmark con la fuente viva** — usar únicamente los SVG
+   masters (paths).
+3. **No usar el lockup full-color sobre verde ni sobre fotos con contraste
+   caótico** — usar la versión mono (grafito) o reverse con banda sólida
+   (Azul Profundo o Grafito).

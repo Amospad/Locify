@@ -47,7 +47,7 @@ html = f"""<!doctype html>
 <title>LOCIFY — Board de identidad visual (logo)</title><style>{css}</style></head>
 <body>
 <h1>LOCIFY — Board de identidad visual</h1>
-<p class="muted">Entrega de la skill <code>brand-identity</code> · 2026-10-28 · v1 (solo logo) · Recomendación pendiente de aprobación.</p>
+<p class="muted">Entrega de la skill <code>brand-identity</code> · 2026-10-28 · v1 (solo logo) · <strong>Aprobado el 2026-10-29; integrado en la navbar de Docusaurus, en los favicons y en la social card.</strong></p>
 
 <h2>1 · Brief</h2>
 <table>

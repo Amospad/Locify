@@ -7,6 +7,55 @@ const config: Config = {
   tagline: 'Documentación técnica y formativa del ecosistema de parqueaderos',
   favicon: 'img/favicon.ico',
 
+  // Set oficial de favicon (marca «Vía libre», ver static/img/brand/especificacion-logo.md).
+  // El .ico cubre navegadores clásicos; el resto se declara aquí para Android/iOS/PWA.
+  headTags: [
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '16x16',
+        href: '/img/favicon-16.png',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        href: '/img/favicon-32.png',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'apple-touch-icon',
+        sizes: '180x180',
+        href: '/img/apple-touch-icon.png',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '192x192',
+        href: '/img/android-chrome-192.png',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '512x512',
+        href: '/img/android-chrome-512.png',
+      },
+    },
+  ],
+
   url: 'https://locify-wheat.vercel.app',
   baseUrl: '/',
 
@@ -43,12 +92,15 @@ const config: Config = {
   },
 
   themeConfig: {
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/social-card.png',
     navbar: {
-      title: 'LOCIFY',
+      // El lockup ya incluye el wordmark LOCIFY (Poppins delineada): sin título de texto
+      // para no duplicar el nombre. En modo oscuro se usa el reverse (blanco) porque el
+      // wordmark grafito del full-color desaparecería sobre el navbar oscuro (spec §5.4).
       logo: {
-        alt: 'Locify Logo',
+        alt: 'LOCIFY — celda con puerta abierta y tick verde de disponibilidad confirmada',
         src: 'img/logo.svg',
+        srcDark: 'img/logo-dark.svg',
       },
       items: [
         {

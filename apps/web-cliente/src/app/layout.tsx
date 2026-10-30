@@ -39,11 +39,20 @@ export const viewport: Viewport = {
   themeColor: "#2F5D9F",
 };
 
+import SmoothScrollProvider from "@/components/SmoothScrollProvider";
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${poppins.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-fondo font-sans text-grafito">
-        {children}
+        <SmoothScrollProvider>
+          <div className="relative flex min-h-full flex-col">
+            <div className="absolute inset-0 bg-gradient-to-br from-grafito via-[#0F172A] to-acero opacity-95 pointer-events-none" />
+            <div className="relative z-10 flex min-h-full flex-col">
+              {children}
+            </div>
+          </div>
+        </SmoothScrollProvider>
       </body>
     </html>
   );

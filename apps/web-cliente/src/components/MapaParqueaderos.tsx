@@ -282,12 +282,12 @@ export default function MapaParqueaderos() {
         </p>
       ) : null}
 
-      {/* Barra de búsqueda flotante (estilo Google Maps) */}
+      {/* Barra de búsqueda flotante con glassmorphism */}
       <form
         onSubmit={alBuscar}
-        className="absolute left-1/2 top-4 z-20 flex w-[92%] max-w-md -translate-x-1/2 items-center gap-2 rounded-full border border-grafito/10 bg-white/95 px-4 py-2.5 shadow-lg backdrop-blur"
+        className="absolute left-1/2 top-4 z-20 flex w-[92%] max-w-md -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 shadow-2xl backdrop-blur-xl"
       >
-        <svg viewBox="0 0 24 24" className="size-5 shrink-0 text-grafito/50" fill="none" aria-hidden>
+        <svg viewBox="0 0 24 24" className="size-5 shrink-0 text-white/60" fill="none" aria-hidden>
           <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
           <path d="M20 20 L16.5 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
@@ -300,11 +300,11 @@ export default function MapaParqueaderos() {
           value={consulta}
           onChange={(e) => setConsulta(e.target.value)}
           placeholder="Buscar dirección o barrio…"
-          className="w-full bg-transparent text-sm text-grafito placeholder:text-grafito/40 focus:outline-none"
+          className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
         />
         <button
           type="submit"
-          className="shrink-0 rounded-full bg-acero px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-azul-profundo"
+          className="shrink-0 rounded-xl bg-acero/90 px-4 py-2 text-xs font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-acero hover:scale-105"
         >
           Buscar
         </button>
@@ -313,18 +313,18 @@ export default function MapaParqueaderos() {
       {/* Volver al inicio */}
       <Link
         href="/"
-        className="absolute left-4 top-20 z-20 rounded-full border border-grafito/10 bg-white/95 px-4 py-2 text-xs font-semibold text-grafito shadow-lg backdrop-blur transition-colors hover:text-acero sm:top-[4.5rem]"
+        className="absolute left-4 top-20 z-20 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-105"
       >
         ← Inicio
       </Link>
 
-      {/* Centrar en mi ubicación (botón flotante) */}
+      {/* Centrar en mi ubicación (botón flotante) con glassmorphism */}
       <button
         type="button"
         onClick={centrarEnMiUbicacion}
         disabled={ubicandose}
         aria-label="Centrar el mapa en mi ubicación"
-        className="absolute bottom-24 right-4 z-20 grid size-11 place-items-center rounded-full border border-grafito/10 bg-white/95 text-acero shadow-lg backdrop-blur transition-colors hover:bg-acero hover:text-white disabled:opacity-60"
+        className="absolute bottom-24 right-4 z-20 grid size-12 place-items-center rounded-2xl border border-white/20 bg-white/10 text-white shadow-2xl backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-110 disabled:opacity-60"
       >
         <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden>
           <circle cx="12" cy="12" r="6.5" stroke="currentColor" strokeWidth="2" />
@@ -333,41 +333,41 @@ export default function MapaParqueaderos() {
         </svg>
       </button>
 
-      {/* Mensaje de estado (búsqueda / geolocalización) */}
+      {/* Mensaje de estado con glassmorphism */}
       {mensaje ? (
         <p
           role="status"
-          className="absolute bottom-10 left-1/2 z-20 -translate-x-1/2 rounded-full border border-grafito/10 bg-white/95 px-4 py-1.5 text-xs font-medium text-grafito shadow-md backdrop-blur"
+          className="absolute bottom-10 left-1/2 z-20 -translate-x-1/2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-medium text-white shadow-2xl backdrop-blur-xl"
         >
           {mensaje}
         </p>
       ) : null}
 
-      {/* Modal de confirmación de reserva (modalidad) */}
+      {/* Modal de confirmación de reserva (modalidad) con glassmorphism */}
       {reservaModal.abierto && reservaModal.sede && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-titulo"
         >
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
-            <h2 id="modal-titulo" className="text-xl font-semibold text-grafito">
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white/10 backdrop-blur-2xl p-6 shadow-2xl">
+            <h2 id="modal-titulo" className="text-xl font-semibold text-white">
               Confirmar reserva
             </h2>
-            <p className="mt-2 text-sm text-grafito/70">
-              Sede: <span className="font-medium text-grafito">{reservaModal.sede.nombre}</span>
+            <p className="mt-2 text-sm text-white/80">
+              Sede: <span className="font-medium text-white">{reservaModal.sede.nombre}</span>
             </p>
-            <p className="mt-1 text-sm text-grafito/70">
+            <p className="mt-1 text-sm text-white/80">
               Precio: <span className="font-semibold text-acero">{COP.format(reservaModal.sede.precioHora)}</span> / hora
             </p>
 
             {reservaModal.error ? (
-              <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-800" role="alert">
+              <p className="mt-4 rounded-xl border border-red-400/30 bg-red-500/20 px-3.5 py-2.5 text-sm text-red-200 backdrop-blur-xl" role="alert">
                 {reservaModal.error}
               </p>
             ) : null}
-            <p className="mt-4 text-sm text-grafito/70">
+            <p className="mt-4 text-sm text-white/80">
               Elige la modalidad de tu reserva:
             </p>
             <div className="mt-3 grid gap-3">
@@ -375,29 +375,29 @@ export default function MapaParqueaderos() {
                 type="button"
                 onClick={() => confirmarReserva('GARANTIZADA')}
                 disabled={reservaModal.cargando}
-                className="rounded-xl border border-grafito/20 bg-white p-4 text-left hover:border-acero hover:bg-fondo transition-colors disabled:opacity-60"
+                className="rounded-2xl border border-white/20 bg-white/10 p-4 text-left backdrop-blur-xl transition-all duration-300 hover:border-acero hover:bg-acero/20 hover:scale-105 disabled:opacity-60"
               >
-                <p className="font-semibold text-grafito">Reserva Garantizada</p>
-                <p className="text-xs text-grafito/60">Tu celda queda reservada exclusivamente para ti.</p>
+                <p className="font-semibold text-white">Reserva Garantizada</p>
+                <p className="text-xs text-white/60">Tu celda queda reservada exclusivamente para ti.</p>
               </button>
               <button
                 type="button"
                 onClick={() => confirmarReserva('EXPRES')}
                 disabled={reservaModal.cargando}
-                className="rounded-xl border border-grafito/20 bg-white p-4 text-left hover:border-acero hover:bg-fondo transition-colors disabled:opacity-60"
+                className="rounded-2xl border border-white/20 bg-white/10 p-4 text-left backdrop-blur-xl transition-all duration-300 hover:border-acero hover:bg-acero/20 hover:scale-105 disabled:opacity-60"
               >
-                <p className="font-semibold text-grafito">Reserva Exprés</p>
-                <p className="text-xs text-grafito/60">Llegas y te asignamos una celda disponible al momento.</p>
+                <p className="font-semibold text-white">Reserva Exprés</p>
+                <p className="text-xs text-white/60">Llegas y te asignamos una celda disponible al momento.</p>
               </button>
             </div>
             {reservaModal.cargando && (
-              <p className="mt-3 text-center text-sm text-acero">Creando reserva…</p>
+              <p className="mt-3 text-center text-sm text-acero animate-pulse">Creando reserva…</p>
             )}
             <button
               type="button"
               onClick={cerrarModalReserva}
               disabled={reservaModal.cargando}
-              className="mt-4 w-full rounded-full border border-grafito/20 bg-white px-6 py-2.5 font-semibold text-grafito hover:border-acero hover:text-acero transition-colors disabled:opacity-60"
+              className="mt-4 w-full rounded-2xl border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-105 disabled:opacity-60"
             >
               Cancelar
             </button>

@@ -18,8 +18,22 @@ import {
 /* Sesión en localStorage vía useSyncExternalStore (SSR-safe). */
 const SIN_SUSCRIPCION = () => () => {};
 
+let cachedSesion: SesionIniciada | null = null;
+
 function alCliente(): SesionIniciada | null {
-  return obtenerSesion();
+  const fresh = obtenerSesion();
+  if (!fresh) {
+    if (cachedSesion !== null) {
+      cachedSesion = null;
+    }
+    return cachedSesion;
+  }
+  // Mantener referencia estable comparando identificador único
+  if (cachedSesion && cachedSesion.usuario?.id === fresh.usuario?.id) {
+    return cachedSesion;
+  }
+  cachedSesion = fresh;
+  return cachedSesion;
 }
 
 function alServidor(): SesionIniciada | null {
@@ -57,10 +71,10 @@ function BadgeEstado({ estado }: { estado: ReservaUsuario['estado'] }) {
     ReservaUsuario['estado'],
     string
   > = {
-    ACTIVA: 'bg-azul-acero/10 text-azul-acero',
-    FINALIZADA: 'bg-verde-esmeralda/10 text-verde-esmeralda',
-    CANCELADA: 'bg-red-500/10 text-red-600',
-    EXPIRADA: 'bg-amber-500/10 text-amber-600',
+    ACTIVA: 'bg-azul-acero/10 text-grafito',
+    FINALIZADA: 'bg-verde-esmeralda/10 text-grafito',
+    CANCELADA: 'bg-red-500/10 text-red-700',
+    EXPIRADA: 'bg-amber-500/10 text-amber-800',
   };
   const etiquetas: Record<ReservaUsuario['estado'], string> = {
     ACTIVA: 'Activa',
@@ -216,7 +230,7 @@ function EstadoVacio() {
       transition={{ duration: 0.4, ease: 'easeOut' }}
       className="w-full max-w-2xl rounded-2xl border-2 border-dashed border-grafito/20 bg-grafito/5 p-12 text-center"
     >
-      <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-azul-acero/10 text-azul-acero">
+      <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-azul-acero/10 text-grafito">
         <svg className="size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
           <path d="M9 9h6v6H9z" />

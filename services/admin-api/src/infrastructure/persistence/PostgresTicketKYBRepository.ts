@@ -55,7 +55,7 @@ export class PostgresTicketKYBRepository implements TicketKYBRepository {
 
   async listarPendientes(): Promise<TicketKYB[]> {
     const filas = await this.db.orm.public.TicketKYB.where({ estado: EstadoKYB.EN_REVISION }).all();
-    return filas.map((fila) => this.aDominio(fila));
+    return filas.map((fila: TicketKYBRow) => this.aDominio(fila));
   }
 
   private aDominio(fila: TicketKYBRow): TicketKYB {

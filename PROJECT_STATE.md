@@ -55,6 +55,17 @@
   - `flujo-critico.spec.ts` con smoke test y flujos de conductor (GARANTIZADA y EXPRES).
   - Configuración `webServer` para levanta `apps/web-cliente` en puerto 3001.
   - Estructura lista para flujos de operador/check-in y KYB.
+- [x] **Seed masivo de datos — 2026-10-30:**
+  - `services/admin-api/prisma/seed.ts` genera 3 Admin, 20 Operadores, 30 Sedes Medellín, 50 Reservas (20 ACTIVAS, 20 FINALIZADAS, 10 CANCELADAS) y 10 Tickets KYB.
+  - Contraseñas Argon2id, coordenadas reales aproximadas, estados ACTIVA/PENDIENTE_KYB.
+- [x] **Corrección de contraste WCAG AA — 2026-10-30:**
+  - Textos principales Grafito #1F2937 sobre fondos claros #F4F6F8/Blanco; textos sobre Azul Acero #2F5D9F en Blanco #FFFFFF.
+  - Badges dashboard cambiados a `text-grafito` en fondos tintados, etc.
+- [x] **Rediseño mapa conductor estilo Apple Maps — 2026-10-30:**
+  - Mapa 3D con `pitch:45` y `bearing:-17.6`.
+  - Marcadores tipo pill flotantes con precio/hora.
+  - Bottom sheet con Framer Motion para detalle de sede y botón Reservar.
+  - Barra de búsqueda pill y botón de ubicación flotante.
 - [] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
@@ -668,3 +679,19 @@ Medido cargando el build dentro de un viewport de 1440 × 900:
 ### Pendiente
 - ~~Reemplazar `static/img/docusaurus-social-card.jpg` (imagen social genérica) por una propia de LOCIFY~~ → **Hecho el 2026-10-29:** `static/img/social-card.png` (1200 × 630, marca «Vía libre» sobre Azul Profundo) y la tarjeta genérica fue eliminada.
 - `npm install` reportó 23 avisos de `npm audit` en el árbol de `docs` (dependencias transitivas del toolchain); no se aplicó `npm audit fix --force` porque introduce cambios incompatibles.
+
+### Correcciones de tipado y repositorios — 2026-10-30
+- **PostgresReservaRepository**: eliminado `orderBy` incompatible; consultas `buscarActivaPorUsuario` y `buscarActivasPorSede` usan literales `'ACTIVA'` para evitar mismatch enum↔string literal.
+- **PostgresSedeRepository**: corregida firma de `actualizarEstado` a `where({id}).update({estado})`; se eliminó `estado` del `upsert.update` y se normalizó `listarActivas` a literal `'ACTIVA'`.
+- **Stripe**: actualizado `apiVersion` a `2026-10-28.endive` en `StripePaymentGateway` y `StripeWebhook`.
+- **Dominio KYB**: `SubirDocumentosKYB` reconstruye `Sede` con campos explícitos en lugar de spread de entidad.
+- **Tests**: `SedeRepositoryEnMemoria` actualizado a `listarActivas` para coincidir con el puerto; `npm test` → **140/140** pasando.
+- **Frontend**: `npm run build` verde para `apps/web-cliente`.
+- **E2E**: configuración Playwright preparada; smoke test verde; errores 500 resueltos al corregir repositorios.
+
+### Landing Page Oficial LOCIFY — 2026-10-30
+- Navbar glassmorphism con logo LOCIFY y botones "Soy Conductor" (`/buscar`), "Soy Parqueadero" (`/operador/kyb`), "Iniciar Sesión" (`/iniciar-sesion`).
+- Hero con escena 3D interactiva (React Three Fiber), título "El futuro del estacionamiento urbano", subtítulo de valor y CTAs "Buscar Parqueadero" (Verde Esmeralda) y "Digitalizar mi Parqueadero" (Azul Acero).
+- Sección "¿Cómo funciona?" con dos tarjetas glassmorphism para Conductores y Operadores, animadas con `whileInView`.
+- Footer minimalista con logo y copyright © 2026 LOCIFY.
+- Build verde: `npm run build` exitoso en `apps/web-cliente`.

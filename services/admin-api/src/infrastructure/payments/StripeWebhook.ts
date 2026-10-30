@@ -6,7 +6,7 @@ export async function procesarWebhookStripe(rawBody: Buffer, signature: string, 
   }
 
   const stripe = new Stripe(process.env['STRIPE_SECRET_KEY'] ?? '', {
-    apiVersion: '2024-06-20',
+    apiVersion: '2026-10-28.endive',
   });
 
   try {

@@ -51,19 +51,17 @@ export class PostgresReservaRepository implements ReservaRepository {
   }
 
   async buscarActivaPorUsuario(usuarioId: string): Promise<Reserva | null> {
-    const fila = await db.orm.public.Reserva.where({ usuarioId, estado: EstadoReserva.ACTIVA }).first();
+    const fila = await db.orm.public.Reserva.where({ usuarioId, estado: 'ACTIVA' }).first();
     return fila ? this.aDominio(fila) : null;
   }
 
   async buscarActivasPorSede(sedeId: string): Promise<Reserva[]> {
-    const filas = await db.orm.public.Reserva.where({ sedeId, estado: EstadoReserva.ACTIVA }).all();
+    const filas = await db.orm.public.Reserva.where({ sedeId, estado: 'ACTIVA' }).all();
     return filas.map((fila) => this.aDominio(fila));
   }
 
   async buscarPorUsuario(usuarioId: string): Promise<Reserva[]> {
-    const filas = await db.orm.public.Reserva.where({ usuarioId })
-      .orderBy({ fechaEntrada: 'desc' })
-      .all();
+    const filas = await db.orm.public.Reserva.where({ usuarioId }).all();
     return filas.map((fila) => this.aDominio(fila));
   }
 

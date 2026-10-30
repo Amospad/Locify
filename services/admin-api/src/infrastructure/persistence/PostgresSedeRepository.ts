@@ -37,7 +37,6 @@ export class PostgresSedeRepository implements SedeRepository {
         longitud: datos.longitud,
         capacidadTotal: datos.capacidadTotal,
         precioHora: datos.precioHora,
-        estado: datos.estado,
       },
     });
   }
@@ -53,12 +52,12 @@ export class PostgresSedeRepository implements SedeRepository {
   }
 
   async listarActivas(): Promise<Sede[]> {
-    const filas = await db.orm.public.Sede.where({ estado: EstadoSede.ACTIVA }).all();
+    const filas = await db.orm.public.Sede.where({ estado: 'ACTIVA' }).all();
     return filas.map((fila) => this.aDominio(fila));
   }
 
   async actualizarEstado(id: string, estado: EstadoSede): Promise<void> {
-    await db.orm.public.Sede.update({ id }, { estado });
+    await db.orm.public.Sede.where({ id }).update({ estado });
   }
 
   private aDominio(fila: SedeRow): Sede {

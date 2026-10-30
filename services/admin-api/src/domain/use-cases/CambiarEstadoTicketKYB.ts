@@ -51,8 +51,15 @@ export class CambiarEstadoTicketKYBUseCase {
         : EstadoSede.RECHAZADA;
       
       const sedeActualizada = Sede.reconstituir({
-        ...sede,
+        id: sede.id,
+        nombre: sede.nombre,
+        direccion: sede.direccion,
+        latitud: sede.latitud,
+        longitud: sede.longitud,
+        capacidadTotal: sede.capacidadTotal,
+        precioHora: sede.precioHora,
         estado: nuevoEstadoSede,
+        operadorId: sede.operadorId,
       });
       await this.sedeRepository.guardar(sedeActualizada);
     }

@@ -11,7 +11,7 @@ export const rutasWebhookStripe: FastifyPluginAsync = async (app) => {
     },
   }, async (request, reply) => {
     const signature = request.headers['stripe-signature'] as string;
-    const rawBody = request.rawBody;
+    const rawBody = (request as any).rawBody;
 
     if (!signature || !rawBody) {
       return reply.code(400).send({ error: 'Firma o cuerpo faltante' });

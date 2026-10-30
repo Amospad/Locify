@@ -15,12 +15,24 @@ class SedeRepositoryEnMemoria implements SedeRepository {
     this.sedes = [...iniciales];
   }
 
-  async buscarTodas(): Promise<Sede[]> {
+  async listarActivas(): Promise<Sede[]> {
     return this.sedes;
   }
 
   async buscarPorId(id: string): Promise<Sede | null> {
     return this.sedes.find((s) => s.id === id) ?? null;
+  }
+
+  async guardar(sede: Sede): Promise<void> {
+    // stub
+  }
+
+  async buscarPorOperadorId(operadorId: string): Promise<Sede[]> {
+    return [];
+  }
+
+  async actualizarEstado(id: string, estado: any): Promise<void> {
+    // stub
   }
 }
 

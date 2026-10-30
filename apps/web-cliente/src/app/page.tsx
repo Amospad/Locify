@@ -6,126 +6,170 @@ import { motion } from "framer-motion";
 import ThreeScene from "@/components/ThreeScene";
 
 /**
- * Landing futurista con escena 3D interactiva y efectos glassmorphism.
- * Diseño moderno con profundidad visual y animaciones avanzadas.
+ * Landing page oficial LOCIFY — punto de entrada para Conductores y Operadores.
+ * Navbar glassmorphism, Hero 3D interactivo y sección Cómo funciona con dos caminos.
  */
 export default function PaginaInicio() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-[#0B1220]">
       {/* 3D Scene Background */}
       <ThreeScene />
-      
-      {/* Content Overlay */}
-      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-20 text-center">
-        {/* Logo */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="mb-12"
-        >
-          <Image
-            src="/logo.svg"
-            alt="LOCIFY — celda con puerta abierta y tick verde de disponibilidad confirmada"
-            width={271}
-            height={48}
-            priority
-            unoptimized
-            className="drop-shadow-2xl"
-          />
-        </motion.div>
 
-        {/* Hero Content */}
+      {/* Navbar Glassmorphism */}
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7 }}
+        className="fixed top-0 z-50 w-full border-b border-white/10 bg-white/5 backdrop-blur-xl"
+      >
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/logo.svg"
+              alt="LOCIFY"
+              width={140}
+              height={24}
+              unoptimized
+              priority
+              className="drop-shadow-lg"
+            />
+          </Link>
+          <nav className="hidden items-center gap-3 md:flex">
+            <Link
+              href="/buscar"
+              className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-xl transition hover:bg-white/10"
+            >
+              Soy Conductor
+            </Link>
+            <Link
+              href="/operador/kyb"
+              className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-xl transition hover:bg-white/10"
+            >
+              Soy Parqueadero
+            </Link>
+            <Link
+              href="/iniciar-sesion"
+              className="rounded-full bg-acero/90 px-4 py-2 text-sm font-semibold text-white backdrop-blur-xl transition hover:bg-acero"
+            >
+              Iniciar Sesión
+            </Link>
+          </nav>
+        </div>
+      </motion.header>
+
+      {/* Hero Section */}
+      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-32 pb-20 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          transition={{ duration: 0.8, delay: 0.1 }}
           className="max-w-4xl"
         >
           <h1 className="text-5xl font-bold leading-tight tracking-tight text-white sm:text-7xl">
             <span className="bg-gradient-to-r from-white via-white to-acero bg-clip-text text-transparent">
-              Encuentra tu parqueadero
+              El futuro del
             </span>
             <br />
-            <span className="text-acero">en segundos</span>
+            <span className="text-white">estacionamiento urbano</span>
           </h1>
-
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/80 backdrop-blur-sm"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/80"
           >
-            Celdas reales en tiempo real con tecnología avanzada.
-            Reserva garantizada con check-in por QR y pago automático,
-            o pide una reserva exprés antes de llegar.
+            Conectamos conductores con parqueaderos en tiempo real. Reserva, paga y accede sin fricciones.
           </motion.p>
         </motion.div>
 
-        {/* CTA Buttons with Glassmorphism */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
           className="mt-12 flex flex-col gap-4 sm:flex-row"
         >
           <Link
             href="/buscar"
-            className="group relative rounded-full bg-acero/90 px-8 py-4 font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-acero hover:scale-105 hover:shadow-2xl hover:shadow-acero/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acero"
+            className="group relative rounded-full bg-verde-esmeralda px-8 py-4 font-semibold text-grafito backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-verde-esmeralda/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-verde-esmeralda"
           >
-            <span className="relative z-10">Buscar parqueadero</span>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-acero to-azul-profundo opacity-0 transition-opacity group-hover:opacity-100" />
+            Buscar Parqueadero
           </Link>
-          
           <Link
-            href="/iniciar-sesion"
-            className="group relative rounded-full border border-white/20 bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-105 hover:shadow-2xl hover:shadow-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            href="/operador/kyb"
+            className="group relative rounded-full border border-white/20 bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-105 hover:shadow-2xl hover:shadow-white/10"
           >
-            <span className="relative z-10">Iniciar sesión</span>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/10 to-white/5 opacity-0 transition-opacity group-hover:opacity-100" />
+            Digitalizar mi Parqueadero
           </Link>
         </motion.div>
-
-        {/* Features */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-3"
-        >
-          {[
-            { icon: "✓", text: "Reserva garantizada" },
-            { icon: "⚡", text: "Exprés con QR" },
-            { icon: "↩", text: "Cancelación flexible" }
-          ].map((feature, i) => (
-            <motion.div
-              key={feature.text}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1 + i * 0.1 }}
-              className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl px-6 py-4 shadow-2xl"
-            >
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-2xl">{feature.icon}</span>
-                <span className="text-sm font-medium text-white/90">{feature.text}</span>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Footer info */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1.2 }}
-          className="mt-12 text-sm text-white/40 backdrop-blur-sm"
-        >
-          Powered by LOCIFY Technology • Medellín, Colombia
-        </motion.p>
       </main>
 
-      {/* Bottom fade */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-fondo to-transparent" />
+      {/* Sección ¿Cómo funciona? */}
+      <section className="relative z-10 border-t border-white/10 bg-black/20 py-24 backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mb-12 text-center text-3xl font-bold text-white sm:text-4xl"
+          >
+            ¿Cómo funciona?
+          </motion.h2>
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Conductores */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-2xl transition hover:bg-white/10"
+            >
+              <div className="mb-4 text-2xl font-semibold text-white">Conductores</div>
+              <p className="mb-6 text-white/80">Encuentra tu espacio en segundos</p>
+              <Link
+                href="/buscar"
+                className="inline-flex rounded-full bg-acero/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-acero"
+              >
+                Ir al Mapa
+              </Link>
+            </motion.div>
+
+            {/* Operadores */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-2xl transition hover:bg-white/10"
+            >
+              <div className="mb-4 text-2xl font-semibold text-white">Operadores</div>
+              <p className="mb-6 text-white/80">Gestiona tu parqueadero de forma inteligente</p>
+              <Link
+                href="/operador/kyb"
+                className="inline-flex rounded-full bg-verde-esmeralda px-6 py-3 text-sm font-semibold text-grafito transition hover:brightness-110"
+              >
+                Registrar mi Parqueadero
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-white/10 bg-black/40 py-8 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-sm text-white/60 sm:flex-row">
+          <div className="flex items-center gap-3">
+            <Image src="/logo.svg" alt="LOCIFY" width={100} height={18} unoptimized className="opacity-80" />
+            <span>© 2026 LOCIFY</span>
+          </div>
+          <nav className="flex gap-6">
+            <Link href="/buscar" className="hover:text-white">Buscar</Link>
+            <Link href="/operador/kyb" className="hover:text-white">Operadores</Link>
+            <Link href="/iniciar-sesion" className="hover:text-white">Iniciar Sesión</Link>
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 }

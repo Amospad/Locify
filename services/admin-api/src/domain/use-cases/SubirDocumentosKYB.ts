@@ -58,8 +58,15 @@ export class SubirDocumentosKYBUseCase {
 
     // Actualizar estado de la sede
     const sedeActualizada = Sede.reconstituir({
-      ...sede,
+      id: sede.id,
+      nombre: sede.nombre,
+      direccion: sede.direccion,
+      latitud: sede.latitud,
+      longitud: sede.longitud,
+      capacidadTotal: sede.capacidadTotal,
+      precioHora: sede.precioHora,
       estado: EstadoSede.PENDIENTE_KYB,
+      operadorId: sede.operadorId,
     });
     await this.sedeRepository.guardar(sedeActualizada);
 

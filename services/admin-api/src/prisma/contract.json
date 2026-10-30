@@ -12,6 +12,10 @@
       "model": "Sede",
       "namespace": "public"
     },
+    "ticket_kyb": {
+      "model": "TicketKYB",
+      "namespace": "public"
+    },
     "usuario": {
       "model": "Usuario",
       "namespace": "public"
@@ -21,6 +25,23 @@
     "namespaces": {
       "public": {
         "enum": {
+          "EstadoKYB": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "EN_REVISION",
+                "value": "EN_REVISION"
+              },
+              {
+                "name": "APROBADO",
+                "value": "APROBADO"
+              },
+              {
+                "name": "RECHAZADO",
+                "value": "RECHAZADO"
+              }
+            ]
+          },
           "EstadoReserva": {
             "codecId": "pg/text@1",
             "members": [
@@ -35,6 +56,27 @@
               {
                 "name": "CANCELADA",
                 "value": "CANCELADA"
+              },
+              {
+                "name": "EXPIRADA",
+                "value": "EXPIRADA"
+              }
+            ]
+          },
+          "EstadoSede": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ACTIVA",
+                "value": "ACTIVA"
+              },
+              {
+                "name": "PENDIENTE_KYB",
+                "value": "PENDIENTE_KYB"
+              },
+              {
+                "name": "RECHAZADA",
+                "value": "RECHAZADA"
               }
             ]
           },
@@ -239,6 +281,19 @@
                   "kind": "scalar"
                 }
               },
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "EstadoSede",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -261,6 +316,13 @@
                 }
               },
               "nombre": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "operadorId": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
@@ -290,6 +352,22 @@
                   "model": "Reserva",
                   "namespace": "public"
                 }
+              },
+              "ticketKYB": {
+                "cardinality": "1:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sedeId"
+                  ]
+                },
+                "to": {
+                  "model": "TicketKYB",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -299,6 +377,9 @@
                 },
                 "direccion": {
                   "column": "direccion"
+                },
+                "estado": {
+                  "column": "estado"
                 },
                 "id": {
                   "column": "id"
@@ -312,12 +393,139 @@
                 "nombre": {
                   "column": "nombre"
                 },
+                "operadorId": {
+                  "column": "operador_id"
+                },
                 "precioHora": {
                   "column": "precio_hora"
                 }
               },
               "namespaceId": "public",
               "table": "sede"
+            }
+          },
+          "TicketKYB": {
+            "fields": {
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "EstadoKYB",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "fechaActualizacion": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "fechaCreacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "motivoRechazo": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "operadorId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sedeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "urlCamaraComercio": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "urlRut": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "sede": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "sedeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Sede",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "estado": {
+                  "column": "estado"
+                },
+                "fechaActualizacion": {
+                  "column": "fecha_actualizacion"
+                },
+                "fechaCreacion": {
+                  "column": "fecha_creacion"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "motivoRechazo": {
+                  "column": "motivo_rechazo"
+                },
+                "operadorId": {
+                  "column": "operador_id"
+                },
+                "sedeId": {
+                  "column": "sede_id"
+                },
+                "urlCamaraComercio": {
+                  "column": "url_camara_comercio"
+                },
+                "urlRut": {
+                  "column": "url_rut"
+                }
+              },
+              "namespaceId": "public",
+              "table": "ticket_kyb"
             }
           },
           "Usuario": {
@@ -425,8 +633,8 @@
             "reserva": {
               "checks": [
                 {
-                  "expression": "\"estado\" IN ('ACTIVA', 'FINALIZADA', 'CANCELADA')",
-                  "name": "reserva_estado_check_aa2b5aef",
+                  "expression": "\"estado\" IN ('ACTIVA', 'FINALIZADA', 'CANCELADA', 'EXPIRADA')",
+                  "name": "reserva_estado_check_afb62df9",
                   "prefix": "reserva_estado_check"
                 },
                 {
@@ -565,6 +773,13 @@
               ]
             },
             "sede": {
+              "checks": [
+                {
+                  "expression": "\"estado\" IN ('ACTIVA', 'PENDIENTE_KYB', 'RECHAZADA')",
+                  "name": "sede_estado_check_42c981db",
+                  "prefix": "sede_estado_check"
+                }
+              ],
               "columns": {
                 "capacidad_total": {
                   "codecId": "pg/int4@1",
@@ -575,6 +790,21 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "estado": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDIENTE_KYB"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoSede",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "id": {
                   "codecId": "pg/text@1",
@@ -596,6 +826,11 @@
                   "dataType": "pg/text",
                   "nullable": false
                 },
+                "operador_id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
                 "precio_hora": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
@@ -610,6 +845,112 @@
                 ]
               },
               "uniques": []
+            },
+            "ticket_kyb": {
+              "checks": [
+                {
+                  "expression": "\"estado\" IN ('EN_REVISION', 'APROBADO', 'RECHAZADO')",
+                  "name": "ticket_kyb_estado_check_600acc08",
+                  "prefix": "ticket_kyb_estado_check"
+                }
+              ],
+              "columns": {
+                "estado": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "EN_REVISION"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoKYB",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_actualizacion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "fecha_creacion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "motivo_rechazo": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "operador_id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "sede_id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "url_camara_comercio": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "url_rut": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "unique": [
+                      "sede_id"
+                    ]
+                  },
+                  "source": {
+                    "columns": [
+                      "sede_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "ticket_kyb"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sede"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "sede_id"
+                  ]
+                }
+              ]
             },
             "usuario": {
               "checks": [
@@ -690,12 +1031,29 @@
             }
           },
           "valueSet": {
+            "EstadoKYB": {
+              "kind": "valueSet",
+              "values": [
+                "EN_REVISION",
+                "APROBADO",
+                "RECHAZADO"
+              ]
+            },
             "EstadoReserva": {
               "kind": "valueSet",
               "values": [
                 "ACTIVA",
                 "FINALIZADA",
-                "CANCELADA"
+                "CANCELADA",
+                "EXPIRADA"
+              ]
+            },
+            "EstadoSede": {
+              "kind": "valueSet",
+              "values": [
+                "ACTIVA",
+                "PENDIENTE_KYB",
+                "RECHAZADA"
               ]
             },
             "EstadoUsuario": {
@@ -727,10 +1085,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "e27e53fe0a91d461d67b807b7704cb16a73730473a57a46f04943a1ccdbf353c"
+    "storageHash": "9957ca9b558db4612776367bec112939b7f404c69fad3ffb55ed8915aed70a35"
   },
   "execution": {
-    "executionHash": "f25ac0f6a92e4b4d88b629fea55e338a3db7d721f9a816350a8682202c75d359",
+    "executionHash": "a6f9e38bbb35443e4188d4e363853e606ace8d217781252f8792e10c961e15e4",
     "mutations": {
       "defaults": [
         {
@@ -751,6 +1109,17 @@
           },
           "ref": {
             "entry": "sede",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "ticket_kyb",
             "field": "id",
             "namespace": "public"
           }

@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { Map as MapaGL, Marker, NavigationControl, Popup, ScaleControl } from 'maplibre-gl';
+import { Map as MapaGL, Marker, NavigationControl, ScaleControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { motion, AnimatePresence } from 'framer-motion';
 import { obtenerSedes, crearReserva, ErrorDeReserva, type Sede, type ReservaCreada } from '@/lib/api';
 import ReservaExitosaModal, { type ReservaModalProps } from './ReservaExitosaModal';
 
@@ -18,7 +19,7 @@ import ReservaExitosaModal, { type ReservaModalProps } from './ReservaExitosaMod
  */
 
 const CENTRO_MEDELLIN: [number, number] = [-75.5636, 6.2442];
-const ESTILO_OPENFREEMAP = 'https://tiles.openfreemap.org/styles/liberty';
+const ESTILO_OPENFREEMAP = 'https://tiles.openfreemap.org/styles/positron';
 
 const COP = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -26,26 +27,34 @@ const COP = new Intl.NumberFormat('es-CO', {
   maximumFractionDigits: 0,
 });
 
-/** Pin circular sin cabeza: verde con el check de la marca si hay celdas, gris si está lleno. */
+/** Pill flotante estilo Apple Maps / EV charging */
 function crearPin(sede: Sede): HTMLDivElement {
-  const pin = document.createElement('div');
-  pin.className =
-    'flex size-9 items-center justify-center rounded-full border-2 border-white shadow-md transition-transform hover:scale-110 cursor-pointer';
-  pin.style.backgroundColor =
-    sede.capacidadTotal > 0 ? '#00C853' : '#6B7280';
-  pin.setAttribute('role', 'button');
-  pin.setAttribute('tabindex', '0');
-  pin.setAttribute(
-    'aria-label',
-    sede.capacidadTotal > 0
-      ? `${sede.nombre}: ${sede.capacidadTotal} celdas totales`
-      : `${sede.nombre}: sin celdas disponibles`,
-  );
-  // Check blanco (el check de la marca, verde solo aparece de fondo)
-  pin.innerHTML =
-    '<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">' +
-    '<path d="M6 12.5 L10.5 17 L18 8" stroke="white" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  return pin;
+  const el = document.createElement('div');
+  el.className = 'marker-pill';
+  el.style.cssText = `
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+    pointer-events: auto;
+  `;
+  el.innerHTML = `
+    <div style="
+      background: rgba(20,20,20,0.85);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15);
+    ">
+      ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(sede.precioHora)}/h
+    </div>
+  `;
+  el.setAttribute('role', 'button');
+  el.setAttribute('aria-label', `${sede.nombre}: ${sede.precioHora} por hora`);
+  return el;
 }
 
 export default function MapaParqueaderos() {
@@ -57,6 +66,7 @@ export default function MapaParqueaderos() {
   const [ubicandose, setUbicandose] = useState(false);
   const [sedes, setSedes] = useState<Sede[]>([]);
   const [errorSedes, setErrorSedes] = useState<string | null>(null);
+  const [sedeSeleccionada, setSedeSeleccionada] = useState<Sede | null>(null);
   // Estado para el modal de reserva (confirmación de modalidad)
   const [reservaModal, setReservaModal] = useState<{
     abierto: boolean;
@@ -87,6 +97,8 @@ export default function MapaParqueaderos() {
     cargarSedes();
   }, []);
 
+  const markersRef = useRef<Marker[]>([]);
+
   useEffect(() => {
     if (!contenedorRef.current) return;
 
@@ -95,6 +107,8 @@ export default function MapaParqueaderos() {
       style: ESTILO_OPENFREEMAP,
       center: CENTRO_MEDELLIN,
       zoom: 13,
+      pitch: 45,
+      bearing: -17.6,
       locale: { 'NavigationControl.Reset Bearing': 'Reorientar al norte' },
     });
 
@@ -105,8 +119,23 @@ export default function MapaParqueaderos() {
     mapa.on('load', () => setCargando(false));
     mapa.on('error', (evento) => {
       if (!mapa.loaded()) setCargando(false);
-      console.error('[MapaParqueaderos]', evento);
+      console.error('[MapaParqueaderos] Error:', (evento as any)?.error?.message || (evento as any)?.message || evento);
     });
+
+    return () => {
+      mapa.remove();
+      mapaRef.current = null;
+    };
+  }, []);
+
+  // Añadir marcadores cuando cambian las sedes y el mapa está listo
+  useEffect(() => {
+    const mapa = mapaRef.current;
+    if (!mapa || !mapa.loaded()) return;
+
+    // Limpiar marcadores anteriores
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
 
     for (const sede of sedes) {
       const pin = crearPin(sede);
@@ -114,56 +143,19 @@ export default function MapaParqueaderos() {
         .setLngLat([sede.longitud, sede.latitud])
         .addTo(mapa);
 
-      // Creamos el popup pero no lo asignamos al marker aún;
-      // lo haremos dinámicamente al hacer clic para poder adjuntar el handler.
       pin.addEventListener('click', () => {
-        abrirPopupReserva(mapa, marker, sede);
+        setSedeSeleccionada(sede);
+        mapa.flyTo({ center: [sede.longitud, sede.latitud], zoom: 15, duration: 1200 });
       });
-      // Accesibilidad: Enter/Space en el pin
       pin.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          abrirPopupReserva(mapa, marker, sede);
+          setSedeSeleccionada(sede);
         }
       });
+      markersRef.current.push(marker);
     }
-
-    return () => {
-      mapa.remove();
-      mapaRef.current = null;
-    };
   }, [sedes]);
-
-  /** Abre un popup personalizado con botón de reserva funcional. */
-  function abrirPopupReserva(mapa: MapaGL, marker: Marker, sede: Sede) {
-    const contenido = document.createElement('div');
-    contenido.className = 'min-w-56 space-y-1.5 font-sans';
-    contenido.innerHTML = `
-      <p class="text-sm font-semibold text-grafito">${sede.nombre}</p>
-      <p class="text-xs text-grafito/70">${sede.direccion}</p>
-      <p class="text-sm"><span class="font-semibold text-acero">${COP.format(sede.precioHora)}</span><span class="text-xs text-grafito/60"> /hora</span></p>
-      <p class="text-xs ${sede.capacidadTotal > 0 ? 'text-green-700' : 'text-grafito/60'}">
-        ${sede.capacidadTotal > 0 ? `${sede.capacidadTotal} celdas totales` : 'Sin celdas disponibles'}
-      </p>
-      ${sede.capacidadTotal > 0 ? '<button type="button" id="btn-reservar-popup" class="mt-1 w-full rounded-full bg-acero px-4 py-2 text-xs font-semibold text-white hover:bg-azul-profundo transition-colors">Reservar</button>' : ''}
-    `;
-
-    const popup = new Popup({ maxWidth: '240px', closeButton: true })
-      .setLngLat([sede.longitud, sede.latitud])
-      .setDOMContent(contenido)
-      .addTo(mapa);
-
-    // Adjuntar handler al botón del popup después de que esté en el DOM
-    if (sede.capacidadTotal > 0) {
-      const btn = contenido.querySelector('#btn-reservar-popup') as HTMLButtonElement;
-      if (btn) {
-        btn.addEventListener('click', () => {
-          popup.remove();
-          abrirModalReserva(sede);
-        });
-      }
-    }
-  }
 
   /** Abre el modal de confirmación de reserva. */
   function abrirModalReserva(sede: Sede) {
@@ -411,6 +403,49 @@ export default function MapaParqueaderos() {
         onClose={cerrarReservaExitosa}
         reserva={reservaExitosa}
       />
+
+      {/* Bottom Sheet de detalle de sede */}
+      <AnimatePresence>
+        {sedeSeleccionada && (
+          <motion.div
+            className="fixed inset-x-0 bottom-0 z-40 flex justify-center p-4"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          >
+            <div className="w-full max-w-lg rounded-t-3xl border border-white/20 bg-white/95 backdrop-blur-2xl shadow-2xl p-5 text-grafito">
+              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-grafito/20" />
+              <h3 className="text-xl font-bold">{sedeSeleccionada.nombre}</h3>
+              <p className="text-sm text-grafito/70">{sedeSeleccionada.direccion}</p>
+              <div className="mt-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-grafito/60">Precio por hora</p>
+                  <p className="text-2xl font-bold text-azul-acero">{COP.format(sedeSeleccionada.precioHora)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-grafito/60">Disponibilidad</p>
+                  <p className="text-lg font-semibold">{sedeSeleccionada.capacidadTotal} celdas</p>
+                </div>
+              </div>
+              <button
+                onClick={() => abrirModalReserva(sedeSeleccionada)}
+                disabled={sedeSeleccionada.capacidadTotal <= 0}
+                className="mt-5 w-full rounded-full bg-azul-acero px-6 py-3 font-semibold text-white transition hover:bg-azul-profundo disabled:opacity-60"
+              >
+                Reservar
+              </button>
+              <button
+                onClick={() => setSedeSeleccionada(null)}
+                className="mt-2 w-full text-sm text-grafito/60 hover:text-grafito"
+              >
+                Cerrar
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

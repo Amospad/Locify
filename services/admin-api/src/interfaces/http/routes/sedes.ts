@@ -72,7 +72,7 @@ export const rutasSedes: FastifyPluginAsync<OpcionesSedes> = async (app, opcione
       },
     },
     async (_request, reply) => {
-      const sedes = await opciones.sedeRepository.buscarTodas();
+      const sedes = await opciones.sedeRepository.listarActivas();
 
       const respuesta: SedeResponse[] = sedes.map((sede: Sede) => ({
         id: sede.id,

@@ -10,7 +10,7 @@ export class StripePaymentGateway implements PaymentGateway {
 
   constructor(secretKey: string) {
     this.stripe = new Stripe(secretKey, {
-      apiVersion: '2024-06-20',
+      apiVersion: '2026-10-28.endive',
     });
   }
 

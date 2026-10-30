@@ -275,7 +275,7 @@ export const rutasReservas: FastifyPluginAsync<OpcionesReservas> = async (
       },
     },
     async (request, reply) => {
-      const reservaId = request.params.id;
+      const reservaId = (request.params as { id: string }).id;
       const resultado = await opciones.reservaService.cancelarReserva(reservaId);
       return reply.code(200).send(resultado);
     },

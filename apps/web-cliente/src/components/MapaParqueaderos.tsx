@@ -2,11 +2,14 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import * as maplibregl from 'maplibre-gl';
 import { Map as MapaGL, Marker, NavigationControl, ScaleControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+
 import { motion, AnimatePresence } from 'framer-motion';
-import { obtenerSedes, crearReserva, ErrorDeReserva, type Sede, type ReservaCreada } from '@/lib/api';
+import { crearReserva, ErrorDeReserva, type ReservaCreada } from '@/lib/api';
 import ReservaExitosaModal, { type ReservaModalProps } from './ReservaExitosaModal';
+import { type Sede } from '@/types/sede';
 
 /*
  * Mapa de sedes (RF-11). MapLibre GL JS (BSD-3-Clause) sobre OpenFreeMap
@@ -19,7 +22,7 @@ import ReservaExitosaModal, { type ReservaModalProps } from './ReservaExitosaMod
  */
 
 const CENTRO_MEDELLIN: [number, number] = [-75.5636, 6.2442];
-const ESTILO_OPENFREEMAP = 'https://tiles.openfreemap.org/styles/positron';
+const ESTILO_MAPA = 'https://tiles.openfreemap.org/styles/liberty';
 
 const COP = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -57,14 +60,16 @@ function crearPin(sede: Sede): HTMLDivElement {
   return el;
 }
 
-export default function MapaParqueaderos() {
+export default function MapaParqueaderos({ sedes: sedesProp = [] }: { sedes?: Sede[] }) {
   const contenedorRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<MapaGL | null>(null);
+  const markersRef = useRef<Marker[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [consulta, setConsulta] = useState('');
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [ubicandose, setUbicandose] = useState(false);
-  const [sedes, setSedes] = useState<Sede[]>([]);
+  const [sedes, setSedes] = useState<Sede[]>(sedesProp);
   const [errorSedes, setErrorSedes] = useState<string | null>(null);
   const [sedeSeleccionada, setSedeSeleccionada] = useState<Sede | null>(null);
   // Estado para el modal de reserva (confirmación de modalidad)
@@ -78,33 +83,19 @@ export default function MapaParqueaderos() {
   // Estado para el modal premium de reserva exitosa
   const [reservaExitosa, setReservaExitosa] = useState<ReservaModalProps | null>(null);
 
-  // Cargar sedes del backend
+  // Sincronizar sedes recibidas por props
   useEffect(() => {
-    async function cargarSedes() {
-      try {
-        setCargando(true);
-        const datos = await obtenerSedes();
-        setSedes(datos);
-        setErrorSedes(null);
-      } catch (error) {
-        const mensaje = error instanceof Error ? error.message : 'Error al cargar las sedes';
-        setErrorSedes(mensaje);
-        console.error('[MapaParqueaderos]', error);
-      } finally {
-        setCargando(false);
-      }
-    }
-    cargarSedes();
-  }, []);
-
-  const markersRef = useRef<Marker[]>([]);
+    setSedes(sedesProp ?? []);
+  }, [sedesProp]);
 
   useEffect(() => {
     if (!contenedorRef.current) return;
 
+    maplibregl.setWorkerUrl('/maplibre-gl-worker.mjs');
+
     const mapa = new MapaGL({
       container: contenedorRef.current,
-      style: ESTILO_OPENFREEMAP,
+      style: ESTILO_MAPA,
       center: CENTRO_MEDELLIN,
       zoom: 13,
       pitch: 45,
@@ -116,7 +107,11 @@ export default function MapaParqueaderos() {
     mapa.addControl(new NavigationControl({ showCompass: true }), 'bottom-right');
     mapa.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left');
 
-    mapa.on('load', () => setCargando(false));
+    mapa.on('load', () => {
+      console.log('Mapa cargado correctamente');
+      setMapLoaded(true);
+      setCargando(false);
+    });
     mapa.on('error', (evento) => {
       if (!mapa.loaded()) setCargando(false);
       console.error('[MapaParqueaderos] Error:', (evento as any)?.error?.message || (evento as any)?.message || evento);
@@ -131,7 +126,7 @@ export default function MapaParqueaderos() {
   // Añadir marcadores cuando cambian las sedes y el mapa está listo
   useEffect(() => {
     const mapa = mapaRef.current;
-    if (!mapa || !mapa.loaded()) return;
+    if (!mapa || !mapLoaded) return;
 
     // Limpiar marcadores anteriores
     markersRef.current.forEach(m => m.remove());
@@ -155,7 +150,7 @@ export default function MapaParqueaderos() {
       });
       markersRef.current.push(marker);
     }
-  }, [sedes]);
+  }, [sedes, mapLoaded]);
 
   /** Abre el modal de confirmación de reserva. */
   function abrirModalReserva(sede: Sede) {
@@ -254,7 +249,7 @@ export default function MapaParqueaderos() {
   return (
     <div className="relative h-full w-full">
       {/* Lienzo del mapa */}
-      <div ref={contenedorRef} className="absolute inset-0" aria-label="Mapa de parqueaderos" />
+      <div ref={contenedorRef} className="absolute inset-0 w-full h-full" aria-label="Mapa de parqueaderos" />
 
       {cargando ? (
         <p

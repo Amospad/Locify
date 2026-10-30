@@ -60,3 +60,21 @@ git add apps/web-cliente/src/components/MapaParqueaderos.tsx services/admin-api/
 git commit -m "fix(web-cliente/admin-api): depurar error MapLibre, estilo positron, mapa centrado en Medellín, marcadores tras load y seed coordenadas Valle de Aburrá"
 git push origin main
 ```
+
+# Comandos de Git para CORS y Worker MapLibre
+
+```bash
+git add services/admin-api/.env apps/web-cliente/src/components/MapaParqueaderos.tsx
+git commit -m "fix(admin-api/web-cliente): habilitar CORS http://localhost:3000 y configurar worker MapLibre para Next.js Turbopack"
+git push origin main
+```
+
+# Comandos de Git para CORS Backend y Worker Local
+
+```bash
+git add services/admin-api/.env services/admin-api/src/interfaces/http/server.ts apps/web-cliente/public/maplibre-gl-csp-worker.js apps/web-cliente/src/components/MapaParqueaderos.tsx
+git commit -m "fix(admin-api/web-cliente): CORS_BACKEND con origen http://localhost:3000, worker MapLibre local /maplibre-gl-csp-worker.js y parseo de quotes en CORS_ORIGINS"
+git push origin main
+
+
+

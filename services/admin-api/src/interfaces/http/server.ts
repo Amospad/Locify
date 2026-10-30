@@ -51,7 +51,7 @@ function origenesPermitidos(): string[] | false {
 
   const origenes = crudo
     .split(',')
-    .map((origen) => origen.trim())
+    .map((origen) => origen.trim().replace(/^"|"$/g, ''))
     .filter((origen) => origen.length > 0);
 
   return origenes.length > 0 ? origenes : false;
@@ -98,7 +98,11 @@ export async function buildServer(
   });
 
   await app.register(helmet);
-  await app.register(cors, { origin: origenesPermitidos() });
+  await app.register(cors, {
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+  });
   await app.register(rateLimit, {
     max: 100,
     timeWindow: '1 minute',

@@ -258,8 +258,7 @@ export default function PaginaDashboard() {
   /* Carga datos al montar y cuando cambia la sesión. */
   const cargarDatos = useCallback(async () => {
     if (!sesion) return;
-    setCargando(true);
-    setError(null);
+    // Evitar estados de carga inconsistentes que disparen bucles
     try {
       const [historial, activa] = await Promise.all([
         listarMisReservas(),
@@ -267,6 +266,7 @@ export default function PaginaDashboard() {
       ]);
       setReservas(historial);
       setReservaActiva(activa);
+      setError(null);
     } catch (e) {
       const mensaje = e instanceof Error ? e.message : 'Error al cargar el dashboard';
       setError(mensaje);
@@ -277,6 +277,7 @@ export default function PaginaDashboard() {
   }, [sesion]);
 
   useEffect(() => {
+    // Asegurar que solo se ejecute una vez al cambiar sesion
     cargarDatos();
   }, [cargarDatos]);
 

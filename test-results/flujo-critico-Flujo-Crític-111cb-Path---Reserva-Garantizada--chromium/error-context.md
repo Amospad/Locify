@@ -16,37 +16,81 @@ Test timeout of 30000ms exceeded.
 ```
 
 ```
-Error: page.waitForURL: Test timeout of 30000ms exceeded.
-=========================== logs ===========================
-waiting for navigation to "**/dashboard" until "load"
-============================================================
+Error: locator.click: Test timeout of 30000ms exceeded.
+Call log:
+  - waiting for getByRole('link', { name: /buscar parqueadero/i }).first()
+
 ```
 
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
-  - main [ref=e4]:
-    - generic [ref=e5]:
-      - link "← Volver al inicio" [ref=e6] [cursor=pointer]:
-        - /url: /
-      - heading "Iniciar sesión" [level=1] [ref=e7]
-      - paragraph [ref=e8]: "Entra con la cuenta de tu rol: operador, conductor o administración."
-      - generic [ref=e9]:
-        - generic [ref=e10]:
-          - text: Email
-          - textbox "Email" [ref=e11]:
-            - /placeholder: tu@correo.co
-            - text: conductor@test.com
-        - generic [ref=e12]:
-          - text: Contraseña
-          - textbox "Contraseña" [ref=e13]:
-            - /placeholder: ••••••••
-            - text: Password123!
-        - alert [ref=e14]: No se pudo conectar con el servidor. Verifica que el backend esté corriendo.
-        - button "Ingresar" [ref=e15]
-  - button "Open Next.js Dev Tools" [ref=e21] [cursor=pointer]
-  - alert [ref=e25]
+- generic [ref=e1]:
+  - generic [active]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - navigation [ref=e7]:
+          - button [disabled] [ref=e8]:
+            - img "previous" [ref=e9]
+          - generic [ref=e11]:
+            - generic [ref=e12]: 1/
+            - generic [ref=e13]: "4"
+          - button [ref=e14] [cursor=pointer]:
+            - img "next" [ref=e15]
+        - generic [ref=e18]:
+          - generic "Latest available version is detected (16.4.3)." [ref=e21]: Next.js 16.4.3
+          - generic [ref=e22]: Turbopack
+      - dialog "Console Error" [ref=e24]:
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - generic [ref=e31]: Console Error
+              - generic [ref=e33]:
+                - button "Copy Error Info" [ref=e34] [cursor=pointer]
+                - button "No related documentation found" [disabled] [ref=e37]
+                - button "Attach Node.js inspector" [ref=e40] [cursor=pointer]
+            - generic [ref=e49]: The result of getSnapshot should be cached to avoid an infinite loop
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - paragraph [ref=e54]:
+                - generic [ref=e59]: src/app/dashboard/page.tsx (245:38) @ PaginaDashboard
+                - button "Open in editor" [ref=e60] [cursor=pointer]
+              - generic [ref=e64]:
+                - generic [ref=e65]: "243 | export default function PaginaDashboard() {"
+                - generic [ref=e66]: 244 | const router = useRouter();
+                - generic [ref=e67]: "> 245 | const sesion = useSyncExternalStore(SIN_SUSCRIPCION, alCliente, alServidor);"
+                - generic [ref=e68]: "| ^"
+                - generic [ref=e69]: 246 | const [reservas, setReservas] = useState<ReservaUsuario[]>([]);
+                - generic [ref=e70]: 247 | const [reservaActiva, setReservaActiva] = useState<ReservaActivaUsuario | null>(null);
+                - generic [ref=e71]: 248 | const [cargando, setCargando] = useState(true);
+            - generic [ref=e72]:
+              - generic [ref=e73]:
+                - paragraph [ref=e74]:
+                  - text: Call Stack
+                  - generic [ref=e75]: "19"
+                - button "Show 18 ignore-listed frame(s)" [ref=e76] [cursor=pointer]
+              - generic [ref=e79]:
+                - generic [ref=e80]:
+                  - text: PaginaDashboard
+                  - button "Open PaginaDashboard in editor" [ref=e81] [cursor=pointer]
+                - text: src/app/dashboard/page.tsx (245:38)
+    - generic [ref=e88] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e89]
+      - generic [ref=e93]:
+        - button "Open issues overlay" [ref=e94]:
+          - generic [ref=e95]:
+            - generic [aria-hidden] [ref=e96]: "3"
+            - generic [ref=e97]: "4"
+          - generic [ref=e98]:
+            - text: Issue
+            - generic [aria-hidden] [ref=e99]: s
+        - button "Collapse issues badge" [ref=e100]
+  - generic [ref=e104]:
+    - heading "This page couldn’t load" [level=1] [ref=e107]
+    - paragraph [ref=e108]: Reload to try again, or go back.
+    - generic [ref=e109]:
+      - button "Reload" [ref=e111] [cursor=pointer]
+      - button "Back" [ref=e112] [cursor=pointer]
 ```
 
 # Test source
@@ -68,11 +112,11 @@ waiting for navigation to "**/dashboard" until "load"
   14 |     await page.getByRole('button', { name: /ingresar/i }).click();
   15 |     
   16 |     // Esperar redirección al dashboard
-> 17 |     await page.waitForURL('**/dashboard');
-     |                ^ Error: page.waitForURL: Test timeout of 30000ms exceeded.
+  17 |     await page.waitForURL('**/dashboard');
   18 | 
   19 |     // Ir a buscar parqueaderos
-  20 |     await page.getByRole('link', { name: /buscar parqueadero/i }).first().click();
+> 20 |     await page.getByRole('link', { name: /buscar parqueadero/i }).first().click();
+     |                                                                           ^ Error: locator.click: Test timeout of 30000ms exceeded.
   21 |     await page.waitForURL('**/buscar');
   22 | 
   23 |     // 2. Seleccionar parqueadero y modalidad Garantizada

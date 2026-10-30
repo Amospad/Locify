@@ -20,6 +20,19 @@ enum EstadoReserva {
   ACTIVA
   FINALIZADA
   CANCELADA
+  EXPIRADA
+}
+
+enum EstadoSede {
+  ACTIVA
+  PENDIENTE_KYB
+  RECHAZADA
+}
+
+enum EstadoKYB {
+  EN_REVISION
+  APROBADO
+  RECHAZADO
 }
 
 model Usuario {
@@ -42,9 +55,27 @@ model Sede {
   longitud         Float
   capacidadTotal   Int            @map("capacidad_total")
   precioHora       Int            @map("precio_hora")
+  estado           EstadoSede     @default(PENDIENTE_KYB)
+  operadorId       String         @map("operador_id")
   reservas         Reserva[]
+  ticketKYB        TicketKYB?
 
   @@map("sede")
+}
+
+model TicketKYB {
+  id               String         @id @onCreate(uuid())
+  sedeId           String         @unique @map("sede_id")
+  sede             Sede           @relation(fields: [sedeId], references: [id])
+  operadorId       String         @map("operador_id")
+  estado           EstadoKYB      @default(EN_REVISION)
+  urlRut           String         @map("url_rut")
+  urlCamaraComercio String         @map("url_camara_comercio")
+  motivoRechazo    String?        @map("motivo_rechazo")
+  fechaCreacion    TimestamptzJsDate @default(now()) @map("fecha_creacion")
+  fechaActualizacion TimestamptzJsDate? @map("fecha_actualizacion")
+
+  @@map("ticket_kyb")
 }
 
 model Reserva {

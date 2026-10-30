@@ -11,6 +11,7 @@ import { rutasAuth, type IniciadorDeSesion } from './routes/auth.js';
 import { rutasReservas, type GestorDeReservas } from './routes/reservas.js';
 import { rutasSedes } from './routes/sedes.js';
 import { rutasOperadorDashboard, type OperadorRutasDeps } from './routes/operador-dashboard.js';
+import { rutasKYB } from './routes/kyb.js';
 import { crearAutenticacion } from './auth.js';
 import { registrarManejadorDeErrores } from './errores.js';
 
@@ -25,6 +26,8 @@ export interface DependenciasHttp {
   servicioTokens: ServicioDeTokens;
   /** Repositorio de sedes para el endpoint público. */
   sedeRepository: SedeRepository;
+  /** Servicio para operaciones KYB. */
+  sedeService: any;
 }
 
 export interface OpcionesServidor {
@@ -117,6 +120,10 @@ export async function buildServer(
   await app.register(rutasSedes, { sedeRepository: deps.sedeRepository });
   await app.register(rutasOperadorDashboard, {
     operadorService: deps.operadorService,
+    autenticar,
+  });
+  await app.register(rutasKYB, {
+    sedeService: deps.sedeService,
     autenticar,
   });
 

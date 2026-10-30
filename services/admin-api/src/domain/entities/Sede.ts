@@ -4,6 +4,12 @@ import { ErrorDeValidacion } from '../errors/ErrorDeValidacion.js';
 const LONGITUD_MAXIMA_NOMBRE = 120;
 const LONGITUD_MAXIMA_DIRECCION = 200;
 
+export enum EstadoSede {
+  ACTIVA = 'ACTIVA',
+  PENDIENTE_KYB = 'PENDIENTE_KYB',
+  RECHAZADA = 'RECHAZADA',
+}
+
 export interface SedeProps {
   id: string;
   nombre: string;
@@ -12,6 +18,8 @@ export interface SedeProps {
   longitud: number;
   capacidadTotal: number;
   precioHora: number;
+  estado: EstadoSede;
+  operadorId: string;
 }
 
 export class Sede {
@@ -25,6 +33,8 @@ export class Sede {
   get longitud() { return this.props.longitud; }
   get capacidadTotal() { return this.props.capacidadTotal; }
   get precioHora() { return this.props.precioHora; }
+  get estado() { return this.props.estado; }
+  get operadorId() { return this.props.operadorId; }
 
   // Fábrica estática
   public static crear(props: SedeProps): Sede {
@@ -51,8 +61,17 @@ export class Sede {
       throw new ErrorDeValidacion('El precio por hora debe ser un entero no negativo');
     }
 
+    if (props.operadorId.trim().length === 0) {
+      throw new ErrorDeValidacion('El operadorId es obligatorio');
+    }
+
     // Copia defensiva
-    return new Sede({ ...props, nombre, direccion });
+    return new Sede({ 
+      ...props, 
+      nombre, 
+      direccion,
+      estado: props.estado ?? EstadoSede.PENDIENTE_KYB
+    });
   }
 
   public static validarNombre(nombre: string): string {

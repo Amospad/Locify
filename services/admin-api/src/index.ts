@@ -26,6 +26,7 @@ const [
   { PostgresUsuarioRepository },
   { PostgresSedeRepository },
   { PostgresReservaRepository },
+  { PostgresTicketKYBRepository },
   { Argon2Hasher },
   { CryptoGeneradorId },
   { RelojSistema },
@@ -35,6 +36,7 @@ const [
   { AuthService },
   { ReservaService },
   { OperadorServiceImpl },
+  { SedeService },
   { JwtService, opcionesJwtDesdeEntorno },
 ] = await Promise.all([
   import('./interfaces/http/server.js'),
@@ -42,6 +44,7 @@ const [
   import('./infrastructure/persistence/PostgresUsuarioRepository.js'),
   import('./infrastructure/persistence/PostgresSedeRepository.js'),
   import('./infrastructure/persistence/PostgresReservaRepository.js'),
+  import('./infrastructure/persistence/PostgresTicketKYBRepository.js'),
   import('./infrastructure/security/Argon2Hasher.js'),
   import('./infrastructure/id/CryptoGeneradorId.js'),
   import('./infrastructure/time/RelojSistema.js'),
@@ -51,6 +54,7 @@ const [
   import('./application/services/AuthService.js'),
   import('./application/services/ReservaService.js'),
   import('./application/services/OperadorService.js'),
+  import('./application/services/SedeService.js'),
   import('./infrastructure/security/JwtService.js'),
 ]);
 
@@ -85,6 +89,7 @@ const emailService: EmailService = (() => {
 const usuarioRepository = new PostgresUsuarioRepository();
 const sedeRepository = new PostgresSedeRepository();
 const reservaRepository = new PostgresReservaRepository();
+const ticketKYBRepository = new PostgresTicketKYBRepository();
 const passwordHasher = new Argon2Hasher();
 const generadorId = new CryptoGeneradorId();
 const reloj = new RelojSistema();
@@ -127,6 +132,13 @@ const operadorService = new OperadorServiceImpl(
   reloj,
 );
 
+const sedeService = new SedeService(
+  ticketKYBRepository,
+  sedeRepository,
+  generadorId,
+  reloj,
+);
+
 const authService = new AuthService(
   usuarioRepository,
   passwordHasher,
@@ -134,7 +146,7 @@ const authService = new AuthService(
 );
 
 const app = await buildServer(
-  { db, adminService, authService, reservaService, operadorService, servicioTokens, sedeRepository },
+  { db, adminService, authService, reservaService, operadorService, servicioTokens, sedeRepository, sedeService },
   {
     logger: true,
     // Sólo true detrás de un reverse proxy propio (nginx, Vercel, ALB). A

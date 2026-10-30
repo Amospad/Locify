@@ -1,6 +1,6 @@
 import type { SedeRepository } from '../../domain/ports/SedeRepository.js';
-import { Sede } from '../../domain/entities/Sede.js';
-import { db } from '../../prisma/db.js';
+import { Sede, EstadoSede } from '../../domain/entities/Sede.js';
+import { db } from '../prisma/db.js';
 
 interface SedeRow {
   id: string;
@@ -10,17 +10,55 @@ interface SedeRow {
   longitud: number;
   capacidadTotal: number;
   precioHora: number;
+  estado: 'ACTIVA' | 'PENDIENTE_KYB' | 'RECHAZADA';
+  operadorId: string;
 }
 
 export class PostgresSedeRepository implements SedeRepository {
-  async buscarTodas(): Promise<Sede[]> {
-    const filas = await db.orm.public.Sede.all();
-    return filas.map((fila) => this.aDominio(fila));
+  async guardar(sede: Sede): Promise<void> {
+    const datos = {
+      id: sede.id,
+      nombre: sede.nombre,
+      direccion: sede.direccion,
+      latitud: sede.latitud,
+      longitud: sede.longitud,
+      capacidadTotal: sede.capacidadTotal,
+      precioHora: sede.precioHora,
+      estado: sede.estado,
+      operadorId: sede.operadorId,
+    };
+
+    await db.orm.public.Sede.upsert({
+      create: datos,
+      update: {
+        nombre: datos.nombre,
+        direccion: datos.direccion,
+        latitud: datos.latitud,
+        longitud: datos.longitud,
+        capacidadTotal: datos.capacidadTotal,
+        precioHora: datos.precioHora,
+        estado: datos.estado,
+      },
+    });
   }
 
   async buscarPorId(id: string): Promise<Sede | null> {
     const fila = await db.orm.public.Sede.first({ id });
     return fila ? this.aDominio(fila) : null;
+  }
+
+  async buscarPorOperadorId(operadorId: string): Promise<Sede[]> {
+    const filas = await db.orm.public.Sede.where({ operadorId }).all();
+    return filas.map((fila) => this.aDominio(fila));
+  }
+
+  async listarActivas(): Promise<Sede[]> {
+    const filas = await db.orm.public.Sede.where({ estado: EstadoSede.ACTIVA }).all();
+    return filas.map((fila) => this.aDominio(fila));
+  }
+
+  async actualizarEstado(id: string, estado: EstadoSede): Promise<void> {
+    await db.orm.public.Sede.update({ id }, { estado });
   }
 
   private aDominio(fila: SedeRow): Sede {
@@ -32,6 +70,8 @@ export class PostgresSedeRepository implements SedeRepository {
       longitud: fila.longitud,
       capacidadTotal: fila.capacidadTotal,
       precioHora: fila.precioHora,
+      estado: EstadoSede[fila.estado],
+      operadorId: fila.operadorId,
     });
   }
 }

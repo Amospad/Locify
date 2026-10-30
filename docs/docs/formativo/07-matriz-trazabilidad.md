@@ -43,13 +43,13 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-20** | Alta, modificación e inactivación de placas | CU-05 | HU-15 | Alta | **No implementado** |
 | **RF-21** | Historial con desglose económico | CU-07 | HU-28 | Media | **Implementado** — `GET /api/reservas/mis-reservas` en `admin-api` (JWT); `ListarMisReservasUseCase` con `buscarPorUsuario` ordenado por fecha descendente; dashboard en `web-cliente` muestra historial con sede, fecha, badge de estado (Azul Acero=Activa, Verde Esmeralda=Completada, Rojo=Cancelada, Ámbar=Expirada), modalidad y código QR; diseño LOCIFY con Framer Motion |
 | **RF-22** | Tickets de soporte con evidencias | CU-10 | HU-23 | Alta | **No implementado** |
-| **RF-23** | Carga de documentos KYB | CU-02 | HU-06 | Alta | **No implementado** |
-| **RF-24** | Bloqueo de la sede hasta aprobar el KYB | CU-02, CU-03 | HU-08 | Alta | **No implementado** |
+| **RF-23** | Carga de documentos KYB | CU-02 | HU-06 | Alta | **Implementado** |
+| **RF-24** | Bloqueo de la sede hasta aprobar el KYB | CU-02, CU-03 | HU-08 | Alta | **Implementado** |
 | **RF-25** | Parametrización de sedes y cupos | CU-04 | HU-09 | Alta | **No implementado** |
 | **RF-26** | Dashboard de ocupación con alertas | CU-04 (parcial) | HU-30 | Alta | **No implementado** |
 | **RF-27** | Búsqueda por placa y registro manual | CU-08 | HU-21 | Alta | **No implementado** |
 | **RF-28** | Reportes de ingresos, penalidades y caja | CU-09 | HU-25 | Alta | **No implementado** |
-| **RF-29** | Auditoría de tickets KYB | CU-03 | HU-07 | Alta | **No implementado** |
+| **RF-29** | Auditoría de tickets KYB | CU-03 | HU-07 | Alta | **Implementado** |
 | **RF-30** | Vista de disputas con línea de tiempo | CU-10, CU-13 | HU-24, HU-A07 | Alta | **No implementado** |
 | **RF-31** | Motor de reglas configurable | CU-11 | HU-22, HU-A05 | Alta | **No implementado** |
 | **RF-32** | RBAC con roles internos | CU-12 | HU-04, HU-A06 | Alta | **Parcial** — el JWT lleva el `rol` y `POST /api/operadores/:id/reinvitar` exige ADMIN; no hay política por rol ni protección del resto de rutas |

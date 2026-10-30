@@ -4,6 +4,14 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
+    "reserva": {
+      "model": "Reserva",
+      "namespace": "public"
+    },
+    "sede": {
+      "model": "Sede",
+      "namespace": "public"
+    },
     "usuario": {
       "model": "Usuario",
       "namespace": "public"
@@ -13,6 +21,23 @@
     "namespaces": {
       "public": {
         "enum": {
+          "EstadoReserva": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ACTIVA",
+                "value": "ACTIVA"
+              },
+              {
+                "name": "FINALIZADA",
+                "value": "FINALIZADA"
+              },
+              {
+                "name": "CANCELADA",
+                "value": "CANCELADA"
+              }
+            ]
+          },
           "EstadoUsuario": {
             "codecId": "pg/text@1",
             "members": [
@@ -27,6 +52,19 @@
               {
                 "name": "SUSPENDIDO",
                 "value": "SUSPENDIDO"
+              }
+            ]
+          },
+          "ModalidadReserva": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "GARANTIZADA",
+                "value": "GARANTIZADA"
+              },
+              {
+                "name": "EXPRES",
+                "value": "EXPRES"
               }
             ]
           },
@@ -49,6 +87,239 @@
           }
         },
         "models": {
+          "Reserva": {
+            "fields": {
+              "codigoQr": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "EstadoReserva",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "fechaEntrada": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "fechaSalida": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "modalidad": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ModalidadReserva",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "sedeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "usuarioId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "sede": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "sedeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Sede",
+                  "namespace": "public"
+                }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "usuarioId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "codigoQr": {
+                  "column": "codigo_qr"
+                },
+                "estado": {
+                  "column": "estado"
+                },
+                "fechaEntrada": {
+                  "column": "fecha_entrada"
+                },
+                "fechaSalida": {
+                  "column": "fecha_salida"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "modalidad": {
+                  "column": "modalidad"
+                },
+                "sedeId": {
+                  "column": "sede_id"
+                },
+                "usuarioId": {
+                  "column": "usuario_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "reserva"
+            }
+          },
+          "Sede": {
+            "fields": {
+              "capacidadTotal": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "direccion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "latitud": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "longitud": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "nombre": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "precioHora": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "reservas": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sedeId"
+                  ]
+                },
+                "to": {
+                  "model": "Reserva",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "capacidadTotal": {
+                  "column": "capacidad_total"
+                },
+                "direccion": {
+                  "column": "direccion"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "latitud": {
+                  "column": "latitud"
+                },
+                "longitud": {
+                  "column": "longitud"
+                },
+                "nombre": {
+                  "column": "nombre"
+                },
+                "precioHora": {
+                  "column": "precio_hora"
+                }
+              },
+              "namespaceId": "public",
+              "table": "sede"
+            }
+          },
           "Usuario": {
             "fields": {
               "email": {
@@ -151,6 +422,195 @@
       "public": {
         "entries": {
           "table": {
+            "reserva": {
+              "checks": [
+                {
+                  "expression": "\"estado\" IN ('ACTIVA', 'FINALIZADA', 'CANCELADA')",
+                  "name": "reserva_estado_check_aa2b5aef",
+                  "prefix": "reserva_estado_check"
+                },
+                {
+                  "expression": "\"modalidad\" IN ('GARANTIZADA', 'EXPRES')",
+                  "name": "reserva_modalidad_check_ab53566c",
+                  "prefix": "reserva_modalidad_check"
+                }
+              ],
+              "columns": {
+                "codigo_qr": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "estado": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ACTIVA"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoReserva",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_entrada": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "fecha_salida": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "modalidad": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ModalidadReserva",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "sede_id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "usuario_id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "reserva_usuario_id_idx_65b6616a"
+                  },
+                  "source": {
+                    "columns": [
+                      "usuario_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "reserva"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "reserva_sede_id_idx_7d8bb299"
+                  },
+                  "source": {
+                    "columns": [
+                      "sede_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "reserva"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sede"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "sede_id"
+                  ],
+                  "name": "reserva_sede_id_idx_7d8bb299",
+                  "prefix": "reserva_sede_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "usuario_id"
+                  ],
+                  "name": "reserva_usuario_id_idx_65b6616a",
+                  "prefix": "reserva_usuario_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "codigo_qr"
+                  ]
+                }
+              ]
+            },
+            "sede": {
+              "columns": {
+                "capacidad_total": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "direccion": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "latitud": {
+                  "codecId": "pg/float8@1",
+                  "dataType": "pg/float8",
+                  "nullable": false
+                },
+                "longitud": {
+                  "codecId": "pg/float8@1",
+                  "dataType": "pg/float8",
+                  "nullable": false
+                },
+                "nombre": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "precio_hora": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "usuario": {
               "checks": [
                 {
@@ -230,12 +690,27 @@
             }
           },
           "valueSet": {
+            "EstadoReserva": {
+              "kind": "valueSet",
+              "values": [
+                "ACTIVA",
+                "FINALIZADA",
+                "CANCELADA"
+              ]
+            },
             "EstadoUsuario": {
               "kind": "valueSet",
               "values": [
                 "PENDIENTE",
                 "ACTIVO",
                 "SUSPENDIDO"
+              ]
+            },
+            "ModalidadReserva": {
+              "kind": "valueSet",
+              "values": [
+                "GARANTIZADA",
+                "EXPRES"
               ]
             },
             "RolUsuario": {
@@ -252,12 +727,34 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "f6ef49fa1387e35ae28385124a2c3344a271dc4415eacda3e47c231770fbb5ec"
+    "storageHash": "e27e53fe0a91d461d67b807b7704cb16a73730473a57a46f04943a1ccdbf353c"
   },
   "execution": {
-    "executionHash": "20089b75064e97a7c23bed3bcf0d8e38daf94cd70f29380c9dcceefebedbff3c",
+    "executionHash": "f25ac0f6a92e4b4d88b629fea55e338a3db7d721f9a816350a8682202c75d359",
     "mutations": {
       "defaults": [
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "reserva",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "sede",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
         {
           "onCreate": {
             "id": "uuidv4",

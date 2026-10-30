@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'f6ef49fa1387e35ae28385124a2c3344a271dc4415eacda3e47c231770fbb5ec'>;
+  StorageHashBase<'e27e53fe0a91d461d67b807b7704cb16a73730473a57a46f04943a1ccdbf353c'>;
 export type ExecutionHash =
-  ExecutionHashBase<'20089b75064e97a7c23bed3bcf0d8e38daf94cd70f29380c9dcceefebedbff3c'>;
+  ExecutionHashBase<'f25ac0f6a92e4b4d88b629fea55e338a3db7d721f9a816350a8682202c75d359'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -43,6 +43,10 @@ export type AggregateTypes = {
       readonly 'pg/int4@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
       readonly 'pg/int8@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
       readonly 'pg/int8number@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'pg/interval-string@1': {
+        readonly output: 'pg/interval-string@1';
+        readonly nullable: true;
+      };
       readonly 'pg/interval@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
       readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
       readonly 'pg/time-string@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
@@ -92,6 +96,10 @@ export type AggregateTypes = {
       readonly 'pg/int4@1': { readonly output: 'pg/int4@1'; readonly nullable: true };
       readonly 'pg/int8@1': { readonly output: 'pg/int8@1'; readonly nullable: true };
       readonly 'pg/int8number@1': { readonly output: 'pg/int8number@1'; readonly nullable: true };
+      readonly 'pg/interval-string@1': {
+        readonly output: 'pg/interval-string@1';
+        readonly nullable: true;
+      };
       readonly 'pg/interval@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
       readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
       readonly 'pg/text-array@1': { readonly output: 'pg/text-array@1'; readonly nullable: true };
@@ -99,6 +107,14 @@ export type AggregateTypes = {
       readonly 'pg/time-string@1': { readonly output: 'pg/time-string@1'; readonly nullable: true };
       readonly 'pg/time-temporal@1': {
         readonly output: 'pg/time-temporal@1';
+        readonly nullable: true;
+      };
+      readonly 'pg/timestamp-date@1': {
+        readonly output: 'pg/timestamp-date@1';
+        readonly nullable: true;
+      };
+      readonly 'pg/timestamp-instant@1': {
+        readonly output: 'pg/timestamp-instant@1';
         readonly nullable: true;
       };
       readonly 'pg/timestamp-string@1': {
@@ -152,6 +168,10 @@ export type AggregateTypes = {
       readonly 'pg/int4@1': { readonly output: 'pg/int4@1'; readonly nullable: true };
       readonly 'pg/int8@1': { readonly output: 'pg/int8@1'; readonly nullable: true };
       readonly 'pg/int8number@1': { readonly output: 'pg/int8number@1'; readonly nullable: true };
+      readonly 'pg/interval-string@1': {
+        readonly output: 'pg/interval-string@1';
+        readonly nullable: true;
+      };
       readonly 'pg/interval@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
       readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
       readonly 'pg/text-array@1': { readonly output: 'pg/text-array@1'; readonly nullable: true };
@@ -159,6 +179,14 @@ export type AggregateTypes = {
       readonly 'pg/time-string@1': { readonly output: 'pg/time-string@1'; readonly nullable: true };
       readonly 'pg/time-temporal@1': {
         readonly output: 'pg/time-temporal@1';
+        readonly nullable: true;
+      };
+      readonly 'pg/timestamp-date@1': {
+        readonly output: 'pg/timestamp-date@1';
+        readonly nullable: true;
+      };
+      readonly 'pg/timestamp-instant@1': {
+        readonly output: 'pg/timestamp-instant@1';
         readonly nullable: true;
       };
       readonly 'pg/timestamp-string@1': {
@@ -204,6 +232,10 @@ export type AggregateTypes = {
       readonly 'pg/int4@1': { readonly output: 'pg/int8number@1'; readonly nullable: true };
       readonly 'pg/int8@1': { readonly output: 'pg/int8number@1'; readonly nullable: true };
       readonly 'pg/int8number@1': { readonly output: 'pg/int8number@1'; readonly nullable: true };
+      readonly 'pg/interval-string@1': {
+        readonly output: 'pg/interval-string@1';
+        readonly nullable: true;
+      };
       readonly 'pg/interval@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
       readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
       readonly 'pg/time-string@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
@@ -241,6 +273,16 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly Reserva: {
+        readonly estado: {
+          readonly output: 'ACTIVA' | 'FINALIZADA' | 'CANCELADA';
+          readonly input: 'ACTIVA' | 'FINALIZADA' | 'CANCELADA';
+        };
+        readonly modalidad: {
+          readonly output: 'GARANTIZADA' | 'EXPRES';
+          readonly input: 'GARANTIZADA' | 'EXPRES';
+        };
+      };
       readonly Usuario: {
         readonly estado: {
           readonly output: 'PENDIENTE' | 'ACTIVO' | 'SUSPENDIDO';
@@ -270,6 +312,16 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly reserva: {
+      readonly estado: {
+        readonly output: 'ACTIVA' | 'FINALIZADA' | 'CANCELADA';
+        readonly input: 'ACTIVA' | 'FINALIZADA' | 'CANCELADA';
+      };
+      readonly modalidad: {
+        readonly output: 'GARANTIZADA' | 'EXPRES';
+        readonly input: 'GARANTIZADA' | 'EXPRES';
+      };
+    };
     readonly usuario: {
       readonly estado: {
         readonly output: 'PENDIENTE' | 'ACTIVO' | 'SUSPENDIDO';
@@ -298,6 +350,30 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 >;
 
 export namespace Models {
+  export type public_Reserva = {
+    codigoQr: FieldOutputTypes['public']['Reserva']['codigoQr'];
+    estado: FieldOutputTypes['public']['Reserva']['estado'];
+    fechaEntrada: FieldOutputTypes['public']['Reserva']['fechaEntrada'];
+    fechaSalida: FieldOutputTypes['public']['Reserva']['fechaSalida'];
+    id: FieldOutputTypes['public']['Reserva']['id'];
+    modalidad: FieldOutputTypes['public']['Reserva']['modalidad'];
+    sedeId: FieldOutputTypes['public']['Reserva']['sedeId'];
+    usuarioId: FieldOutputTypes['public']['Reserva']['usuarioId'];
+    sede: public_Sede;
+    usuario: public_Usuario;
+    readonly [RelationKeys]?: 'sede' | 'usuario';
+  };
+  export type public_Sede = {
+    capacidadTotal: FieldOutputTypes['public']['Sede']['capacidadTotal'];
+    direccion: FieldOutputTypes['public']['Sede']['direccion'];
+    id: FieldOutputTypes['public']['Sede']['id'];
+    latitud: FieldOutputTypes['public']['Sede']['latitud'];
+    longitud: FieldOutputTypes['public']['Sede']['longitud'];
+    nombre: FieldOutputTypes['public']['Sede']['nombre'];
+    precioHora: FieldOutputTypes['public']['Sede']['precioHora'];
+    reservas: public_Reserva[];
+    readonly [RelationKeys]?: 'reservas';
+  };
   export type public_Usuario = {
     email: FieldOutputTypes['public']['Usuario']['email'];
     estado: FieldOutputTypes['public']['Usuario']['estado'];
@@ -312,6 +388,8 @@ export namespace Models {
 
 export declare const models: {
   public: {
+    Reserva: Models.public_Reserva;
+    Sede: Models.public_Sede;
     Usuario: Models.public_Usuario;
   };
 };
@@ -334,6 +412,154 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly reserva: {
+              columns: {
+                readonly codigo_qr: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly estado: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVA'>;
+                  };
+                  readonly many: false;
+                };
+                readonly fecha_entrada: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly fecha_salida: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly modalidad: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly sede_id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly usuario_id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['codigo_qr'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'reserva_sede_id_idx_7d8bb299';
+                  readonly prefix: 'reserva_sede_id_idx';
+                  readonly columns: readonly ['sede_id'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'reserva_usuario_id_idx_65b6616a';
+                  readonly prefix: 'reserva_usuario_id_idx';
+                  readonly columns: readonly ['usuario_id'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'reserva';
+                    readonly columns: readonly ['usuario_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'usuario';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'reserva';
+                    readonly columns: readonly ['sede_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'sede';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly sede: {
+              columns: {
+                readonly capacidad_total: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly direccion: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly latitud: {
+                  readonly dataType: 'pg/float8';
+                  readonly codecId: 'pg/float8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly longitud: {
+                  readonly dataType: 'pg/float8';
+                  readonly codecId: 'pg/float8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly nombre: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly precio_hora: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
             readonly usuario: {
               columns: {
                 readonly email: {
@@ -386,9 +612,17 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly EstadoReserva: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['ACTIVA', 'FINALIZADA', 'CANCELADA'];
+            };
             readonly EstadoUsuario: {
               readonly kind: 'valueSet';
               readonly values: readonly ['PENDIENTE', 'ACTIVO', 'SUSPENDIDO'];
+            };
+            readonly ModalidadReserva: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['GARANTIZADA', 'EXPRES'];
             };
             readonly RolUsuario: {
               readonly kind: 'valueSet';
@@ -405,12 +639,151 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
+    readonly reserva: { readonly namespace: 'public' & NamespaceId; readonly model: 'Reserva' };
+    readonly sede: { readonly namespace: 'public' & NamespaceId; readonly model: 'Sede' };
     readonly usuario: { readonly namespace: 'public' & NamespaceId; readonly model: 'Usuario' };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly Reserva: {
+            readonly fields: {
+              readonly codigoQr: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly estado: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fechaEntrada: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                };
+              };
+              readonly fechaSalida: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly modalidad: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sedeId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly usuarioId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly sede: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Sede' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['sedeId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly usuario: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Usuario';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['usuarioId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'reserva';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly codigoQr: { readonly column: 'codigo_qr' };
+                readonly estado: { readonly column: 'estado' };
+                readonly fechaEntrada: { readonly column: 'fecha_entrada' };
+                readonly fechaSalida: { readonly column: 'fecha_salida' };
+                readonly id: { readonly column: 'id' };
+                readonly modalidad: { readonly column: 'modalidad' };
+                readonly sedeId: { readonly column: 'sede_id' };
+                readonly usuarioId: { readonly column: 'usuario_id' };
+              };
+            };
+          };
+          readonly Sede: {
+            readonly fields: {
+              readonly capacidadTotal: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly direccion: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly latitud: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/float8@1' };
+              };
+              readonly longitud: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/float8@1' };
+              };
+              readonly nombre: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly precioHora: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly reservas: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Reserva';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['sedeId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'sede';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly capacidadTotal: { readonly column: 'capacidad_total' };
+                readonly direccion: { readonly column: 'direccion' };
+                readonly id: { readonly column: 'id' };
+                readonly latitud: { readonly column: 'latitud' };
+                readonly longitud: { readonly column: 'longitud' };
+                readonly nombre: { readonly column: 'nombre' };
+                readonly precioHora: { readonly column: 'precio_hora' };
+              };
+            };
+          };
           readonly Usuario: {
             readonly fields: {
               readonly email: {
@@ -462,12 +835,27 @@ type ContractBase = Omit<
           };
         };
         readonly enum: {
+          readonly EstadoReserva: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'ACTIVA'; readonly value: 'ACTIVA' },
+              { readonly name: 'FINALIZADA'; readonly value: 'FINALIZADA' },
+              { readonly name: 'CANCELADA'; readonly value: 'CANCELADA' },
+            ];
+          };
           readonly EstadoUsuario: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
               { readonly name: 'PENDIENTE'; readonly value: 'PENDIENTE' },
               { readonly name: 'ACTIVO'; readonly value: 'ACTIVO' },
               { readonly name: 'SUSPENDIDO'; readonly value: 'SUSPENDIDO' },
+            ];
+          };
+          readonly ModalidadReserva: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'GARANTIZADA'; readonly value: 'GARANTIZADA' },
+              { readonly name: 'EXPRES'; readonly value: 'EXPRES' },
             ];
           };
           readonly RolUsuario: {
@@ -480,10 +868,19 @@ type ContractBase = Omit<
           };
         };
         readonly enumMemberTypes?: {
+          readonly EstadoReserva: readonly [
+            { readonly name: 'ACTIVA'; readonly value: 'ACTIVA' },
+            { readonly name: 'FINALIZADA'; readonly value: 'FINALIZADA' },
+            { readonly name: 'CANCELADA'; readonly value: 'CANCELADA' },
+          ];
           readonly EstadoUsuario: readonly [
             { readonly name: 'PENDIENTE'; readonly value: 'PENDIENTE' },
             { readonly name: 'ACTIVO'; readonly value: 'ACTIVO' },
             { readonly name: 'SUSPENDIDO'; readonly value: 'SUSPENDIDO' },
+          ];
+          readonly ModalidadReserva: readonly [
+            { readonly name: 'GARANTIZADA'; readonly value: 'GARANTIZADA' },
+            { readonly name: 'EXPRES'; readonly value: 'EXPRES' },
           ];
           readonly RolUsuario: readonly [
             { readonly name: 'CONDUCTOR'; readonly value: 'CONDUCTOR' },
@@ -526,6 +923,22 @@ type ContractBase = Omit<
     readonly executionHash: ExecutionHash;
     readonly mutations: {
       readonly defaults: readonly [
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'reserva';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'sede';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
         {
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {

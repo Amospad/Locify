@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { Map as MapaGL, Marker, NavigationControl, Popup, ScaleControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { SEDES_MOCK, type SedeMock } from '@/lib/mockSedes';
+import { obtenerSedes, crearReserva, ErrorDeReserva, type Sede, type ReservaCreada } from '@/lib/api';
+import ReservaExitosaModal, { type ReservaModalProps } from './ReservaExitosaModal';
 
 /*
  * Mapa de sedes (RF-11). MapLibre GL JS (BSD-3-Clause) sobre OpenFreeMap
@@ -26,18 +27,18 @@ const COP = new Intl.NumberFormat('es-CO', {
 });
 
 /** Pin circular sin cabeza: verde con el check de la marca si hay celdas, gris si está lleno. */
-function crearPin(sede: SedeMock): HTMLDivElement {
+function crearPin(sede: Sede): HTMLDivElement {
   const pin = document.createElement('div');
   pin.className =
     'flex size-9 items-center justify-center rounded-full border-2 border-white shadow-md transition-transform hover:scale-110 cursor-pointer';
   pin.style.backgroundColor =
-    sede.disponibles > 0 ? '#00C853' : '#6B7280';
+    sede.capacidadTotal > 0 ? '#00C853' : '#6B7280';
   pin.setAttribute('role', 'button');
   pin.setAttribute('tabindex', '0');
   pin.setAttribute(
     'aria-label',
-    sede.disponibles > 0
-      ? `${sede.nombre}: ${sede.disponibles} celdas disponibles`
+    sede.capacidadTotal > 0
+      ? `${sede.nombre}: ${sede.capacidadTotal} celdas totales`
       : `${sede.nombre}: sin celdas disponibles`,
   );
   // Check blanco (el check de la marca, verde solo aparece de fondo)
@@ -47,38 +48,6 @@ function crearPin(sede: SedeMock): HTMLDivElement {
   return pin;
 }
 
-function crearPopup(sede: SedeMock): Popup {
-  const contenido = document.createElement('div');
-  contenido.className = 'min-w-56 space-y-1.5 font-sans';
-  contenido.innerHTML = `
-    <p class="text-sm font-semibold text-grafito">${sede.nombre}</p>
-    <p class="text-xs text-grafito/70">${sede.direccion}</p>
-    <p class="text-sm"><span class="font-semibold text-acero">${COP.format(sede.precioPorHora)}</span><span class="text-xs text-grafito/60"> /hora</span></p>
-    <p class="text-xs ${sede.disponibles > 0 ? 'text-green-700' : 'text-grafito/60'}">
-      ${sede.disponibles > 0 ? `${sede.disponibles} de ${sede.total} celdas disponibles` : 'Sin celdas disponibles'}
-    </p>
-    ${sede.disponibles > 0 ? '<button type="button" title="Próximamente" class="mt-1 w-full rounded-full bg-acero px-4 py-2 text-xs font-semibold text-white hover:bg-azul-profundo">Reservar</button>' : ''}
-  `;
-
-  const popup = new Popup({ maxWidth: '240px' }).setDOMContent(contenido);
-  return popup;
-}
-
-/** Geocodificación pública de OSM (Nominatim): libre, sin API key, exige User-Agent corto. */
-async function buscarDireccion(consulta: string): Promise<{ lat: number; lng: number; etiqueta: string } | null> {
-  const url = new URL('https://nominatim.openstreetmap.org/search');
-  url.searchParams.set('format', 'jsonv2');
-  url.searchParams.set('limit', '1');
-  url.searchParams.set('q', consulta);
-
-  const respuesta = await fetch(url, { headers: { 'Accept': 'application/json' } });
-  if (!respuesta.ok) return null;
-  const hallados = (await respuesta.json()) as Array<{ lat: string; lon: string; display_name: string }>;
-  const primero = hallados[0];
-  if (!primero) return null;
-  return { lat: Number(primero.lat), lng: Number(primero.lon), etiqueta: primero.display_name };
-}
-
 export default function MapaParqueaderos() {
   const contenedorRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<MapaGL | null>(null);
@@ -86,6 +55,37 @@ export default function MapaParqueaderos() {
   const [consulta, setConsulta] = useState('');
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [ubicandose, setUbicandose] = useState(false);
+  const [sedes, setSedes] = useState<Sede[]>([]);
+  const [errorSedes, setErrorSedes] = useState<string | null>(null);
+  // Estado para el modal de reserva (confirmación de modalidad)
+  const [reservaModal, setReservaModal] = useState<{
+    abierto: boolean;
+    sede: Sede | null;
+    cargando: boolean;
+    error: string | null;
+  }>({ abierto: false, sede: null, cargando: false, error: null });
+
+  // Estado para el modal premium de reserva exitosa
+  const [reservaExitosa, setReservaExitosa] = useState<ReservaModalProps | null>(null);
+
+  // Cargar sedes del backend
+  useEffect(() => {
+    async function cargarSedes() {
+      try {
+        setCargando(true);
+        const datos = await obtenerSedes();
+        setSedes(datos);
+        setErrorSedes(null);
+      } catch (error) {
+        const mensaje = error instanceof Error ? error.message : 'Error al cargar las sedes';
+        setErrorSedes(mensaje);
+        console.error('[MapaParqueaderos]', error);
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargarSedes();
+  }, []);
 
   useEffect(() => {
     if (!contenedorRef.current) return;
@@ -104,23 +104,114 @@ export default function MapaParqueaderos() {
 
     mapa.on('load', () => setCargando(false));
     mapa.on('error', (evento) => {
-      // Tiles caídos no deben dejar la pantalla muerta: el overlay sale con el load igual.
       if (!mapa.loaded()) setCargando(false);
       console.error('[MapaParqueaderos]', evento);
     });
 
-    for (const sede of SEDES_MOCK) {
-      new Marker({ element: crearPin(sede) })
+    for (const sede of sedes) {
+      const pin = crearPin(sede);
+      const marker = new Marker({ element: pin })
         .setLngLat([sede.longitud, sede.latitud])
-        .setPopup(crearPopup(sede))
         .addTo(mapa);
+
+      // Creamos el popup pero no lo asignamos al marker aún;
+      // lo haremos dinámicamente al hacer clic para poder adjuntar el handler.
+      pin.addEventListener('click', () => {
+        abrirPopupReserva(mapa, marker, sede);
+      });
+      // Accesibilidad: Enter/Space en el pin
+      pin.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          abrirPopupReserva(mapa, marker, sede);
+        }
+      });
     }
 
     return () => {
       mapa.remove();
       mapaRef.current = null;
     };
-  }, []);
+  }, [sedes]);
+
+  /** Abre un popup personalizado con botón de reserva funcional. */
+  function abrirPopupReserva(mapa: MapaGL, marker: Marker, sede: Sede) {
+    const contenido = document.createElement('div');
+    contenido.className = 'min-w-56 space-y-1.5 font-sans';
+    contenido.innerHTML = `
+      <p class="text-sm font-semibold text-grafito">${sede.nombre}</p>
+      <p class="text-xs text-grafito/70">${sede.direccion}</p>
+      <p class="text-sm"><span class="font-semibold text-acero">${COP.format(sede.precioHora)}</span><span class="text-xs text-grafito/60"> /hora</span></p>
+      <p class="text-xs ${sede.capacidadTotal > 0 ? 'text-green-700' : 'text-grafito/60'}">
+        ${sede.capacidadTotal > 0 ? `${sede.capacidadTotal} celdas totales` : 'Sin celdas disponibles'}
+      </p>
+      ${sede.capacidadTotal > 0 ? '<button type="button" id="btn-reservar-popup" class="mt-1 w-full rounded-full bg-acero px-4 py-2 text-xs font-semibold text-white hover:bg-azul-profundo transition-colors">Reservar</button>' : ''}
+    `;
+
+    const popup = new Popup({ maxWidth: '240px', closeButton: true })
+      .setLngLat([sede.longitud, sede.latitud])
+      .setDOMContent(contenido)
+      .addTo(mapa);
+
+    // Adjuntar handler al botón del popup después de que esté en el DOM
+    if (sede.capacidadTotal > 0) {
+      const btn = contenido.querySelector('#btn-reservar-popup') as HTMLButtonElement;
+      if (btn) {
+        btn.addEventListener('click', () => {
+          popup.remove();
+          abrirModalReserva(sede);
+        });
+      }
+    }
+  }
+
+  /** Abre el modal de confirmación de reserva. */
+  function abrirModalReserva(sede: Sede) {
+    setReservaModal({
+      abierto: true,
+      sede,
+      cargando: false,
+      error: null,
+    });
+  }
+
+  function cerrarModalReserva() {
+    setReservaModal({ abierto: false, sede: null, cargando: false, error: null });
+  }
+
+  function cerrarReservaExitosa() {
+    setReservaExitosa(null);
+  }
+
+  async function confirmarReserva(modalidad: 'GARANTIZADA' | 'EXPRES') {
+    const sede = reservaModal.sede;
+    if (!sede) return;
+
+    setReservaModal((prev) => ({ ...prev, cargando: true, error: null }));
+
+    try {
+      const reserva = await crearReserva(sede.id, modalidad);
+      // Abrir el modal premium con todos los datos
+      setReservaExitosa({
+        id: reserva.id,
+        codigoQr: reserva.codigoQr,
+        modalidad: reserva.modalidad,
+        sede: {
+          id: sede.id,
+          nombre: sede.nombre,
+          direccion: sede.direccion,
+          precioHora: sede.precioHora,
+        },
+      });
+      setReservaModal({ abierto: false, sede: null, cargando: false, error: null });
+    } catch (error) {
+      const mensaje =
+        error instanceof ErrorDeReserva
+          ? error.message
+          : 'Error inesperado al crear la reserva. Inténtalo de nuevo.';
+      setReservaModal((prev) => ({ ...prev, cargando: false, error: mensaje }));
+    }
+  }
 
   async function alBuscar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -179,6 +270,15 @@ export default function MapaParqueaderos() {
           className="absolute inset-0 z-10 grid place-items-center bg-fondo text-sm font-medium text-grafito/70"
         >
           Cargando el mapa de sedes…
+        </p>
+      ) : null}
+
+      {errorSedes ? (
+        <p
+          role="alert"
+          className="absolute inset-0 z-10 grid place-items-center bg-red-50 text-sm font-medium text-red-800 p-4"
+        >
+          {errorSedes}
         </p>
       ) : null}
 
@@ -242,6 +342,90 @@ export default function MapaParqueaderos() {
           {mensaje}
         </p>
       ) : null}
+
+      {/* Modal de confirmación de reserva (modalidad) */}
+      {reservaModal.abierto && reservaModal.sede && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-titulo"
+        >
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+            <h2 id="modal-titulo" className="text-xl font-semibold text-grafito">
+              Confirmar reserva
+            </h2>
+            <p className="mt-2 text-sm text-grafito/70">
+              Sede: <span className="font-medium text-grafito">{reservaModal.sede.nombre}</span>
+            </p>
+            <p className="mt-1 text-sm text-grafito/70">
+              Precio: <span className="font-semibold text-acero">{COP.format(reservaModal.sede.precioHora)}</span> / hora
+            </p>
+
+            {reservaModal.error ? (
+              <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-800" role="alert">
+                {reservaModal.error}
+              </p>
+            ) : null}
+            <p className="mt-4 text-sm text-grafito/70">
+              Elige la modalidad de tu reserva:
+            </p>
+            <div className="mt-3 grid gap-3">
+              <button
+                type="button"
+                onClick={() => confirmarReserva('GARANTIZADA')}
+                disabled={reservaModal.cargando}
+                className="rounded-xl border border-grafito/20 bg-white p-4 text-left hover:border-acero hover:bg-fondo transition-colors disabled:opacity-60"
+              >
+                <p className="font-semibold text-grafito">Reserva Garantizada</p>
+                <p className="text-xs text-grafito/60">Tu celda queda reservada exclusivamente para ti.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmarReserva('EXPRES')}
+                disabled={reservaModal.cargando}
+                className="rounded-xl border border-grafito/20 bg-white p-4 text-left hover:border-acero hover:bg-fondo transition-colors disabled:opacity-60"
+              >
+                <p className="font-semibold text-grafito">Reserva Exprés</p>
+                <p className="text-xs text-grafito/60">Llegas y te asignamos una celda disponible al momento.</p>
+              </button>
+            </div>
+            {reservaModal.cargando && (
+              <p className="mt-3 text-center text-sm text-acero">Creando reserva…</p>
+            )}
+            <button
+              type="button"
+              onClick={cerrarModalReserva}
+              disabled={reservaModal.cargando}
+              className="mt-4 w-full rounded-full border border-grafito/20 bg-white px-6 py-2.5 font-semibold text-grafito hover:border-acero hover:text-acero transition-colors disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal premium de reserva exitosa con QR */}
+      <ReservaExitosaModal
+        isOpen={reservaExitosa !== null}
+        onClose={cerrarReservaExitosa}
+        reserva={reservaExitosa}
+      />
     </div>
   );
+}
+
+/** Geocodificación pública de OSM (Nominatim): libre, sin API key, exige User-Agent corto. */
+async function buscarDireccion(consulta: string): Promise<{ lat: number; lng: number; etiqueta: string } | null> {
+  const url = new URL('https://nominatim.openstreetmap.org/search');
+  url.searchParams.set('format', 'jsonv2');
+  url.searchParams.set('limit', '1');
+  url.searchParams.set('q', consulta);
+
+  const respuesta = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!respuesta.ok) return null;
+  const hallados = (await respuesta.json()) as Array<{ lat: string; lon: string; display_name: string }>;
+  const primero = hallados[0];
+  if (!primero) return null;
+  return { lat: Number(primero.lat), lng: Number(primero.lon), etiqueta: primero.display_name };
 }

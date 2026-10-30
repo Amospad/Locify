@@ -4,9 +4,13 @@ import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import type { ConsultadorDeBaseDeDatos } from '../../application/ports/ConsultadorDeBaseDeDatos.js';
 import type { ServicioDeTokens } from '../../domain/ports/ServicioDeTokens.js';
+import type { SedeRepository } from '../../domain/ports/SedeRepository.js';
 import { rutasSalud } from './routes/health.js';
 import { rutasOperadores, type RegistradorDeOperadores } from './routes/operadores.js';
 import { rutasAuth, type IniciadorDeSesion } from './routes/auth.js';
+import { rutasReservas, type GestorDeReservas } from './routes/reservas.js';
+import { rutasSedes } from './routes/sedes.js';
+import { rutasOperadorDashboard, type OperadorRutasDeps } from './routes/operador-dashboard.js';
 import { crearAutenticacion } from './auth.js';
 import { registrarManejadorDeErrores } from './errores.js';
 
@@ -14,8 +18,13 @@ export interface DependenciasHttp {
   db: ConsultadorDeBaseDeDatos;
   adminService: RegistradorDeOperadores;
   authService: IniciadorDeSesion;
+  reservaService: GestorDeReservas;
+  /** Servicio para operaciones de operador (check-in, check-out, lista activas). */
+  operadorService: OperadorRutasDeps['operadorService'];
   /** Verifica los tokens de acceso de las rutas protegidas. */
   servicioTokens: ServicioDeTokens;
+  /** Repositorio de sedes para el endpoint público. */
+  sedeRepository: SedeRepository;
 }
 
 export interface OpcionesServidor {
@@ -99,6 +108,15 @@ export async function buildServer(
   await app.register(rutasAuth, { authService: deps.authService });
   await app.register(rutasOperadores, {
     adminService: deps.adminService,
+    autenticar,
+  });
+  await app.register(rutasReservas, {
+    reservaService: deps.reservaService,
+    autenticar,
+  });
+  await app.register(rutasSedes, { sedeRepository: deps.sedeRepository });
+  await app.register(rutasOperadorDashboard, {
+    operadorService: deps.operadorService,
     autenticar,
   });
 

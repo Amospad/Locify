@@ -11,6 +11,17 @@ enum EstadoUsuario {
   SUSPENDIDO
 }
 
+enum ModalidadReserva {
+  GARANTIZADA
+  EXPRES
+}
+
+enum EstadoReserva {
+  ACTIVA
+  FINALIZADA
+  CANCELADA
+}
+
 model Usuario {
   id              String         @id @onCreate(uuid())
   email           String         @unique
@@ -21,4 +32,32 @@ model Usuario {
   tokenExpiracion TimestamptzJsDate? @map("token_expiracion")
 
   @@map("usuario")
+}
+
+model Sede {
+  id               String         @id @onCreate(uuid())
+  nombre           String
+  direccion        String
+  latitud          Float
+  longitud         Float
+  capacidadTotal   Int            @map("capacidad_total")
+  precioHora       Int            @map("precio_hora")
+  reservas         Reserva[]
+
+  @@map("sede")
+}
+
+model Reserva {
+  id              String         @id @onCreate(uuid())
+  usuarioId       String         @map("usuario_id")
+  usuario         Usuario        @relation(fields: [usuarioId], references: [id])
+  sedeId          String         @map("sede_id")
+  sede            Sede           @relation(fields: [sedeId], references: [id])
+  modalidad       ModalidadReserva
+  estado          EstadoReserva  @default(ACTIVA)
+  codigoQr        String         @unique @map("codigo_qr")
+  fechaEntrada    TimestamptzJsDate  @map("fecha_entrada")
+  fechaSalida     TimestamptzJsDate? @map("fecha_salida")
+
+  @@map("reserva")
 }

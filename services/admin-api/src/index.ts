@@ -1,6 +1,7 @@
 // Punto de entrada del módulo admin-api: construye el servidor HTTP y lo pone a escuchar.
 import 'dotenv/config';
 import type { EmailService } from './domain/ports/EmailService.js';
+import type { OperadorService } from './application/services/OperadorService.js';
 
 const PUERTO_POR_DEFECTO = 3000;
 const puerto = Number(process.env['PORT'] ?? PUERTO_POR_DEFECTO);
@@ -23,6 +24,8 @@ const [
   { buildServer },
   { PostgresConsultadorDeBaseDeDatos },
   { PostgresUsuarioRepository },
+  { PostgresSedeRepository },
+  { PostgresReservaRepository },
   { Argon2Hasher },
   { CryptoGeneradorId },
   { RelojSistema },
@@ -30,11 +33,15 @@ const [
   { SmtpEmailService, opcionesSmtpDesdeEntorno },
   { AdminService },
   { AuthService },
+  { ReservaService },
+  { OperadorServiceImpl },
   { JwtService, opcionesJwtDesdeEntorno },
 ] = await Promise.all([
   import('./interfaces/http/server.js'),
   import('./infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.js'),
   import('./infrastructure/persistence/PostgresUsuarioRepository.js'),
+  import('./infrastructure/persistence/PostgresSedeRepository.js'),
+  import('./infrastructure/persistence/PostgresReservaRepository.js'),
   import('./infrastructure/security/Argon2Hasher.js'),
   import('./infrastructure/id/CryptoGeneradorId.js'),
   import('./infrastructure/time/RelojSistema.js'),
@@ -42,6 +49,8 @@ const [
   import('./infrastructure/notifications/SmtpEmailService.js'),
   import('./application/services/AdminService.js'),
   import('./application/services/AuthService.js'),
+  import('./application/services/ReservaService.js'),
+  import('./application/services/OperadorService.js'),
   import('./infrastructure/security/JwtService.js'),
 ]);
 
@@ -74,6 +83,8 @@ const emailService: EmailService = (() => {
 })();
 
 const usuarioRepository = new PostgresUsuarioRepository();
+const sedeRepository = new PostgresSedeRepository();
+const reservaRepository = new PostgresReservaRepository();
 const passwordHasher = new Argon2Hasher();
 const generadorId = new CryptoGeneradorId();
 const reloj = new RelojSistema();
@@ -103,6 +114,19 @@ const adminService = new AdminService(
   passwordHasher,
 );
 
+const reservaService = new ReservaService(
+  reservaRepository,
+  sedeRepository,
+  generadorId,
+  reloj,
+);
+
+const operadorService = new OperadorServiceImpl(
+  reservaRepository,
+  sedeRepository,
+  reloj,
+);
+
 const authService = new AuthService(
   usuarioRepository,
   passwordHasher,
@@ -110,7 +134,7 @@ const authService = new AuthService(
 );
 
 const app = await buildServer(
-  { db, adminService, authService, servicioTokens },
+  { db, adminService, authService, reservaService, operadorService, servicioTokens, sedeRepository },
   {
     logger: true,
     // Sólo true detrás de un reverse proxy propio (nginx, Vercel, ALB). A

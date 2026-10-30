@@ -95,7 +95,14 @@ const ticketKYBRepository = new PostgresTicketKYBRepository();
 const passwordHasher = new Argon2Hasher();
 const generadorId = new CryptoGeneradorId();
 const reloj = new RelojSistema();
-const paymentGateway = new MockPaymentGateway();
+const paymentGateway = (() => {
+  const stripeKey = process.env['STRIPE_SECRET_KEY'];
+  if (stripeKey && stripeKey.startsWith('sk_')) {
+    const { StripePaymentGateway } = await import('./infrastructure/payments/StripePaymentGateway.js');
+    return new StripePaymentGateway(stripeKey);
+  }
+  return new MockPaymentGateway();
+})();
 
 // JWT: sin un secreto de al menos 32 caracteres no se firma nada. Un fallo de
 // configuración detiene el arranque en lugar de emitir tokens adivinables.

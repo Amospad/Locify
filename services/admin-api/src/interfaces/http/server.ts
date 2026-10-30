@@ -12,6 +12,7 @@ import { rutasReservas, type GestorDeReservas } from './routes/reservas.js';
 import { rutasSedes } from './routes/sedes.js';
 import { rutasOperadorDashboard, type OperadorRutasDeps } from './routes/operador-dashboard.js';
 import { rutasKYB } from './routes/kyb.js';
+import { rutasWebhookStripe } from './routes/webhooks.js';
 import { crearAutenticacion } from './auth.js';
 import { registrarManejadorDeErrores } from './errores.js';
 
@@ -126,6 +127,7 @@ export async function buildServer(
     sedeService: deps.sedeService,
     autenticar,
   });
+  await app.register(rutasWebhookStripe);
 
   return app;
 }

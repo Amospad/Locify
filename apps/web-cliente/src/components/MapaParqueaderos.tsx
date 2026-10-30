@@ -41,17 +41,20 @@ function crearPin(sede: Sede): HTMLDivElement {
   `;
   el.innerHTML = `
     <div style="
-      background: rgba(20,20,20,0.85);
+      background: #1F2937;
       color: white;
-      padding: 6px 10px;
+      padding: 6px 12px;
       border-radius: 9999px;
       font-size: 12px;
       font-weight: 600;
       white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 8px 20px -8px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     ">
+      <span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#00C853;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;">P</span>
       ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(sede.precioHora)}/h
     </div>
   `;
@@ -272,9 +275,9 @@ export default function MapaParqueaderos({ sedes: sedesProp = [] }: { sedes?: Se
       {/* Barra de búsqueda flotante con glassmorphism */}
       <form
         onSubmit={alBuscar}
-        className="absolute left-1/2 top-4 z-20 flex w-[92%] max-w-md -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 shadow-2xl backdrop-blur-xl"
+        className="absolute left-1/2 top-4 z-20 flex w-[92%] max-w-md -translate-x-1/2 items-center gap-3 rounded-[24px] border border-white/30 bg-white/80 px-4 py-3 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.25)] backdrop-blur-md"
       >
-        <svg viewBox="0 0 24 24" className="size-5 shrink-0 text-white/60" fill="none" aria-hidden>
+        <svg viewBox="0 0 24 24" className="size-5 shrink-0 text-grafito/60" fill="none" aria-hidden>
           <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
           <path d="M20 20 L16.5 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
@@ -287,22 +290,25 @@ export default function MapaParqueaderos({ sedes: sedesProp = [] }: { sedes?: Se
           value={consulta}
           onChange={(e) => setConsulta(e.target.value)}
           placeholder="Buscar dirección o barrio…"
-          className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
+          className="w-full bg-transparent text-[15px] text-grafito placeholder:text-grafito/40 focus:outline-none"
         />
         <button
           type="submit"
-          className="shrink-0 rounded-xl bg-acero/90 px-4 py-2 text-xs font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-acero hover:scale-105"
+          className="shrink-0 rounded-full bg-acero px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_20px_-8px_rgba(47,93,159,0.6)] transition active:scale-[0.98]"
         >
           Buscar
         </button>
       </form>
 
-      {/* Volver al inicio */}
+      {/* Volver al inicio - ícono circular flotante */}
       <Link
         href="/"
-        className="absolute left-4 top-20 z-20 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-105"
+        aria-label="Volver al inicio"
+        className="absolute left-4 top-4 z-20 grid size-11 place-items-center rounded-full border border-white/30 bg-white/80 text-grafito shadow-[0_8px_20px_-8px_rgba(0,0,0,0.25)] backdrop-blur-md transition hover:scale-105 active:scale-95"
       >
-        ← Inicio
+        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
       </Link>
 
       {/* Centrar en mi ubicación (botón flotante) con glassmorphism */}

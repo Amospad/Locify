@@ -38,6 +38,7 @@ const [
   { OperadorServiceImpl },
   { SedeService },
   { JwtService, opcionesJwtDesdeEntorno },
+  { MockPaymentGateway },
 ] = await Promise.all([
   import('./interfaces/http/server.js'),
   import('./infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.js'),
@@ -56,6 +57,7 @@ const [
   import('./application/services/OperadorService.js'),
   import('./application/services/SedeService.js'),
   import('./infrastructure/security/JwtService.js'),
+  import('./infrastructure/payments/MockPaymentGateway.js'),
 ]);
 
 const db = new PostgresConsultadorDeBaseDeDatos();
@@ -93,6 +95,7 @@ const ticketKYBRepository = new PostgresTicketKYBRepository();
 const passwordHasher = new Argon2Hasher();
 const generadorId = new CryptoGeneradorId();
 const reloj = new RelojSistema();
+const paymentGateway = new MockPaymentGateway();
 
 // JWT: sin un secreto de al menos 32 caracteres no se firma nada. Un fallo de
 // configuración detiene el arranque en lugar de emitir tokens adivinables.
@@ -124,6 +127,7 @@ const reservaService = new ReservaService(
   sedeRepository,
   generadorId,
   reloj,
+  paymentGateway,
 );
 
 const operadorService = new OperadorServiceImpl(

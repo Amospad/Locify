@@ -40,8 +40,13 @@
   - **Glassmorphism**: Formularios de búsqueda, tarjetas de parqueaderos y modales con efecto vidrio esmerilado (`backdrop-blur`, bordes semitransparentes `border-white/20`).
   - **Micro-interacciones**: Efectos hover/scale con Framer Motion en botones, modales y tarjetas.
   - **Validación**: `npm run build` totalmente en verde para `apps/web-cliente`.
-- [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
-- [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
+- [x] **Flujo de Pagos y Cancelación (RF-14, RF-16, RF-19) — 2026-10-30:**
+  - **Backend**: Puerto `PaymentGateway` y adaptador `MockPaymentGateway`; `CrearReserva` procesa pago para reservas GARANTIZADAS y lanza `PagoRechazadoError` (HTTP 402) si falla; `CancelarReserva` con lógica de reembolso y ventana de 30 min.
+  - **API**: `POST /api/reservas` con `{ sedeId, modalidad, tokenTarjeta? }`; `POST /api/reservas/:id/cancelar`.
+  - **Frontend**: Modal de reserva con formulario simulado de datos de tarjeta para modalidad GARANTIZADA; botón de cancelación en Dashboard.
+  - **Validación**: Backend tests 140/140 pasando; Frontend build exitoso.
+- [] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
+- [] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
 ## Stack Tecnológico
 - Backend: Node.js + TypeScript + Prisma

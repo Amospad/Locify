@@ -12,9 +12,11 @@ export interface GestorDeReservas {
     usuarioId: string,
     sedeId: string,
     modalidad: ModalidadReserva,
+    tokenTarjeta?: string,
   ): Promise<ReservaCreada>;
   listarMisReservas(usuarioId: string): Promise<ReservaUsuarioDTO[]>;
   obtenerReservaActiva(usuarioId: string): Promise<ReservaActivaDTO | null>;
+  cancelarReserva(reservaId: string): Promise<{ id: string; estado: string }>;
 }
 
 interface OpcionesReservas {
@@ -25,6 +27,7 @@ interface OpcionesReservas {
 interface CuerpoCrearReserva {
   sedeId: string;
   modalidad: ModalidadReserva;
+  tokenTarjeta?: string;
 }
 
 interface ReservaCreadaResponse {
@@ -63,6 +66,7 @@ const esquemaCuerpo = {
   properties: {
     sedeId: { type: 'string', minLength: 1, maxLength: 64 },
     modalidad: { type: 'string', enum: ['GARANTIZADA', 'EXPRES'] },
+    tokenTarjeta: { type: 'string', minLength: 1, maxLength: 255 },
   },
 } as const;
 
@@ -173,13 +177,14 @@ export const rutasReservas: FastifyPluginAsync<OpcionesReservas> = async (
       },
     },
     async (request, reply) => {
-      const { sedeId, modalidad } = request.body;
+      const { sedeId, modalidad, tokenTarjeta } = request.body;
       const usuarioId = request.usuarioAutenticado!.sub;
 
       const reserva = await opciones.reservaService.crearReserva(
         usuarioId,
         sedeId,
         modalidad,
+        tokenTarjeta,
       );
 
       return reply.code(201).send(reserva);
@@ -238,6 +243,41 @@ export const rutasReservas: FastifyPluginAsync<OpcionesReservas> = async (
         ...reserva,
         fechaEntrada: reserva.fechaEntrada.toISOString(),
       });
+    },
+  );
+
+  app.post(
+    '/api/reservas/:id/cancelar',
+    {
+      preHandler: [opciones.autenticar],
+      schema: {
+        params: {
+          type: 'object',
+          required: ['id'],
+          properties: {
+            id: { type: 'string', minLength: 1 },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            required: ['id', 'estado'],
+            properties: {
+              id: { type: 'string' },
+              estado: { type: 'string', enum: ['CANCELADA'] },
+            },
+          },
+          400: esquemaError,
+          401: esquemaError,
+          404: esquemaError,
+          500: esquemaError,
+        },
+      },
+    },
+    async (request, reply) => {
+      const reservaId = request.params.id;
+      const resultado = await opciones.reservaService.cancelarReserva(reservaId);
+      return reply.code(200).send(resultado);
     },
   );
 };

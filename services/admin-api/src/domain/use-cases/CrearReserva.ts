@@ -2,15 +2,18 @@ import { Reserva, ModalidadReserva } from '../entities/Reserva.js';
 import { Sede } from '../entities/Sede.js';
 import { ErrorDeValidacion } from '../errors/ErrorDeValidacion.js';
 import { ErrorNoEncontrado } from '../errors/ErrorNoEncontrado.js';
+import { PagoRechazadoError } from '../errors/PagoRechazadoError.js';
 import type { ReservaRepository } from '../ports/ReservaRepository.js';
 import type { SedeRepository } from '../ports/SedeRepository.js';
 import type { GeneradorId } from '../ports/GeneradorId.js';
 import type { Reloj } from '../ports/Reloj.js';
+import type { PaymentGateway } from '../ports/PaymentGateway.js';
 
 export interface CrearReservaDTO {
   usuarioId: string;
   sedeId: string;
   modalidad: ModalidadReserva;
+  tokenTarjeta?: string;
 }
 
 export interface ReservaCreada {
@@ -28,6 +31,7 @@ export interface ReservaCreada {
  * - El usuario no puede tener otra reserva ACTIVA simultánea.
  * - Se genera un código QR único.
  * - La reserva nace en estado ACTIVA con fechaEntrada = ahora.
+ * - Si la modalidad es GARANTIZADA, se procesa el pago antes de guardar.
  */
 export class CrearReservaUseCase {
   constructor(
@@ -35,6 +39,7 @@ export class CrearReservaUseCase {
     private readonly sedeRepository: SedeRepository,
     private readonly generadorId: GeneradorId,
     private readonly reloj: Reloj,
+    private readonly paymentGateway?: PaymentGateway,
   ) {}
 
   public async ejecutar(dto: CrearReservaDTO): Promise<ReservaCreada> {
@@ -68,7 +73,24 @@ export class CrearReservaUseCase {
       throw new ErrorDeValidacion('No se pudo generar un código QR único. Inténtalo de nuevo.');
     }
 
-    // 4. Crear la entidad de dominio
+    // 4. Procesar pago si es modalidad GARANTIZADA
+    if (dto.modalidad === ModalidadReserva.GARANTIZADA) {
+      if (!dto.tokenTarjeta) {
+        throw new ErrorDeValidacion('Token de tarjeta requerido para reservas garantizadas');
+      }
+      if (!this.paymentGateway) {
+        throw new Error('PaymentGateway no configurado');
+      }
+
+      const monto = sede.precioHora * 1; // 1 hora mínima
+      const resultado = await this.paymentGateway.procesarPago(monto, 'COP', dto.tokenTarjeta);
+      
+      if (!resultado.exitoso) {
+        throw new PagoRechazadoError('El pago fue rechazado por el gateway');
+      }
+    }
+
+    // 5. Crear la entidad de dominio
     const nuevaReserva = Reserva.crear({
       id: this.generadorId.generar(),
       usuarioId: dto.usuarioId,

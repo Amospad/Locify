@@ -167,6 +167,7 @@ export class ErrorDeReserva extends Error {
 export async function crearReserva(
   sedeId: string,
   modalidad: 'GARANTIZADA' | 'EXPRES',
+  tokenTarjeta?: string,
 ): Promise<ReservaCreada> {
   const sesion = obtenerSesion();
   if (!sesion) {
@@ -182,7 +183,7 @@ export async function crearReserva(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${sesion.token}`,
       },
-      body: JSON.stringify({ sedeId, modalidad }),
+      body: JSON.stringify({ sedeId, modalidad, ...(tokenTarjeta && { tokenTarjeta }) }),
     });
   } catch {
     throw new ErrorDeReserva(

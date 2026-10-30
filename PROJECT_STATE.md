@@ -34,11 +34,12 @@
   - **Frontend (Operador)**: `src/app/operador/kyb/page.tsx` con formulario de registro de sede (nombre, dirección, coordenadas, capacidad, precio) y campos para URLs de documentos (RUT, Cámara de Comercio); estados de envío y mensajes de revisión
   - **Frontend (Admin)**: `src/app/admin/kyb/page.tsx` con tabla de solicitudes pendientes; modal de revisión con visualización de documentos, botones de Aprobar/Rechazar y campo de motivo de rechazo; animaciones Framer Motion; diseño LOCIFY
 - [x] **Diseño 3D Futurista y Animaciones Avanzadas (2026-10-30):**
-  - **Tecnologías**: Instaladas `three`, `@react-three/fiber`, `@react-three/drei`, `gsap`; Framer Motion ya presente.
-  - **Landing Page (`/`)**: Escena 3D interactiva con React Three Fiber (modelos abstractos geométricos flotantes, iluminación dinámica, estrellas); diseño glassmorphism; animaciones de entrada escalonadas con Framer Motion.
+  - **Tecnologías**: Instaladas `three`, `@react-three/fiber`, `@react-three/drei`, `gsap`, `framer-motion`, `lenis` (@studio-freight/lenis).
+  - **Landing Page (`/`)**: Escena 3D interactiva (`Hero3D.tsx`) con React Three Fiber (modelos abstractos geométricos flotantes, iluminación dinámica, materiales metálicos con emissive); diseño glassmorphism avanzado; animaciones de entrada escalonadas con Framer Motion; Scroll suave con **Lenis**.
   - **Profundidad visual**: Sombras multicapa, gradientes con colores LOCIFY (Azul Acero #2F5D9F, Grafito #1F2937, Verde Esmeralda #00C853); iluminación ambiental y efectos de profundidad.
-  - **Glassmorphism**: Formularios de búsqueda, tarjetas de parqueaderos y modales con efecto vidrio esmerilado (`backdrop-blur`, bordes semitransparentes).
-  - **Validación**: `npm run build` exitoso en `apps/web-cliente`.
+  - **Glassmorphism**: Formularios de búsqueda, tarjetas de parqueaderos y modales con efecto vidrio esmerilado (`backdrop-blur`, bordes semitransparentes `border-white/20`).
+  - **Micro-interacciones**: Efectos hover/scale con Framer Motion en botones, modales y tarjetas.
+  - **Validación**: `npm run build` totalmente en verde para `apps/web-cliente`.
 - [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 

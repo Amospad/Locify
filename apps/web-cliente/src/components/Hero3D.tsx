@@ -2,8 +2,7 @@
 
 import { Suspense, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Float, Environment, Stars } from '@react-three/drei';
-import { motion } from 'framer-motion';
+import { OrbitControls, Float, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
 function FloatingGeometry() {
@@ -51,16 +50,16 @@ function FloatingGeometry() {
 
 export default function Hero3D() {
   return (
-    <div className=\"absolute inset-0 z-0\">
+    <div className="absolute inset-0 z-0">
       <Canvas
         camera={{ position: [0, 0, 10], fov: 50 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>
-          <Environment preset=\"city\" />
+          <Environment preset="city" />
           <ambientLight intensity={0.5} />
-          <pointLight position={[10, 10, 10]} intensity={1} color=\"#2F5D9F\" />
+          <pointLight position={[10, 10, 10]} intensity={1} color="#2F5D9F" />
           <FloatingGeometry />
           <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
         </Suspense>

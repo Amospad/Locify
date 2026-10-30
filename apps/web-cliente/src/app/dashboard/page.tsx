@@ -304,22 +304,15 @@ export default function PaginaDashboard() {
 
   if (cargando) {
     return (
-      <main className="flex flex-1 flex-col items-center justify-center px-6 py-16">
-        <div className="flex flex-col items-center gap-4 text-grafito/60">
-          <svg
-            className="animate-spin size-8 text-azul-acero"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-            <path
-              d="M12 2a10 10 0 0 1 10 10"
-              strokeLinecap="round"
-            />
-          </svg>
-          <p>Cargando tu dashboard…</p>
+      <main className="flex flex-1 flex-col px-6 py-8 md:px-10 md:py-12">
+        <div className="w-full max-w-4xl mx-auto space-y-8 animate-pulse">
+          <div className="h-8 w-48 bg-grafito/10 rounded"></div>
+          <div className="h-64 bg-grafito/10 rounded-2xl"></div>
+          <div className="space-y-3">
+            <div className="h-6 w-40 bg-grafito/10 rounded"></div>
+            <div className="h-24 bg-grafito/10 rounded-xl"></div>
+            <div className="h-24 bg-grafito/10 rounded-xl"></div>
+          </div>
         </div>
       </main>
     );

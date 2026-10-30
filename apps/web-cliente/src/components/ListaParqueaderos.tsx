@@ -7,7 +7,7 @@ export default function ListaParqueaderos({ sedes }: { sedes: Sede[] }) {
   const formatPrecio = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
   return (
-    <div className="p-4 pb-24 space-y-4 flex flex-col gap-4">
+    <div className="p-4 pb-24 space-y-4 flex flex-col gap-4 [scroll-snap-type:y_mandatory] overflow-y-auto">
       {sedes.length === 0 && (
         <div className="text-center text-grafito/60 py-10">No hay parqueaderos cercanos.</div>
       )}
@@ -18,7 +18,7 @@ export default function ListaParqueaderos({ sedes }: { sedes: Sede[] }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           whileHover={{ scale: 1.02, y: -2 }}
-          className="group relative overflow-hidden rounded-[28px] border border-white/20 bg-white/70 backdrop-blur-xl p-5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)]"
+          className="group relative overflow-hidden rounded-[28px] border border-white/20 bg-white/70 backdrop-blur-xl p-5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] [scroll-snap-align:start]"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-white/60 to-transparent pointer-events-none" />
           <div className="relative flex items-start justify-between gap-4">

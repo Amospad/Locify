@@ -123,7 +123,8 @@ export default function PaginaInicio() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-2xl transition hover:bg-white/10"
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-2xl"
             >
               <div className="mb-4 text-2xl font-semibold text-white">Conductores</div>
               <p className="mb-6 text-white/80">Encuentra tu espacio en segundos</p>
@@ -141,7 +142,8 @@ export default function PaginaInicio() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-2xl transition hover:bg-white/10"
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-2xl"
             >
               <div className="mb-4 text-2xl font-semibold text-white">Operadores</div>
               <p className="mb-6 text-white/80">Gestiona tu parqueadero de forma inteligente</p>

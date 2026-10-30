@@ -12,3 +12,19 @@ git commit -m "feat(admin-api/web-cliente): implementar flujo de pagos y cancela
 # 3. Subir los cambios al repositorio remoto
 git push origin main
 ```
+
+# Comandos de Git para Adaptador Stripe + Webhooks
+
+```bash
+git add .
+git commit -m "feat(admin-api): implementar adaptador real de Stripe y webhooks"
+git push origin main
+```
+
+# Comandos de Git para Pruebas E2E con Playwright
+
+```bash
+git add playwright.config.ts tests-e2e/
+git commit -m "test(e2e): agregar pruebas críticas con Playwright para flujos de conductor"
+git push origin main
+```

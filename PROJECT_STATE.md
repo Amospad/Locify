@@ -45,6 +45,16 @@
   - **API**: `POST /api/reservas` con `{ sedeId, modalidad, tokenTarjeta? }`; `POST /api/reservas/:id/cancelar`.
   - **Frontend**: Modal de reserva con formulario simulado de datos de tarjeta para modalidad GARANTIZADA; botón de cancelación en Dashboard.
   - **Validación**: Backend tests 140/140 pasando; Frontend build exitoso.
+- [x] **Adaptador Stripe + Webhooks — 2026-10-30:**
+  - `StripePaymentGateway` implementa `PaymentGateway` usando `stripe.charges.create` y `stripe.refunds.create`.
+  - Composition root selecciona `StripePaymentGateway` cuando `STRIPE_SECRET_KEY` está presente, de lo contrario usa `MockPaymentGateway`.
+  - Ruta `POST /api/webhooks/stripe` preparada para validar firma con `STRIPE_WEBHOOK_SECRET`.
+  - Variables de entorno documentadas en `.env.example`.
+- [x] **Pruebas E2E con Playwright — 2026-10-30:**
+  - Playwright configurado con `tests-e2e/`.
+  - `flujo-critico.spec.ts` con smoke test y flujos de conductor (GARANTIZADA y EXPRES).
+  - Configuración `webServer` para levanta `apps/web-cliente` en puerto 3001.
+  - Estructura lista para flujos de operador/check-in y KYB.
 - [] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
 - [] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 

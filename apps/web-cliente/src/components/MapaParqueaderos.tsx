@@ -2,9 +2,15 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import * as maplibregl from 'maplibre-gl'; // <-- IMPORTANTE: Importar todo el módulo
 import { Map as MapaGL, Marker, NavigationControl, Popup, ScaleControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { SEDES_MOCK, type SedeMock } from '@/lib/mockSedes';
+
+// Forzar a MapLibre a usar el worker que copiamos en la carpeta public/
+if (typeof window !== 'undefined') {
+  maplibregl.setWorkerUrl('/maplibre-gl-worker.mjs');
+}
 
 /*
  * Mapa de sedes (RF-11). MapLibre GL JS (BSD-3-Clause) sobre OpenFreeMap

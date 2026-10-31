@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "3d-website-architect": {
+      "source": "deveshpunjabi/3d-website-skill",
+      "sourceType": "github",
+      "skillPath": "skills/3d-website-architect/SKILL.md",
+      "computedHash": "9844d97e3362bf6581dd0d77d11c7879e8b349f1312fbdfa11ccb23c5713b05a"
+    },
     "apple-hig": {
       "source": "AyushRajSinghParihar/apple-human-interface-skills",
       "sourceType": "github",
@@ -12,6 +18,12 @@
       "sourceType": "github",
       "skillPath": "skills/brand-identity/SKILL.md",
       "computedHash": "0090a5df010a1a9bcfd6c6e8ddcc0bd725f40e1048f242647d19465b93f93187"
+    },
+    "premium-3d-website": {
+      "source": "n2g7/agent-skills",
+      "sourceType": "github",
+      "skillPath": "premium-3d-website/SKILL.md",
+      "computedHash": "67928a71d471de05c0c12ac16b501dcc46ad97972e1009752525f3d4374bdcc9"
     },
     "rig": {
       "source": "slamb2k/mad-skills",

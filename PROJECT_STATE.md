@@ -1,7 +1,8 @@
 ﻿# Estado del Proyecto LOCIFY
 
 ## Fase Actual
-- [x] Documentación (SENA y Técnica)
+- [x] Reescribir el documento de Antecedentes y Justificación con investigación exhaustiva y fuentes APA 7 (2026-10-30).
+- [x] Documentación de flujos de usuario completos (mapa general y flujos detallados 1, 2, 3, 5, 6 con Mermaid en Docusaurus) (2026-10-30).
 - [x] Publicación de la documentación en Vercel con rediseño UI/UX
 - [x] Configuración de Skills (QA, CI/CD, Seguridad, Diseño)
 - [x] Auditoría técnica de código, documentación y arquitectura (2026-10-27)

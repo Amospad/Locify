@@ -30,3 +30,14 @@ git commit -m "feat(supabase+ui): migración real DB Prisma a Supabase con RLS y
 git push origin docs/hu-admin
 ```
 
+# Dashboards + Stripe
+
+```bash
+# Añadir dashboards premium y Stripe
+git add apps/web-cliente/src/app/dashboard apps/web-cliente/src/app/operador/dashboard apps/web-cliente/src/app/admin/kyb apps/web-cliente/src/components/StripePaymentModal.tsx apps/web-cliente/package.json services/admin-api/src/interfaces/http/routes/payments.ts services/admin-api/src/interfaces/http/routes/webhooks.ts docs/docs/tecnico/referencia/integraciones.md PROJECT_STATE.md
+
+git commit -m "feat(dashboard+stripe): dashboards premium Apex style + integración Stripe pagos reales"
+
+git push origin docs/hu-admin
+```
+

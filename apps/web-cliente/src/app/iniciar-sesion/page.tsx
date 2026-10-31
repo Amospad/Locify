@@ -3,14 +3,13 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ErrorDeLogin, guardarSesion, login } from '@/lib/api';
+import { createClient } from '@/lib/supabase/client';
 
 /**
- * Pantalla de inicio de sesión (RF-07 del admin-api: `POST /api/auth/login`).
+ * Pantalla de inicio de sesión con Supabase Auth.
  *
- * El error de credenciales es el mismo para email inexistente y contraseña
- * incorrecta por diseño del backend (no revela cuentas); la UI no intenta
- * distinguirlos.
+ * Usa signInWithPassword de Supabase en lugar de login manual.
+ * No se utiliza localStorage ni /api/auth/login.
  */
 export default function PaginaIniciarSesion() {
   const router = useRouter();
@@ -27,14 +26,20 @@ export default function PaginaIniciarSesion() {
     setEnviando(true);
 
     try {
-      const sesion = await login(email.trim(), contrasena);
-      guardarSesion(sesion);
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: contrasena,
+      });
+
+      if (error) {
+        throw error;
+      }
+
       router.replace('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       setMensajeError(
-        error instanceof ErrorDeLogin
-          ? error.message
-          : 'Error inesperado. Inténtalo de nuevo.',
+        error?.message ?? 'Error inesperado. Inténtalo de nuevo.',
       );
       setEnviando(false);
     }

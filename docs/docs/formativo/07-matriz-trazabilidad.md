@@ -58,7 +58,7 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-35** | Precios dinámicos con multiplicadores por ocupación | CU-05 | HU-10 | Media | **No implementado** |
 | **RF-36** | Bloqueo temporal en PENDING_PAYMENT y liberación automática a 10 min (doble reserva) | CU-05 | HU-16 | Alta | **No implementado** |
 | **RF-37** | Sobretiempo con multiplicador 1.5x y cobro automático de diferencia | CU-07 | HU-19 | Alta | **No implementado** |
-| **RF-38** | Cancelación escalonada con reembolso >3h 100%, 1-3h 50%, <1h 0% | CU-06 | HU-14 | Alta | **No implementado** |
+| **RF-38** | Cancelación escalonada con reembolso &gt;3h 100%, 1-3h 50%, &lt;1h 0% | CU-06 | HU-14 | Alta | **No implementado** |
 
 **Cobertura:** 38/38 requerimientos listados (RF-01 a RF-38). Implementados o parciales: 11 (RF-01 a RF-08 del onboarding, RF-09, RF-21 y RF-32 con RBAC parcial). El resto está especificado pero sin código.
 

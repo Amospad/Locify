@@ -130,13 +130,13 @@ Tres «no hacer» específicas:
 ## 7. Patrones Avanzados UI/UX Awwwards
 
 ### 7.1 Skeletons y Empty States
-- **Skeletons:** Usar placeholders animados con nimate-pulse en vez de spinners de texto. Aplica en dashboards y listados.
-- **Empty States:** Ilustraci�n amigable + mensaje claro + CTA primario. Ejemplo: Dashboard sin reservas.
+- **Skeletons:** Usar placeholders animados con `animate-pulse` en vez de spinners de texto. Aplica en dashboards y listados.
+- **Empty States:** Ilustración amigable + mensaje claro + CTA primario. Ejemplo: Dashboard sin reservas.
 
 ### 7.2 Glassmorphism y Micro-interacciones
-- Barras de b�squeda y filtros con g-white/80 backdrop-blur-md rounded-[24px].
-- Tarjetas con hover whileHover={{ scale: 1.02, y: -2 }} y ramer-motion para entrada escalonada.
-- Scroll snap en listas tipo Apple Maps: scroll-snap-type: y mandatory.
+- Barras de búsqueda y filtros con `bg-white/80 backdrop-blur-md rounded-[24px]`.
+- Tarjetas con hover `whileHover` (framer-motion) y animación para entrada escalonada.
+- Scroll snap en listas tipo Apple Maps: `scroll-snap-type: y mandatory`.
 
 ### 7.3 Accesibilidad
 - Contraste WCAG AA para textos sobre fondos claros/oscuros.

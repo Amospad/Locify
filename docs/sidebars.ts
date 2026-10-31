@@ -21,6 +21,14 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'tecnico/referencia/guia-diseno-ui', label: 'Guía de Diseño UI/UX' },
     { type: 'doc', id: 'tecnico/referencia/diagramas-flujos', label: 'Diagramas de Flujos Críticos' },
     { type: 'doc', id: 'tecnico/referencia/mapa-flujos-usuario', label: 'Mapa de Flujos' },
+    {
+      type: 'category',
+      label: 'Flujos Detallados',
+      collapsed: false,
+      items: [
+        'tecnico/flujos/flujo-01-autenticacion',
+      ],
+    },
     { type: 'doc', id: 'adr/ADR-001-arquitectura-hexagonal', label: 'ADR-001: Arquitectura Hexagonal' },
     { type: 'doc', id: 'adr/ADR-002-modelo-hibrido-reservas', label: 'ADR-002: Modelo Híbrido' },
     { type: 'doc', id: 'adr/ADR-003-monolito-modular-vs-microservicios', label: 'ADR-003: Monolito Modular' },

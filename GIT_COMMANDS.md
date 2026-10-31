@@ -18,3 +18,15 @@ git checkout main
 git merge docs/hu-admin
 git push origin main
 ```
+
+## Supabase + Velora UI
+
+```bash
+# Añadir cambios migración Supabase y landing Velora
+git add apps/web-cliente/src/lib/supabase apps/web-cliente/src/middleware.ts apps/web-cliente/supabase/migrations apps/web-cliente/src/components/landing apps/web-cliente/src/app/page.tsx apps/web-cliente/prisma/schema.prisma apps/web-cliente/.env.example docs/docs/gestion/despliegue.md
+
+git commit -m "feat(supabase+ui): migración real DB Prisma a Supabase con RLS y landing Velora UI glassmorphism OKLCH"
+
+git push origin docs/hu-admin
+```
+

@@ -89,22 +89,62 @@ export default function PaginaInicio() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-12 flex flex-col gap-4 sm:flex-row"
+          className="mt-12 flex flex-col items-center gap-4 sm:flex-row"
         >
           <Link
             href="/buscar"
             className="group relative rounded-full bg-verde-esmeralda px-8 py-4 font-semibold text-grafito backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-verde-esmeralda/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-verde-esmeralda"
           >
-            Buscar Parqueadero
+            Soy Conductor
           </Link>
           <Link
             href="/operador/kyb"
-            className="group relative rounded-full border border-white/20 bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-105 hover:shadow-2xl hover:shadow-white/10"
+            className="group relative rounded-full bg-acero px-8 py-4 font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-acero/25"
           >
-            Digitalizar mi Parqueadero
+            Soy Parqueadero
+          </Link>
+          <Link
+            href="/iniciar-sesion"
+            className="text-sm text-white/70 underline decoration-white/30 underline-offset-4 hover:text-white transition"
+          >
+            Iniciar Sesión
           </Link>
         </motion.div>
       </main>
+
+      {/* Value Proposition */}
+      <section className="relative z-10 py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mb-12 text-center text-3xl font-bold text-white sm:text-4xl"
+          >
+            ¿Qué hace LOCIFY?
+          </motion.h2>
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              { title: 'Reserva en tiempo real', desc: 'Celdas disponibles al instante en el mapa de Medellín.' },
+              { title: 'Acceso sin contacto', desc: 'Códigos QR inmutables para ingreso y salida rápida.' },
+              { title: 'Gestión inteligente', desc: 'Control de ocupación y pagos automáticos para operadores.' },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl"
+              >
+                <div className="mb-4 text-xl font-semibold text-white">{item.title}</div>
+                <p className="text-white/80">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Sección ¿Cómo funciona? */}
       <section className="relative z-10 border-t border-white/10 bg-black/20 py-24 backdrop-blur-xl">

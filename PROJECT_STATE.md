@@ -1,7 +1,8 @@
 ﻿# Estado del Proyecto LOCIFY
 
 ## Fase Actual
-- [x] Documentación (SENA y Técnica)
+- [x] Reescribir el documento de Antecedentes y Justificación con investigación exhaustiva y fuentes APA 7 (2026-10-30).
+- [x] Documentación de flujos de usuario completos (mapa general y flujos detallados 1, 2, 3, 5, 6 con Mermaid en Docusaurus) (2026-10-30).
 - [x] Publicación de la documentación en Vercel con rediseño UI/UX
 - [x] Configuración de Skills (QA, CI/CD, Seguridad, Diseño)
 - [x] Auditoría técnica de código, documentación y arquitectura (2026-10-27)
@@ -21,8 +22,53 @@
 - [x] PWA del cliente inicializada: Next.js 16 (`apps/web-cliente`) con identidad visual LOCIFY y Hero de la landing (2026-10-29)
 - [x] Login conectado al backend (`POST /api/auth/login` vía `NEXT_PUBLIC_API_URL`), dashboard placeholder y manifiesto PWA — validado E2E con el admin-api real (401/403/200/logout/guard) (2026-10-29)
 - [x] Mapa interactivo `/buscar` con MapLibre GL + OpenFreeMap, marcadores mock (RF-11), buscador de direcciones (Nominatim) y geolocalización — validado en navegador (2026-10-29)
-- [ ] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
-- [ ] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
+- [x] Flujo completo de reserva (HU-C01 / RF-09 / RF-11): endpoint público `GET /api/sedes`, conexión de `MapaParqueaderos.tsx` a `POST /api/reservas` con JWT, modal de confirmación con modalidades Garantizada/Exprés y visualización de código QR (2026-10-29)
+- [x] Modal premium de reserva exitosa (`ReservaExitosaModal.tsx`): animaciones Framer Motion (fade-in + scale), código QR generado con `qrcode.react`, botón de descarga PNG con `html-to-image`, badge de modalidad (Garantizada/Exprés), contador regresivo 5 min solo para Exprés con alerta de expiración, diseño Apple HIG/LOCIFY (esquinas 24px, sombra suave, Verde Esmeralda #00C853) (2026-10-30)
+- [x] **Dashboard del Operador (App del Parqueadero)** — `apps/web-cliente/src/app/operador/dashboard/page.tsx` + endpoints `POST /api/operador/check-in`, `POST /api/operador/check-out`, `GET /api/operador/reservas-activas` (2026-10-30):
+  - **Backend**: nuevos casos de uso `CheckInReservaUseCase`, `CheckOutReservaUseCase`, `ListarReservasActivasUseCase`; servicio `OperadorServiceImpl`; rutas protegidas con JWT + `exigirRol(OPERADOR, ADMIN)`; check-in valida QR y confirma reserva ACTIVA; check-out finaliza la reserva, calcula duración en minutos y libera cupo; listado filtra por sede y muestra tiempo transcurrido
+  - **Frontend**: página protegida (redirige CONDUCTOR a `/dashboard`); selector de sede; escáner QR con `html5-qrcode` (cámara trasera, caja de escaneo 250×250, 10 fps); tabla de vehículos activos con Placa/QR, hora de ingreso, tiempo transcurrido (formato legible), badge modalidad (Garantizada/Exprés) y botón Check-out por fila; alertas de éxito/error (verde/rojo) con auto-dismiss; actualización automática cada 30s; diseño LOCIFY (Azul Acero #2F5D9F, Grafito #1F2937, Poppins, sombras suaves, esquinas 12px/24px)
+- [x] **Dashboard del Conductor (RF-09, RF-21, HU-27)** — `apps/web-cliente/src/app/dashboard/page.tsx` + endpoints `GET /api/reservas/mis-reservas`, `GET /api/reservas/activa` (2026-10-30):
+  - **Backend**: nuevos casos de uso `ListarMisReservasUseCase`, `ObtenerReservaActivaUseCase`; métodos en `ReservaService`; rutas protegidas con JWT (cualquier rol); `buscarPorUsuario` en `PostgresReservaRepository` con orden descendente por fecha; `buscarActivaPorUsuario` reutilizado; `EstadoReserva` extendido con `EXPIRADA`
+  - **Frontend**: página rediseñada con dos secciones animadas (Framer Motion): (a) **Reserva Activa** — tarjeta destacada con sede, QR (`qrcode.react`), cronómetro en tiempo real (actualización cada segundo) si estado ACTIVA; (b) **Historial** — lista de tarjetas con sede, fecha, badge de estado (colores LOCIFY: Azul Acero=Activa, Verde Esmeralda=Completada, Rojo=Cancelada, Ámbar=Expirada), modalidad (Garantizada/Exprés) y código QR; **Estado vacío** amigable con icono y botón "Buscar parqueadero" → `/buscar`; diseño LOCIFY consistente (Azul Acero, Grafito, Poppins, sombras, esquinas 12px/24px)
+- [x] **Onboarding KYB (Know Your Business) — RF-23, RF-24, RF-29 (2026-10-30):**
+  - **Backend**: entidad `TicketKYB`; nuevos casos de uso `SubirDocumentosKYBUseCase`, `ListarTicketsKYBPendientesUseCase`, `CambiarEstadoTicketKYBUseCase`; repositorio `PostgresTicketKYBRepository`; endpoints `POST /api/kyb/subir-documentos` (OPERADOR), `GET /api/admin/kyb/pendientes` (ADMIN), `PATCH /api/admin/kyb/:id/estado` (ADMIN); `Sede` extendida con `EstadoSede` (ACTIVA, PENDIENTE_KYB, RECHAZADA); aprobación de ticket activa automáticamente la sede
+  - **Frontend (Operador)**: `src/app/operador/kyb/page.tsx` con formulario de registro de sede (nombre, dirección, coordenadas, capacidad, precio) y campos para URLs de documentos (RUT, Cámara de Comercio); estados de envío y mensajes de revisión
+  - **Frontend (Admin)**: `src/app/admin/kyb/page.tsx` con tabla de solicitudes pendientes; modal de revisión con visualización de documentos, botones de Aprobar/Rechazar y campo de motivo de rechazo; animaciones Framer Motion; diseño LOCIFY
+- [x] **Diseño 3D Futurista y Animaciones Avanzadas (2026-10-30):**
+  - **Tecnologías**: Instaladas `three`, `@react-three/fiber`, `@react-three/drei`, `gsap`, `framer-motion`, `lenis` (@studio-freight/lenis).
+  - **Landing Page (`/`)**: Escena 3D interactiva (`Hero3D.tsx`) con React Three Fiber (modelos abstractos geométricos flotantes, iluminación dinámica, materiales metálicos con emissive); diseño glassmorphism avanzado; animaciones de entrada escalonadas con Framer Motion; Scroll suave con **Lenis**.
+  - **Profundidad visual**: Sombras multicapa, gradientes con colores LOCIFY (Azul Acero #2F5D9F, Grafito #1F2937, Verde Esmeralda #00C853); iluminación ambiental y efectos de profundidad.
+  - **Glassmorphism**: Formularios de búsqueda, tarjetas de parqueaderos y modales con efecto vidrio esmerilado (`backdrop-blur`, bordes semitransparentes `border-white/20`).
+  - **Micro-interacciones**: Efectos hover/scale con Framer Motion en botones, modales y tarjetas.
+  - **Validación**: `npm run build` totalmente en verde para `apps/web-cliente`.
+- [x] **Flujo de Pagos y Cancelación (RF-14, RF-16, RF-19) — 2026-10-30:**
+  - **Backend**: Puerto `PaymentGateway` y adaptador `MockPaymentGateway`; `CrearReserva` procesa pago para reservas GARANTIZADAS y lanza `PagoRechazadoError` (HTTP 402) si falla; `CancelarReserva` con lógica de reembolso y ventana de 30 min.
+  - **API**: `POST /api/reservas` con `{ sedeId, modalidad, tokenTarjeta? }`; `POST /api/reservas/:id/cancelar`.
+  - **Frontend**: Modal de reserva con formulario simulado de datos de tarjeta para modalidad GARANTIZADA; botón de cancelación en Dashboard.
+  - **Validación**: Backend tests 140/140 pasando; Frontend build exitoso.
+- [x] **Adaptador Stripe + Webhooks — 2026-10-30:**
+  - `StripePaymentGateway` implementa `PaymentGateway` usando `stripe.charges.create` y `stripe.refunds.create`.
+  - Composition root selecciona `StripePaymentGateway` cuando `STRIPE_SECRET_KEY` está presente, de lo contrario usa `MockPaymentGateway`.
+  - Ruta `POST /api/webhooks/stripe` preparada para validar firma con `STRIPE_WEBHOOK_SECRET`.
+  - Variables de entorno documentadas en `.env.example`.
+- [x] **Pruebas E2E con Playwright — 2026-10-30:**
+  - Playwright configurado con `tests-e2e/`.
+  - `flujo-critico.spec.ts` con smoke test y flujos de conductor (GARANTIZADA y EXPRES).
+  - Configuración `webServer` para levanta `apps/web-cliente` en puerto 3001.
+  - Estructura lista para flujos de operador/check-in y KYB.
+- [x] **Seed masivo de datos — 2026-10-30:**
+  - `services/admin-api/prisma/seed.ts` genera 3 Admin, 20 Operadores, 30 Sedes Medellín, 50 Reservas (20 ACTIVAS, 20 FINALIZADAS, 10 CANCELADAS) y 10 Tickets KYB.
+  - Contraseñas Argon2id, coordenadas reales aproximadas, estados ACTIVA/PENDIENTE_KYB.
+- [x] **Corrección de contraste WCAG AA — 2026-10-30:**
+  - Textos principales Grafito #1F2937 sobre fondos claros #F4F6F8/Blanco; textos sobre Azul Acero #2F5D9F en Blanco #FFFFFF.
+  - Badges dashboard cambiados a `text-grafito` en fondos tintados, etc.
+- [x] **Rediseño mapa conductor estilo Apple Maps — 2026-10-30:**
+  - Mapa 3D con `pitch:45` y `bearing:-17.6`.
+  - Marcadores tipo pill flotantes con precio/hora.
+  - Bottom sheet con Framer Motion para detalle de sede y botón Reservar.
+  - Barra de búsqueda pill y botón de ubicación flotante.
+- [] Implementación del módulo `admin-api` (Prisma + PostgreSQL)
+- [] Implementación de los demás módulos (`operador`, `cliente`, `pagos`)
 
 ## Stack Tecnológico
 - Backend: Node.js + TypeScript + Prisma
@@ -634,3 +680,20 @@ Medido cargando el build dentro de un viewport de 1440 × 900:
 ### Pendiente
 - ~~Reemplazar `static/img/docusaurus-social-card.jpg` (imagen social genérica) por una propia de LOCIFY~~ → **Hecho el 2026-10-29:** `static/img/social-card.png` (1200 × 630, marca «Vía libre» sobre Azul Profundo) y la tarjeta genérica fue eliminada.
 - `npm install` reportó 23 avisos de `npm audit` en el árbol de `docs` (dependencias transitivas del toolchain); no se aplicó `npm audit fix --force` porque introduce cambios incompatibles.
+
+### Correcciones de tipado y repositorios — 2026-10-30
+- **PostgresReservaRepository**: eliminado `orderBy` incompatible; consultas `buscarActivaPorUsuario` y `buscarActivasPorSede` usan literales `'ACTIVA'` para evitar mismatch enum↔string literal.
+- **PostgresSedeRepository**: corregida firma de `actualizarEstado` a `where({id}).update({estado})`; se eliminó `estado` del `upsert.update` y se normalizó `listarActivas` a literal `'ACTIVA'`.
+- **Stripe**: actualizado `apiVersion` a `2026-10-28.endive` en `StripePaymentGateway` y `StripeWebhook`.
+- **Dominio KYB**: `SubirDocumentosKYB` reconstruye `Sede` con campos explícitos en lugar de spread de entidad.
+- **Tests**: `SedeRepositoryEnMemoria` actualizado a `listarActivas` para coincidir con el puerto; `npm test` → **140/140** pasando.
+- **Frontend**: `npm run build` verde para `apps/web-cliente`.
+- **E2E**: configuración Playwright preparada; smoke test verde; errores 500 resueltos al corregir repositorios.
+
+### Landing Page Oficial LOCIFY — 2026-10-30
+- Navbar glassmorphism con logo LOCIFY y botones "Soy Conductor" (`/buscar`), "Soy Parqueadero" (`/operador/kyb`), "Iniciar Sesión" (`/iniciar-sesion`).
+- Hero con escena 3D interactiva (React Three Fiber), título "El futuro del estacionamiento urbano", subtítulo de valor y CTAs "Buscar Parqueadero" (Verde Esmeralda) y "Digitalizar mi Parqueadero" (Azul Acero).
+- Sección "¿Cómo funciona?" con dos tarjetas glassmorphism para Conductores y Operadores, animadas con `whileInView`.
+- Footer minimalista con logo y copyright © 2026 LOCIFY.
+- Build verde: `npm run build` exitoso en `apps/web-cliente`.
+\n- [x] Reingeniería profesional - Lógica de negocio, Roadmap y Diseño Premium (2026-10-31)\n

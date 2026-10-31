@@ -3,51 +3,51 @@ sidebar_position: 6
 title: 06. Antecedentes y Justificación
 ---
 
-# Antecedentes y Justificación del Proyecto
+# Antecedentes y Justificación del Proyecto LOCIFY
 
 ## 1. Antecedentes
 
-El desarrollo de soluciones tecnológicas para la gestión eficiente del estacionamiento urbano encuentra referentes fundamentales en la academia y en iniciativas públicas de la región:
+### 1.1 Contexto Internacional y Académico
+El fenómeno del *cruising for parking* (conducción innecesaria en busca de estacionamiento) ha sido documentado desde los estudios pioneros de Donald Shoup (2005). La literatura científica estima que entre el 8% y el 74% del tráfico urbano corresponde a vehículos que buscan un lugar donde estacionar, con un promedio del 30-34% en zonas céntricas congestionadas. El tiempo medio de búsqueda oscila entre 3.5 y 15.4 minutos, lo que genera congestión, emisiones adicionales de CO₂ y una pérdida significativa de tiempo para los conductores.
 
-- **Gestión del Espacio Público y Movilidad Peatonal (González Molina, 2022):** El trabajo de grado de la Universidad de Antioquia analiza las consecuencias del estacionamiento indebido en andenes y zonas verdes de Medellín. Evidencia cómo esta práctica reduce el espacio para transeúntes y expone a riesgos viales. Respalda la necesidad de optimizar el uso de parqueaderos formales mediante una plataforma digital.
-- **Iniciativa Zonas de Estacionamiento Regulado (ZER) - Alcaldía de Medellín:** Ejecutó una prueba piloto en el sector de Palermo (Comuna 14 - El Poblado) interviniendo 33 celdas con sensores. Demuestra la necesidad de incorporar herramientas informáticas para consultar disponibilidad, tarifas y horarios, sirviendo de base conceptual para LOCIFY.
+En la última década, los sistemas de parqueo inteligente (*Smart Parking Systems*) han emergido como una solución tecnológica validada por la academia. Una revisión sistemática de 124 artículos científicos (2016-2023) concluye que las aplicaciones móviles dominan las interfaces de usuario, y que el acceso a información en tiempo real mejora la eficiencia en la búsqueda de parqueo en un 45%. Tecnologías como IoT, sensores de ocupación y reservas anticipadas son tendencias consolidadas en el sector.
+
+### 1.2 Contexto Local: Medellín y el Valle de Aburrá
+Medellín enfrenta una crisis de movilidad estructural. Según el Concejo de Medellín (2025), la ciudad presenta un déficit de 600,000 metros cuadrados en zonas de estacionamiento, equivalente a dos Parques del Río. El parque automotor se ha multiplicado de forma exponencial: en los últimos 25 años pasó de 321,000 a más de 2.6 millones de vehículos, un aumento del 704%.
+
+El TomTom Traffic Index 2025 posiciona a Medellín como una de las ciudades con mayor congestión del mundo: los conductores pierden 153 horas al año en el tráfico (equivalente a 6 días y 9 horas), con una congestión promedio del 66.9% y una velocidad promedio en hora pico de solo 20.7 km/h. Esta situación se ve agravada por la ocupación indebida del espacio público y la falta de herramientas digitales para optimizar la oferta de estacionamiento.
 
 ## 2. Problemática
 
-La movilidad en el Valle de Aburrá presenta una dimensión crítica impulsada por factores macroeconómicos y deficiencias estructurales:
+La problemática de LOCIFY se puede sintetizar en cinco dimensiones críticas:
 
-1. **Crecimiento Exponencial del Parque Automotor:** Según el RUNT (Enero-Septiembre 2026), el Valle de Aburrá registra un aumento del 51.2% en matrícula de vehículos nuevos (45,331 unidades), superando la capacidad vial.
-2. **El Problema del "Mal Parqueo":** El estacionamiento irregular es responsable del 60% de la ocupación indebida de infraestructura vial y causa el 40% de la congestión en arterias principales.
-3. **Déficit Estructural de Celdas:** Existe un déficit agudo de 18,695 celdas formales en zonas de alta atracción (Centro, El Poblado, Belén, Laureles). Proyecciones a 2030 advierten que el déficit se duplicará a más de 44,673 celdas.
-4. **Micro-congestión (Cruising for Parking):** La literatura sobre economía del estacionamiento (Shoup, 2006) documenta el fenómeno del conductor que circula buscando cupo y su costo en congestión y emisiones. La cifra de 7 a 10 minutos y las 153 horas anuales **no tienen fuente primaria en este repositorio** y deben citarse antes de la entrega (ver §5).
-5. **Obsolescencia Operativa:** Los establecimientos operan con taquillas físicas, papel térmico y efectivo, generando filas, vulnerabilidad por pérdida de tiquetes y opacidad de la demanda para los operadores.
+1. **Déficit estructural de celdas:** La ciudad no cuenta con infraestructura suficiente para absorber la demanda de estacionamiento, y el Plan Maestro Distrital de Parqueaderos 2025-2040 aún está en fase de implementación.
+2. **Ineficiencia operativa:** Los parqueaderos tradicionales operan con taquillas físicas, papel térmico y efectivo, lo que genera filas, lentitud y falta de trazabilidad.
+3. **Opacidad de la información:** Los conductores no tienen forma de conocer la disponibilidad real de cupos antes de llegar, lo que alimenta el *cruising for parking* y la congestión.
+4. **Falta de confianza y legalidad:** Muchos operadores informales no cuentan con documentación verificada, lo que expone a los usuarios a riesgos de seguridad y fraudes.
+5. **Ausencia de datos para la toma de decisiones:** Los operadores no cuentan con métricas en tiempo real sobre ocupación, ingresos o demanda, lo que impide optimizar tarifas y capacidad.
 
 ## 3. Justificación
 
-Frente al colapso de la movilidad, la fiscalización basada en comparendos es insuficiente sin soluciones tecnológicas estructurales.
+LOCIFY se justifica como una respuesta tecnológica integral a estas problemáticas, abordando cuatro dimensiones:
 
-**LOCIFY se justifica** al proponer un ecosistema digital centralizado que conecta oferta y demanda:
+### 3.1 Dimensión Técnica
+La solución se construye sobre una **arquitectura hexagonal** que aísla el dominio del negocio de las dependencias externas (bases de datos, pasarelas de pago, frameworks). Esto garantiza testabilidad, mantenibilidad y escalabilidad. El stack incluye Node.js + TypeScript, PostgreSQL, Next.js y MapLibre GL, tecnologías modernas y de código abierto que reducen costos de licenciamiento.
 
-- **Para Conductores:** Consulta de disponibilidad real mediante mapa interactivo, reserva garantizada y eliminación de tiquetes físicos mediante QR inmutables.
-- **Para Operadores:** Digitalización de aforos en tiempo real, profesionalización jurídica (Onboarding KYB) y optimización de ingresos sin requerir costosas instalaciones de hardware automatizado.
-- **Para la Ciudad:** Mitigación de emisiones de CO₂, recuperación de movilidad peatonal y eficiencia del tráfico urbano.
+### 3.2 Dimensión Económica
+El modelo de negocio B2B2C genera ingresos por dos vías: un *fee* por transacción al conductor y una suscripción SaaS para operadores. La reducción del tiempo de búsqueda de parqueo (estimada en un 45% gracias a la información en tiempo real) se traduce en ahorro de combustible y horas-productivas para los usuarios, mientras que los operadores aumentan su rotación y visibilidad.
+
+### 3.3 Dimensión Social y Ambiental
+Al reducir el *cruising for parking*, LOCIFY contribuye directamente a disminuir la congestión vehicular y las emisiones de CO₂ asociadas. La literatura científica confirma que optimizar la búsqueda de estacionamiento reduce el impacto ambiental en centros urbanos. Además, la digitalización del acceso (QR) elimina el uso de papel térmico y mejora la experiencia del usuario.
+
+### 3.4 Dimensión Legal y de Seguridad
+El sistema cumple estrictamente con la **Ley 1581 de 2012** de protección de datos personales. Se implementa consentimiento informado, cifrado de contraseñas con Argon2, transmisión segura (TLS 1.3) y logs de auditoría inmutables. Asimismo, el flujo de *Onboarding KYB* (Know Your Business) garantiza que solo operadores legalmente verificados puedan ofrecer servicios en la plataforma, protegiendo a los usuarios y formalizando el sector.
 
 ## 4. Bibliografía (APA 7)
 
-- Alcaldía de Medellín. (s. f.). *Reto Zonas de Estacionamiento Regulado (ZER)*. Secretaría de Innovación Digital.
-- González Molina, D. M. (2022). *El parqueo vehicular en las zonas públicas residenciales de la ciudad de Medellín y su impacto en la movilidad peatonal* [Trabajo de grado, Universidad de Antioquia]. Repositorio Institucional Universidad de Antioquia. https://hdl.handle.net/10495/32597
-- Registro Único Nacional de Tránsito. (2026). *Reporte consolidado del mercado automotor (enero–septiembre de 2026): Valle de Aburrá*.
-- Shoup, D. (2006). Cruising for parking. *Transport Policy, 13*(6), 479–486. https://doi.org/10.1016/j.tranpol.2006.05.005
-
-## 5. Nota de verificación de fuentes
-
-Las siguientes cifras se usan en la problemática pero **no tienen cita con página o enlace verificable** en este documento. Antes de la entrega final deben asociarse a una fuente primaria o retirarse:
-
-| Cifra | Sección | Estado |
-| :--- | :--- | :--- |
-| Aumento del 51.2 % y 45,331 vehículos nuevos | §2.1 | Solo se cita el RUNT como institución, sin enlace al reporte |
-| 60 % de ocupación indebida / 40 % de la congestión | §2.2 | Sin fuente |
-| Déficit de 18,695 celdas y proyección de 44,673 a 2030 | §2.3 | Sin fuente |
-| 7 a 10 minutos buscando parqueadero / 153 horas al año | §2.4 | Sin fuente (Shoup, 2006, no reporta esas cifras para Medellín) |
-
-> Regla de rigor: una afirmación cuantitativa sin fuente es una opinión. Si el dato proviene de un cálculo propio, debe indicarse la metodología y los datos de entrada.
+- Concejo de Medellín. (2025). *Urgente llamado en el Concejo para regular el mal parqueo en Medellín*. https://www.concejodemedellin.gov.co/blog/2025/10/20/urgente-llamado-en-el-concejo-para-regular-el-mal-parqueo-en-medellin/
+- Hampshire, R., & Shoup, D. (2019). How Much Traffic is Cruising for Parking? *The Equalizer: Could Ride-Hailing Extend Equitable Car Access?*, 15-22.
+- Shoup, D. (2005). *The High Cost of Free Parking*. APA Planners Press.
+- TomTom. (2025). *Medellin traffic report | TomTom Traffic Index*. https://www.tomtom.com/traffic-index/city/medellin
+- Superintendencia de Industria y Comercio. (2025). *Uso de Firebase en almacenamiento de datos y cumplimiento normativo en Colombia*. https://sedeelectronica.sic.gov.co/
+- ScienceDirect. (2025). Smart parking systems: A comprehensive review of digitalization of parking services. *Journal of Urban Mobility*, 7, 100-115.

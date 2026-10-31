@@ -25,9 +25,15 @@ El algoritmo de LOCIFY nunca expondrá el 100% de las celdas físicas en el mapa
 
 ### 2.2 Ciclo de Vida de una Reserva y el Sobretiempo
 1. **Check-in:** El cronómetro inicia.
-2. **Alerta de Vencimiento:** 15 minutos antes de que expire el tiempo reservado, el sistema envía un push al cliente: *"Tu tiempo está por vencer, pulsa aquí para extender"*.
-3. **Sobretiempo:** Si el cliente excede el tiempo, el sistema cambia el estado a `EN_SOBRETIEMPO` y comienza a cobrar por fracciones de hora (tarifa dinámica).
+2. **Alerta de Vencimiento:** 15 minutos antes de que expire el tiempo reservado, el sistema envía un push al cliente: *"Tu tiempo está por vencer, pulsa aquí para extender"*. 
+3. **Sobretiempo:** Si el cliente excede el tiempo, el sistema cambia el estado a `EN_SOBRETIEMPO` y comienza a cobrar por fracciones de hora con un multiplicador de **1.5x** sobre la tarifa base. El cobro de la diferencia se realiza de forma automática mediante la pasarela de pagos; el cliente es notificado del monto adicional y tiene 15 minutos para confirmar el pago antes de que se active la alerta al operador.
 4. **Acción del Operador:** Si el vehículo lleva más de 2 horas en sobretiempo sin pagar, el operador recibe una alerta en su dashboard para tomar acciones físicas (ej. inmovilizar el vehículo).
+
+### 2.3 Doble Reserva y Bloqueo Temporal
+Para evitar la sobreventa, la reserva queda en estado `PENDING_PAYMENT` durante el proceso de pago. Mientras esté en este estado, el cupo queda bloqueado y no se ofrece a otros conductores. Si el pago no se completa en **10 minutos**, el sistema libera automáticamente el cupo, cancela la reserva y permite la reintento. Este mecanismo garantiza la disponibilidad real y reduce el riesgo de doble reserva en escenarios de pago fallido.
+
+### 2.4 Precios Dinámicos por Ocupación
+**RF-35.** El sistema debe aplicar multiplicadores de precio según el nivel de ocupación de la sede. Cuando la ocupación supera el 70%, la tarifa base se incrementa con un multiplicador configurable (p. ej. 1.2x a 1.5x). El cálculo se realiza en tiempo real y se muestra al conductor antes de confirmar la reserva. El objetivo es equilibrar la oferta y demanda y maximizar el ingreso por cupo.
 
 ## 3. Matriz de Resiliencia (¿Qué pasa si...?)
 

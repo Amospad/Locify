@@ -19,6 +19,20 @@ const sidebars: SidebarsConfig = {
     { type: 'doc', id: 'tecnico/referencia/modelo-datos', label: 'Modelo de Datos' },
     { type: 'doc', id: 'tecnico/referencia/glosario', label: 'Glosario' },
     { type: 'doc', id: 'tecnico/referencia/guia-diseno-ui', label: 'Guía de Diseño UI/UX' },
+    { type: 'doc', id: 'tecnico/referencia/diagramas-flujos', label: 'Diagramas de Flujos Críticos' },
+    { type: 'doc', id: 'tecnico/referencia/mapa-flujos-usuario', label: 'Mapa de Flujos' },
+    {
+      type: 'category',
+      label: 'Flujos Detallados',
+      collapsed: false,
+      items: [
+        'tecnico/flujos/flujo-01-autenticacion',
+        'tecnico/flujos/flujo-02-busqueda-reserva',
+        'tecnico/flujos/flujo-03-acceso-uso',
+        'tecnico/flujos/flujo-05-historial',
+        'tecnico/flujos/flujo-06-onboarding-kyb',
+      ],
+    },
     { type: 'doc', id: 'adr/ADR-001-arquitectura-hexagonal', label: 'ADR-001: Arquitectura Hexagonal' },
     { type: 'doc', id: 'adr/ADR-002-modelo-hibrido-reservas', label: 'ADR-002: Modelo Híbrido' },
     { type: 'doc', id: 'adr/ADR-003-monolito-modular-vs-microservicios', label: 'ADR-003: Monolito Modular' },
@@ -27,6 +41,7 @@ const sidebars: SidebarsConfig = {
   
   gestionSidebar: [
     { type: 'doc', id: 'gestion/gestion-interesados-proyecto', label: 'Gestión de Interesados y Proyecto' },
+    { type: 'doc', id: 'gestion/roadmap-sprints', label: 'Roadmap de Sprints' },
   ],
 };
 

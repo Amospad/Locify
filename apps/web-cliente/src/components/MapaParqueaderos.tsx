@@ -2,9 +2,14 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { Map as MapaGL, Marker, NavigationControl, Popup, ScaleControl } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import { Map as MapaGL, Marker, NavigationControl, ScaleControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { SEDES_MOCK, type SedeMock } from '@/lib/mockSedes';
+
+import { motion, AnimatePresence } from 'framer-motion';
+import { crearReserva, ErrorDeReserva, type ReservaCreada } from '@/lib/api';
+import ReservaExitosaModal, { type ReservaModalProps } from './ReservaExitosaModal';
+import { type Sede } from '@/types/sede';
 
 /*
  * Mapa de sedes (RF-11). MapLibre GL JS (BSD-3-Clause) sobre OpenFreeMap
@@ -17,7 +22,7 @@ import { SEDES_MOCK, type SedeMock } from '@/lib/mockSedes';
  */
 
 const CENTRO_MEDELLIN: [number, number] = [-75.5636, 6.2442];
-const ESTILO_OPENFREEMAP = 'https://tiles.openfreemap.org/styles/liberty';
+const ESTILO_MAPA = 'https://tiles.openfreemap.org/styles/liberty';
 
 const COP = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -25,76 +30,79 @@ const COP = new Intl.NumberFormat('es-CO', {
   maximumFractionDigits: 0,
 });
 
-/** Pin circular sin cabeza: verde con el check de la marca si hay celdas, gris si está lleno. */
-function crearPin(sede: SedeMock): HTMLDivElement {
-  const pin = document.createElement('div');
-  pin.className =
-    'flex size-9 items-center justify-center rounded-full border-2 border-white shadow-md transition-transform hover:scale-110 cursor-pointer';
-  pin.style.backgroundColor =
-    sede.disponibles > 0 ? '#00C853' : '#6B7280';
-  pin.setAttribute('role', 'button');
-  pin.setAttribute('tabindex', '0');
-  pin.setAttribute(
-    'aria-label',
-    sede.disponibles > 0
-      ? `${sede.nombre}: ${sede.disponibles} celdas disponibles`
-      : `${sede.nombre}: sin celdas disponibles`,
-  );
-  // Check blanco (el check de la marca, verde solo aparece de fondo)
-  pin.innerHTML =
-    '<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">' +
-    '<path d="M6 12.5 L10.5 17 L18 8" stroke="white" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  return pin;
-}
-
-function crearPopup(sede: SedeMock): Popup {
-  const contenido = document.createElement('div');
-  contenido.className = 'min-w-56 space-y-1.5 font-sans';
-  contenido.innerHTML = `
-    <p class="text-sm font-semibold text-grafito">${sede.nombre}</p>
-    <p class="text-xs text-grafito/70">${sede.direccion}</p>
-    <p class="text-sm"><span class="font-semibold text-acero">${COP.format(sede.precioPorHora)}</span><span class="text-xs text-grafito/60"> /hora</span></p>
-    <p class="text-xs ${sede.disponibles > 0 ? 'text-green-700' : 'text-grafito/60'}">
-      ${sede.disponibles > 0 ? `${sede.disponibles} de ${sede.total} celdas disponibles` : 'Sin celdas disponibles'}
-    </p>
-    ${sede.disponibles > 0 ? '<button type="button" title="Próximamente" class="mt-1 w-full rounded-full bg-acero px-4 py-2 text-xs font-semibold text-white hover:bg-azul-profundo">Reservar</button>' : ''}
+/** Pill flotante estilo Apple Maps / EV charging */
+function crearPin(sede: Sede): HTMLDivElement {
+  const el = document.createElement('div');
+  el.className = 'marker-pill';
+  el.style.cssText = `
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+    pointer-events: auto;
   `;
-
-  const popup = new Popup({ maxWidth: '240px' }).setDOMContent(contenido);
-  return popup;
+  el.innerHTML = `
+    <div style="
+      background: #1F2937;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 8px 20px -8px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    ">
+      <span style="display:inline-flex;width:16px;height:16px;border-radius:50%;background:#00C853;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;">P</span>
+      ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(sede.precioHora)}/h
+    </div>
+  `;
+  el.setAttribute('role', 'button');
+  el.setAttribute('aria-label', `${sede.nombre}: ${sede.precioHora} por hora`);
+  return el;
 }
 
-/** Geocodificación pública de OSM (Nominatim): libre, sin API key, exige User-Agent corto. */
-async function buscarDireccion(consulta: string): Promise<{ lat: number; lng: number; etiqueta: string } | null> {
-  const url = new URL('https://nominatim.openstreetmap.org/search');
-  url.searchParams.set('format', 'jsonv2');
-  url.searchParams.set('limit', '1');
-  url.searchParams.set('q', consulta);
-
-  const respuesta = await fetch(url, { headers: { 'Accept': 'application/json' } });
-  if (!respuesta.ok) return null;
-  const hallados = (await respuesta.json()) as Array<{ lat: string; lon: string; display_name: string }>;
-  const primero = hallados[0];
-  if (!primero) return null;
-  return { lat: Number(primero.lat), lng: Number(primero.lon), etiqueta: primero.display_name };
-}
-
-export default function MapaParqueaderos() {
+export default function MapaParqueaderos({ sedes: sedesProp = [] }: { sedes?: Sede[] }) {
   const contenedorRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<MapaGL | null>(null);
+  const markersRef = useRef<Marker[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [consulta, setConsulta] = useState('');
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [ubicandose, setUbicandose] = useState(false);
+  const [sedes, setSedes] = useState<Sede[]>(sedesProp);
+  const [errorSedes, setErrorSedes] = useState<string | null>(null);
+  const [sedeSeleccionada, setSedeSeleccionada] = useState<Sede | null>(null);
+  // Estado para el modal de reserva (confirmación de modalidad)
+  const [reservaModal, setReservaModal] = useState<{
+    abierto: boolean;
+    sede: Sede | null;
+    cargando: boolean;
+    error: string | null;
+  }>({ abierto: false, sede: null, cargando: false, error: null });
+
+  // Estado para el modal premium de reserva exitosa
+  const [reservaExitosa, setReservaExitosa] = useState<ReservaModalProps | null>(null);
+
+  // Sincronizar sedes recibidas por props
+  useEffect(() => {
+    setSedes(sedesProp ?? []);
+  }, [sedesProp]);
 
   useEffect(() => {
     if (!contenedorRef.current) return;
 
+    maplibregl.setWorkerUrl('/maplibre-gl-worker.mjs');
+
     const mapa = new MapaGL({
       container: contenedorRef.current,
-      style: ESTILO_OPENFREEMAP,
+      style: ESTILO_MAPA,
       center: CENTRO_MEDELLIN,
       zoom: 13,
+      pitch: 45,
+      bearing: -17.6,
       locale: { 'NavigationControl.Reset Bearing': 'Reorientar al norte' },
     });
 
@@ -102,25 +110,98 @@ export default function MapaParqueaderos() {
     mapa.addControl(new NavigationControl({ showCompass: true }), 'bottom-right');
     mapa.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left');
 
-    mapa.on('load', () => setCargando(false));
-    mapa.on('error', (evento) => {
-      // Tiles caídos no deben dejar la pantalla muerta: el overlay sale con el load igual.
-      if (!mapa.loaded()) setCargando(false);
-      console.error('[MapaParqueaderos]', evento);
+    mapa.on('load', () => {
+      console.log('Mapa cargado correctamente');
+      setMapLoaded(true);
+      setCargando(false);
     });
-
-    for (const sede of SEDES_MOCK) {
-      new Marker({ element: crearPin(sede) })
-        .setLngLat([sede.longitud, sede.latitud])
-        .setPopup(crearPopup(sede))
-        .addTo(mapa);
-    }
+    mapa.on('error', (evento) => {
+      if (!mapa.loaded()) setCargando(false);
+      console.error('[MapaParqueaderos] Error:', (evento as any)?.error?.message || (evento as any)?.message || evento);
+    });
 
     return () => {
       mapa.remove();
       mapaRef.current = null;
     };
   }, []);
+
+  // Añadir marcadores cuando cambian las sedes y el mapa está listo
+  useEffect(() => {
+    const mapa = mapaRef.current;
+    if (!mapa || !mapLoaded) return;
+
+    // Limpiar marcadores anteriores
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+
+    for (const sede of sedes) {
+      const pin = crearPin(sede);
+      const marker = new Marker({ element: pin })
+        .setLngLat([sede.longitud, sede.latitud])
+        .addTo(mapa);
+
+      pin.addEventListener('click', () => {
+        setSedeSeleccionada(sede);
+        mapa.flyTo({ center: [sede.longitud, sede.latitud], zoom: 15, duration: 1200 });
+      });
+      pin.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setSedeSeleccionada(sede);
+        }
+      });
+      markersRef.current.push(marker);
+    }
+  }, [sedes, mapLoaded]);
+
+  /** Abre el modal de confirmación de reserva. */
+  function abrirModalReserva(sede: Sede) {
+    setReservaModal({
+      abierto: true,
+      sede,
+      cargando: false,
+      error: null,
+    });
+  }
+
+  function cerrarModalReserva() {
+    setReservaModal({ abierto: false, sede: null, cargando: false, error: null });
+  }
+
+  function cerrarReservaExitosa() {
+    setReservaExitosa(null);
+  }
+
+  async function confirmarReserva(modalidad: 'GARANTIZADA' | 'EXPRES') {
+    const sede = reservaModal.sede;
+    if (!sede) return;
+
+    setReservaModal((prev) => ({ ...prev, cargando: true, error: null }));
+
+    try {
+      const reserva = await crearReserva(sede.id, modalidad);
+      // Abrir el modal premium con todos los datos
+      setReservaExitosa({
+        id: reserva.id,
+        codigoQr: reserva.codigoQr,
+        modalidad: reserva.modalidad,
+        sede: {
+          id: sede.id,
+          nombre: sede.nombre,
+          direccion: sede.direccion,
+          precioHora: sede.precioHora,
+        },
+      });
+      setReservaModal({ abierto: false, sede: null, cargando: false, error: null });
+    } catch (error) {
+      const mensaje =
+        error instanceof ErrorDeReserva
+          ? error.message
+          : 'Error inesperado al crear la reserva. Inténtalo de nuevo.';
+      setReservaModal((prev) => ({ ...prev, cargando: false, error: mensaje }));
+    }
+  }
 
   async function alBuscar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -171,7 +252,7 @@ export default function MapaParqueaderos() {
   return (
     <div className="relative h-full w-full">
       {/* Lienzo del mapa */}
-      <div ref={contenedorRef} className="absolute inset-0" aria-label="Mapa de parqueaderos" />
+      <div ref={contenedorRef} className="absolute inset-0 w-full h-full" aria-label="Mapa de parqueaderos" />
 
       {cargando ? (
         <p
@@ -182,12 +263,21 @@ export default function MapaParqueaderos() {
         </p>
       ) : null}
 
-      {/* Barra de búsqueda flotante (estilo Google Maps) */}
+      {errorSedes ? (
+        <p
+          role="alert"
+          className="absolute inset-0 z-10 grid place-items-center bg-red-50 text-sm font-medium text-red-800 p-4"
+        >
+          {errorSedes}
+        </p>
+      ) : null}
+
+      {/* Barra de búsqueda flotante con glassmorphism */}
       <form
         onSubmit={alBuscar}
-        className="absolute left-1/2 top-4 z-20 flex w-[92%] max-w-md -translate-x-1/2 items-center gap-2 rounded-full border border-grafito/10 bg-white/95 px-4 py-2.5 shadow-lg backdrop-blur"
+        className="absolute left-1/2 top-4 z-20 flex w-[92%] max-w-md -translate-x-1/2 items-center gap-3 rounded-[24px] border border-white/30 bg-white/80 px-4 py-3 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.25)] backdrop-blur-md"
       >
-        <svg viewBox="0 0 24 24" className="size-5 shrink-0 text-grafito/50" fill="none" aria-hidden>
+        <svg viewBox="0 0 24 24" className="size-5 shrink-0 text-grafito/60" fill="none" aria-hidden>
           <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
           <path d="M20 20 L16.5 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
@@ -200,31 +290,34 @@ export default function MapaParqueaderos() {
           value={consulta}
           onChange={(e) => setConsulta(e.target.value)}
           placeholder="Buscar dirección o barrio…"
-          className="w-full bg-transparent text-sm text-grafito placeholder:text-grafito/40 focus:outline-none"
+          className="w-full bg-transparent text-[15px] text-grafito placeholder:text-grafito/40 focus:outline-none"
         />
         <button
           type="submit"
-          className="shrink-0 rounded-full bg-acero px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-azul-profundo"
+          className="shrink-0 rounded-full bg-acero px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_20px_-8px_rgba(47,93,159,0.6)] transition active:scale-[0.98]"
         >
           Buscar
         </button>
       </form>
 
-      {/* Volver al inicio */}
+      {/* Volver al inicio - ícono circular flotante */}
       <Link
         href="/"
-        className="absolute left-4 top-20 z-20 rounded-full border border-grafito/10 bg-white/95 px-4 py-2 text-xs font-semibold text-grafito shadow-lg backdrop-blur transition-colors hover:text-acero sm:top-[4.5rem]"
+        aria-label="Volver al inicio"
+        className="absolute left-4 top-4 z-20 grid size-11 place-items-center rounded-full border border-white/30 bg-white/80 text-grafito shadow-[0_8px_20px_-8px_rgba(0,0,0,0.25)] backdrop-blur-md transition hover:scale-105 active:scale-95"
       >
-        ← Inicio
+        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
       </Link>
 
-      {/* Centrar en mi ubicación (botón flotante) */}
+      {/* Centrar en mi ubicación (botón flotante) con glassmorphism */}
       <button
         type="button"
         onClick={centrarEnMiUbicacion}
         disabled={ubicandose}
         aria-label="Centrar el mapa en mi ubicación"
-        className="absolute bottom-24 right-4 z-20 grid size-11 place-items-center rounded-full border border-grafito/10 bg-white/95 text-acero shadow-lg backdrop-blur transition-colors hover:bg-acero hover:text-white disabled:opacity-60"
+        className="absolute bottom-24 right-4 z-20 grid size-12 place-items-center rounded-2xl border border-white/20 bg-white/10 text-white shadow-2xl backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-110 disabled:opacity-60"
       >
         <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden>
           <circle cx="12" cy="12" r="6.5" stroke="currentColor" strokeWidth="2" />
@@ -233,15 +326,142 @@ export default function MapaParqueaderos() {
         </svg>
       </button>
 
-      {/* Mensaje de estado (búsqueda / geolocalización) */}
+      {/* Mensaje de estado con glassmorphism */}
       {mensaje ? (
         <p
           role="status"
-          className="absolute bottom-10 left-1/2 z-20 -translate-x-1/2 rounded-full border border-grafito/10 bg-white/95 px-4 py-1.5 text-xs font-medium text-grafito shadow-md backdrop-blur"
+          className="absolute bottom-10 left-1/2 z-20 -translate-x-1/2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-medium text-white shadow-2xl backdrop-blur-xl"
         >
           {mensaje}
         </p>
       ) : null}
+
+      {/* Modal de confirmación de reserva (modalidad) con glassmorphism */}
+      {reservaModal.abierto && reservaModal.sede && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-titulo"
+        >
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white/10 backdrop-blur-2xl p-6 shadow-2xl">
+            <h2 id="modal-titulo" className="text-xl font-semibold text-white">
+              Confirmar reserva
+            </h2>
+            <p className="mt-2 text-sm text-white/80">
+              Sede: <span className="font-medium text-white">{reservaModal.sede.nombre}</span>
+            </p>
+            <p className="mt-1 text-sm text-white/80">
+              Precio: <span className="font-semibold text-acero">{COP.format(reservaModal.sede.precioHora)}</span> / hora
+            </p>
+
+            {reservaModal.error ? (
+              <p className="mt-4 rounded-xl border border-red-400/30 bg-red-500/20 px-3.5 py-2.5 text-sm text-red-200 backdrop-blur-xl" role="alert">
+                {reservaModal.error}
+              </p>
+            ) : null}
+            <p className="mt-4 text-sm text-white/80">
+              Elige la modalidad de tu reserva:
+            </p>
+            <div className="mt-3 grid gap-3">
+              <button
+                type="button"
+                onClick={() => confirmarReserva('GARANTIZADA')}
+                disabled={reservaModal.cargando}
+                className="rounded-2xl border border-white/20 bg-white/10 p-4 text-left backdrop-blur-xl transition-all duration-300 hover:border-acero hover:bg-acero/20 hover:scale-105 disabled:opacity-60"
+              >
+                <p className="font-semibold text-white">Reserva Garantizada</p>
+                <p className="text-xs text-white/60">Tu celda queda reservada exclusivamente para ti.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmarReserva('EXPRES')}
+                disabled={reservaModal.cargando}
+                className="rounded-2xl border border-white/20 bg-white/10 p-4 text-left backdrop-blur-xl transition-all duration-300 hover:border-acero hover:bg-acero/20 hover:scale-105 disabled:opacity-60"
+              >
+                <p className="font-semibold text-white">Reserva Exprés</p>
+                <p className="text-xs text-white/60">Llegas y te asignamos una celda disponible al momento.</p>
+              </button>
+            </div>
+            {reservaModal.cargando && (
+              <p className="mt-3 text-center text-sm text-acero animate-pulse">Creando reserva…</p>
+            )}
+            <button
+              type="button"
+              onClick={cerrarModalReserva}
+              disabled={reservaModal.cargando}
+              className="mt-4 w-full rounded-2xl border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-white/20 hover:scale-105 disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal premium de reserva exitosa con QR */}
+      <ReservaExitosaModal
+        isOpen={reservaExitosa !== null}
+        onClose={cerrarReservaExitosa}
+        reserva={reservaExitosa}
+      />
+
+      {/* Bottom Sheet de detalle de sede */}
+      <AnimatePresence>
+        {sedeSeleccionada && (
+          <motion.div
+            className="fixed inset-x-0 bottom-0 z-40 flex justify-center p-4"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          >
+            <div className="w-full max-w-lg rounded-t-3xl border border-white/20 bg-white/95 backdrop-blur-2xl shadow-2xl p-5 text-grafito">
+              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-grafito/20" />
+              <h3 className="text-xl font-bold">{sedeSeleccionada.nombre}</h3>
+              <p className="text-sm text-grafito/70">{sedeSeleccionada.direccion}</p>
+              <div className="mt-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-grafito/60">Precio por hora</p>
+                  <p className="text-2xl font-bold text-azul-acero">{COP.format(sedeSeleccionada.precioHora)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-grafito/60">Disponibilidad</p>
+                  <p className="text-lg font-semibold">{sedeSeleccionada.capacidadTotal} celdas</p>
+                </div>
+              </div>
+              <button
+                onClick={() => abrirModalReserva(sedeSeleccionada)}
+                disabled={sedeSeleccionada.capacidadTotal <= 0}
+                className="mt-5 w-full rounded-full bg-azul-acero px-6 py-3 font-semibold text-white transition hover:bg-azul-profundo disabled:opacity-60"
+              >
+                Reservar
+              </button>
+              <button
+                onClick={() => setSedeSeleccionada(null)}
+                className="mt-2 w-full text-sm text-grafito/60 hover:text-grafito"
+              >
+                Cerrar
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
+}
+
+/** Geocodificación pública de OSM (Nominatim): libre, sin API key, exige User-Agent corto. */
+async function buscarDireccion(consulta: string): Promise<{ lat: number; lng: number; etiqueta: string } | null> {
+  const url = new URL('https://nominatim.openstreetmap.org/search');
+  url.searchParams.set('format', 'jsonv2');
+  url.searchParams.set('limit', '1');
+  url.searchParams.set('q', consulta);
+
+  const respuesta = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!respuesta.ok) return null;
+  const hallados = (await respuesta.json()) as Array<{ lat: string; lon: string; display_name: string }>;
+  const primero = hallados[0];
+  if (!primero) return null;
+  return { lat: Number(primero.lat), lng: Number(primero.lon), etiqueta: primero.display_name };
 }

@@ -1,6 +1,7 @@
 // Punto de entrada del módulo admin-api: construye el servidor HTTP y lo pone a escuchar.
 import 'dotenv/config';
 import type { EmailService } from './domain/ports/EmailService.js';
+import type { OperadorService } from './application/services/OperadorService.js';
 
 const PUERTO_POR_DEFECTO = 3000;
 const puerto = Number(process.env['PORT'] ?? PUERTO_POR_DEFECTO);
@@ -23,6 +24,9 @@ const [
   { buildServer },
   { PostgresConsultadorDeBaseDeDatos },
   { PostgresUsuarioRepository },
+  { PostgresSedeRepository },
+  { PostgresReservaRepository },
+  { PostgresTicketKYBRepository },
   { Argon2Hasher },
   { CryptoGeneradorId },
   { RelojSistema },
@@ -30,11 +34,18 @@ const [
   { SmtpEmailService, opcionesSmtpDesdeEntorno },
   { AdminService },
   { AuthService },
+  { ReservaService },
+  { OperadorServiceImpl },
+  { SedeService },
   { JwtService, opcionesJwtDesdeEntorno },
+  { MockPaymentGateway },
 ] = await Promise.all([
   import('./interfaces/http/server.js'),
   import('./infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.js'),
   import('./infrastructure/persistence/PostgresUsuarioRepository.js'),
+  import('./infrastructure/persistence/PostgresSedeRepository.js'),
+  import('./infrastructure/persistence/PostgresReservaRepository.js'),
+  import('./infrastructure/persistence/PostgresTicketKYBRepository.js'),
   import('./infrastructure/security/Argon2Hasher.js'),
   import('./infrastructure/id/CryptoGeneradorId.js'),
   import('./infrastructure/time/RelojSistema.js'),
@@ -42,7 +53,11 @@ const [
   import('./infrastructure/notifications/SmtpEmailService.js'),
   import('./application/services/AdminService.js'),
   import('./application/services/AuthService.js'),
+  import('./application/services/ReservaService.js'),
+  import('./application/services/OperadorService.js'),
+  import('./application/services/SedeService.js'),
   import('./infrastructure/security/JwtService.js'),
+  import('./infrastructure/payments/MockPaymentGateway.js'),
 ]);
 
 const db = new PostgresConsultadorDeBaseDeDatos();
@@ -74,9 +89,18 @@ const emailService: EmailService = (() => {
 })();
 
 const usuarioRepository = new PostgresUsuarioRepository();
+const sedeRepository = new PostgresSedeRepository();
+const reservaRepository = new PostgresReservaRepository();
+const ticketKYBRepository = new PostgresTicketKYBRepository();
 const passwordHasher = new Argon2Hasher();
 const generadorId = new CryptoGeneradorId();
 const reloj = new RelojSistema();
+let paymentGateway = new MockPaymentGateway();
+const stripeKey = process.env['STRIPE_SECRET_KEY'];
+if (stripeKey && stripeKey.startsWith('sk_')) {
+  const { StripePaymentGateway } = await import('./infrastructure/payments/StripePaymentGateway.js');
+  paymentGateway = new StripePaymentGateway(stripeKey);
+}
 
 // JWT: sin un secreto de al menos 32 caracteres no se firma nada. Un fallo de
 // configuración detiene el arranque en lugar de emitir tokens adivinables.
@@ -103,6 +127,27 @@ const adminService = new AdminService(
   passwordHasher,
 );
 
+const reservaService = new ReservaService(
+  reservaRepository,
+  sedeRepository,
+  generadorId,
+  reloj,
+  paymentGateway,
+);
+
+const operadorService = new OperadorServiceImpl(
+  reservaRepository,
+  sedeRepository,
+  reloj,
+);
+
+const sedeService = new SedeService(
+  ticketKYBRepository,
+  sedeRepository,
+  generadorId,
+  reloj,
+);
+
 const authService = new AuthService(
   usuarioRepository,
   passwordHasher,
@@ -110,7 +155,7 @@ const authService = new AuthService(
 );
 
 const app = await buildServer(
-  { db, adminService, authService, servicioTokens },
+  { db, adminService, authService, reservaService, operadorService, servicioTokens, sedeRepository, sedeService },
   {
     logger: true,
     // Sólo true detrás de un reverse proxy propio (nginx, Vercel, ALB). A

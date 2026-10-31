@@ -11,6 +11,30 @@ enum EstadoUsuario {
   SUSPENDIDO
 }
 
+enum ModalidadReserva {
+  GARANTIZADA
+  EXPRES
+}
+
+enum EstadoReserva {
+  ACTIVA
+  FINALIZADA
+  CANCELADA
+  EXPIRADA
+}
+
+enum EstadoSede {
+  ACTIVA
+  PENDIENTE_KYB
+  RECHAZADA
+}
+
+enum EstadoKYB {
+  EN_REVISION
+  APROBADO
+  RECHAZADO
+}
+
 model Usuario {
   id              String         @id @onCreate(uuid())
   email           String         @unique
@@ -21,4 +45,50 @@ model Usuario {
   tokenExpiracion TimestamptzJsDate? @map("token_expiracion")
 
   @@map("usuario")
+}
+
+model Sede {
+  id               String         @id @onCreate(uuid())
+  nombre           String
+  direccion        String
+  latitud          Float
+  longitud         Float
+  capacidadTotal   Int            @map("capacidad_total")
+  precioHora       Int            @map("precio_hora")
+  estado           EstadoSede     @default(PENDIENTE_KYB)
+  operadorId       String         @map("operador_id")
+  reservas         Reserva[]
+  ticketKYB        TicketKYB?
+
+  @@map("sede")
+}
+
+model TicketKYB {
+  id               String         @id @onCreate(uuid())
+  sedeId           String         @unique @map("sede_id")
+  sede             Sede           @relation(fields: [sedeId], references: [id])
+  operadorId       String         @map("operador_id")
+  estado           EstadoKYB      @default(EN_REVISION)
+  urlRut           String         @map("url_rut")
+  urlCamaraComercio String         @map("url_camara_comercio")
+  motivoRechazo    String?        @map("motivo_rechazo")
+  fechaCreacion    TimestamptzJsDate @default(now()) @map("fecha_creacion")
+  fechaActualizacion TimestamptzJsDate? @map("fecha_actualizacion")
+
+  @@map("ticket_kyb")
+}
+
+model Reserva {
+  id              String         @id @onCreate(uuid())
+  usuarioId       String         @map("usuario_id")
+  usuario         Usuario        @relation(fields: [usuarioId], references: [id])
+  sedeId          String         @map("sede_id")
+  sede            Sede           @relation(fields: [sedeId], references: [id])
+  modalidad       ModalidadReserva
+  estado          EstadoReserva  @default(ACTIVA)
+  codigoQr        String         @unique @map("codigo_qr")
+  fechaEntrada    TimestamptzJsDate  @map("fecha_entrada")
+  fechaSalida     TimestamptzJsDate? @map("fecha_salida")
+
+  @@map("reserva")
 }

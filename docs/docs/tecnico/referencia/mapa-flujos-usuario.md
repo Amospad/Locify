@@ -10,6 +10,7 @@ Este documento detalla los 10 flujos (User Journeys) que componen el ecosistema 
 ## 1. Flujo del Conductor: Autenticación
 *   **Actor:** Conductor
 *   **Objetivo:** Registrarse y acceder al sistema de forma segura.
+
 ```mermaid
 flowchart TD
     A[Usuario ingresa a la App] --> B{¿Tiene cuenta?}
@@ -21,9 +22,10 @@ flowchart TD
     F --> G[Redirige a /buscar]
 ```
 
-## 2. Flujo del Conductor: Búsqueda y Reserva de Cupo
+## 2. Flujo del Conductor: Búsqueda y Reserva (Crítico)
 *   **Actor:** Conductor
-*   **Objetivo:** Encontrar un parqueadero y reservar un cupo.
+*   **Objetivo:** Encontrar un parqueadero y asegurar el cupo.
+
 ```mermaid
 flowchart TD
     A[Conductor en /buscar] --> B[Visualiza mapa y lista de sedes]
@@ -38,9 +40,10 @@ flowchart TD
     I -->|No| K[Notifica error de pago]
 ```
 
-## 3. Flujo del Conductor: Check-in y Check-out
-*   **Actor:** Conductor
-*   **Objetivo:** Ingresar y salir del parqueadero usando la reserva.
+## 3. Flujo del Conductor: Acceso y Uso (Crítico)
+*   **Actor:** Conductor / Operador
+*   **Objetivo:** Ingresar al parqueadero y salir pagando lo justo.
+
 ```mermaid
 flowchart TD
     A[Conductor llega a sede] --> B[Muestra QR al operador]
@@ -54,9 +57,10 @@ flowchart TD
     I --> J[Check-out registrado y cierre de tarifa]
 ```
 
-## 4. Flujo del Conductor: Cancelación y Reembolso
+## 4. Flujo del Conductor: Cancelación y Reembolso (Crítico)
 *   **Actor:** Conductor
-*   **Objetivo:** Cancelar una reserva antes del inicio.
+*   **Objetivo:** Cancelar una reserva y recibir su dinero de vuelta si aplica.
+
 ```mermaid
 flowchart TD
     A[Conductor en /dashboard] --> B[Selecciona reserva activa]
@@ -68,9 +72,24 @@ flowchart TD
     F --> G
 ```
 
-## 5. Flujo del Operador: Onboarding KYB
-*   **Actor:** Operador / Admin Parqueadero
-*   **Objetivo:** Registrar el nuevo parqueadero y validarlo.
+## 5. Flujo del Conductor: Historial y Vehículos
+*   **Actor:** Conductor
+*   **Objetivo:** Consultar reservas pasadas y gestionar placas.
+
+```mermaid
+flowchart TD
+    A[Conductor abre /dashboard] --> B[Ver Historial de reservas]
+    B --> C[Filtrar por fecha/estado]
+    C --> D[Ver detalle de reserva]
+    A --> E[Gestionar vehículos]
+    E --> F[Agregar/Editar placa]
+    F --> G[Actualizar perfil]
+```
+
+## 6. Flujo del Operador: Onboarding KYB (Crítico)
+*   **Actor:** Operador / Administrador
+*   **Objetivo:** Validar legalmente la sede para operar.
+
 ```mermaid
 flowchart TD
     A[Operador ingresa a /operador/kyb] --> B[Formulario de datos de empresa]
@@ -82,64 +101,60 @@ flowchart TD
     F -->|No| H[Rechazo y notificación]
 ```
 
-## 6. Flujo del Operador: Gestión de Sedes y Cupos
+## 7. Flujo del Operador: Gestión de Ocupación
 *   **Actor:** Operador
-*   **Objetivo:** Configurar sedes, precios y disponibilidad.
+*   **Objetivo:** Monitorear los cupos en tiempo real.
+
 ```mermaid
 flowchart TD
-    A[Operador en dashboard] --> B[Crear/Editar sede]
-    B --> C[Configurar horarios y precios]
-    C --> D[Definir cupos por zona]
-    D --> E[Publicar disponibilidad]
-    E --> F[Sincronización con motor de reglas]
+    A[Operador en dashboard] --> B[Ver mapa de ocupación]
+    B --> C[Actualiza estado de cupos]
+    C --> D[Motor sincroniza disponibilidad]
+    D --> E[Notifica a conductores]
 ```
 
-## 7. Flujo del Operador: Check-in/Check-out y Pagos
-*   **Actor:** Operador / Personal
-*   **Objetivo:** Controlar acceso y registrar operaciones.
-```mermaid
-flowchart TD
-    A[Operador escanea QR] --> B{¿Check-in o Check-out?}
-    B -->|Check-in| C[Valida reserva]
-    B -->|Check-out| D[Cierra tarifa]
-    C --> E[Marca cupo ocupado]
-    D --> F[Genera recibo]
-    E --> G[Actualiza Ocupación]
-    F --> G
-```
-
-## 8. Flujo del Operador: Reportes y Finanzas
+## 8. Flujo del Operador: Contingencia (Check-in Manual)
 *   **Actor:** Operador
-*   **Objetivo:** Consultar ingresos y ocupación.
+*   **Objetivo:** Operar cuando falla la red o el escáner.
+
 ```mermaid
 flowchart TD
-    A[Operador abre Reportes] --> B[Selecciona rango de fechas]
-    B --> C[Motor genera KPIs]
-    C --> D[Visualiza ingresos y ocupación]
-    D --> E[Exporta a CSV/PDF]
+    A[Escaneo falla] --> B[Activar modo manual]
+    B --> C[Ingresa placa o ID de reserva]
+    C --> D[Valida en sistema offline/cache]
+    D --> E{¿Válido?}
+    E -->|Sí| F[Registra check-in/out manual]
+    E -->|No| G[Solicita verificación]
+    F --> H[Sincroniza al recuperar red]
 ```
 
-## 9. Flujo de Administrador: Moderación de Usuarios y Parqueaderos
+## 9. Flujo del Administrador: Auditoría y Moderación
 *   **Actor:** Administrador
-*   **Objetivo:** Aprobar parqueaderos y moderar usuarios.
+*   **Objetivo:** Mantener la calidad de la red.
+
 ```mermaid
 flowchart TD
     A[Admin en panel] --> B[Revisión de solicitudes KYB]
-    B --> C{Aprobación/Rechazo}
-    C --> D[Actualiza estado]
-    D --> E[Notifica a operador]
+    B --> C[Auditoría de usuarios/conductores]
+    C --> D{¿Cumple normas?}
+    D -->|Sí| E[Aprobar]
+    D -->|No| F[Suspender / Rechazar]
+    E --> G[Notifica al actor]
+    F --> G
 ```
 
-## 10. Flujo de Administrador: Configuración del Motor de Reglas
+## 10. Flujo del Administrador: Motor de Reglas (Crítico)
 *   **Actor:** Administrador
-*   **Objetivo:** Parametrizar reglas de precios, cancelación y cupos.
+*   **Objetivo:** Ajustar el negocio sin programar.
+
 ```mermaid
 flowchart TD
-    A[Admin accede a motor de reglas] --> B[Edita parámetros]
+    A[Admin accede a motor de reglas] --> B[Edita parámetros de precio/cancelación/cupos]
     B --> C[Simula escenario]
     C --> D{¿Validado?}
     D -->|Sí| E[Publica reglas]
     D -->|No| F[Ajusta y re-simula]
+    F --> C
 ```
 
 Este mapa de 10 flujos garantiza cobertura completa de los actores y operaciones críticas del negocio.

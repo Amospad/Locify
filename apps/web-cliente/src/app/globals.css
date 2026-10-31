@@ -27,3 +27,20 @@
 }
 
 /* La marca se diseña en claro; no cambiamos de tema con el sistema. */
+
+:root {
+  --primary: oklch(62% 0.21 255);
+  --accent: oklch(65% 0.22 150);
+  --bg: oklch(100% 0 0);
+  --surface: oklch(98% 0.01 255);
+  --fg: oklch(14% 0.02 255);
+}
+
+/* Liquid Glass effect for cards and modals */
+.glass {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background-color: color-mix(in oklch, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in oklch, var(--fg) 10%, transparent);
+}
+

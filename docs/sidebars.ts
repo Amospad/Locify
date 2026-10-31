@@ -41,6 +41,7 @@ const sidebars: SidebarsConfig = {
   
   gestionSidebar: [
     { type: 'doc', id: 'gestion/gestion-interesados-proyecto', label: 'Gestión de Interesados y Proyecto' },
+    { type: 'doc', id: 'gestion/roadmap-sprints', label: 'Roadmap de Sprints' },
   ],
 };
 

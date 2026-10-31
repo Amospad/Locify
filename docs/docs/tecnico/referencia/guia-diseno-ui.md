@@ -11,26 +11,36 @@ Este documento establece los lineamientos visuales, de interacción y de marketi
 
 LOCIFY es una plataforma de movilidad urbana. Nuestra identidad visual debe transmitir **confianza (por el manejo de pagos)** pero también **rapidez y eficiencia**.
 
-### 1.1 Paleta Base (Confianza y Corporativo)
-- **Azul Acero (`#2F5D9F`):** Color primario de la marca. Usado en la barra de navegación, el logo y los textos principales.
-- **Azul Profundo (`#244A80`):** Para estados *hover* o elementos de énfasis.
-- **Azul Muy Claro (`#E6EEF8`):** Fondo de tarjetas (Cards) para dar un toque tecnológico y limpio.
+### 1.1 Paleta Base (Vercel/Linear - OKLCH)
+- **Primary** `oklch(62% 0.21 255)` — `var(--primary)`: Color primario de interfaz, acciones principales y navegación.
+- **Accent** `oklch(65% 0.22 150)` — `var(--accent)`: Color de acción/CTA, éxito y estados positivos.
+- **Background** `oklch(100% 0 0)` — `var(--bg)`: Fondo general de la aplicación.
+- **Surface** `oklch(98% 0.01 255)` — `var(--surface)`: Fondo de tarjetas, modales y paneles flotantes.
+- **Foreground** `oklch(14% 0.02 255)` — `var(--fg)`: Texto principal y elementos de contraste alto.
 
 ### 1.2 Color de Acción / CTA (Marketing)
-> **Regla de conversión:** Los botones de acción (ej. "Reservar Ahora", "Pagar", "Validar QR") **NO usarán el azul de la marca**. 
-> Para generar urgencia y positividad (vía libre), usaremos un **Verde Esmeralda (`#00C853`)** o un **Naranja Cálido (`#FF7A00`)**. Estos colores destacan sobre el fondo claro y aumentan la tasa de clics (CTR).
+> **Regla de conversión:** Los botones de acción (ej. "Reservar Ahora", "Pagar", "Validar QR") usan **Accent** `oklch(65% 0.22 150)`.
+> El primario se reserva para navegación y estructura. El contraste entre Primary y Accent aumenta la tasa de clics (CTR) manteniendo jerarquía visual.
 
 ### 1.3 Colores Neutros y de Estado
-- **Gris Claro (`#F4F6F8`):** Fondo general (Modo Claro).
-- **Grafito (`#1F2937`):** Texto principal (evita el negro puro).
-- **Gris Oscuro (`#4B5563`):** Texto secundario.
-- **Éxito (`#2E7D5B`):** Confirmaciones (se alinea con el verde de acción).
-- **Advertencia (`#C58A00`):** Sobretiempo o alertas.
-- **Error (`#C23B3B`):** Fallos de pago o QRs inválidos.
+- **Background** `oklch(100% 0 0)` — Fondo general (modo claro).
+- **Surface** `oklch(98% 0.01 255)` — Superficies elevadas, tarjetas.
+- **Foreground** `oklch(14% 0.02 255)` — Texto principal.
+- **Éxito:** derivado de Accent `oklch(65% 0.22 150)`.
+- **Advertencia:** `oklch(70% 0.15 80)`.
+- **Error:** `oklch(62% 0.20 25)`.
 
 ## 2. Tipografía y Espaciado
-- **Fuente:** San Francisco / Segoe UI / Roboto (Pila del sistema).
-- **Botones:** Ligeramente redondeados (`border-radius: 6px`) para transmitir seriedad B2B, pero con sombras suaves (`box-shadow`) para hacerlos resaltar.
+- **Fuente principal:** Inter cargada con `next/font/google`. Pesos para títulos 700-900, cuerpo 400-500.
+- **Fuente monoespaciada:** Geist Mono cargada con `next/font/google` para código, métricas y números.
+- **Implementación Next.js:**
+  ```ts
+  import { Inter, Geist_Mono } from 'next/font/google';
+  const inter = Inter({ subsets:['latin'], weight:['400','500','700','800','900'], variable:'--font-inter' });
+  const geistMono = Geist_Mono({ subsets:['latin'], weight:['400','500'], variable:'--font-geist-mono' });
+  ```
+  Las variables se aplican en `layout.tsx` y se usan en `globals.css`.
+- **Botones:** Ligeramente redondeados (`border-radius: 8px`) con sombra sutil para estilo Vercel/Linear, manteniendo área táctil 44×44 px.
 
 ## 3. Diseño Responsivo y Mobile-First
 
@@ -103,6 +113,8 @@ significa que el sistema fluye (check-in → check-out → cobro).
 | Verde | `#00C853` | **Solo estado**: check / celda libre / confirmación. Nunca relleno decorativo; nunca más de 25 % de la superficie |
 | Blanco | `#FFFFFF` | Versión reverse |
 
+> **Nota UI 2026-10-31:** El sistema de diseño de UI ha migrado a tokens OKLCH estilo Vercel/Linear definidos en §1.1. Los colores de marca del logotipo se mantienen; la interfaz usa `--primary`, `--accent`, `--bg`, `--surface`, `--fg` en OKLCH.
+
 ### 5.3 Tipografía del wordmark
 
 **Poppins SemiBold** (SIL **OFL 1.1**, libre, con uso comercial). En los SVG
@@ -133,9 +145,19 @@ Tres «no hacer» específicas:
 - **Skeletons:** Usar placeholders animados con `animate-pulse` en vez de spinners de texto. Aplica en dashboards y listados.
 - **Empty States:** Ilustración amigable + mensaje claro + CTA primario. Ejemplo: Dashboard sin reservas.
 
-### 7.2 Glassmorphism y Micro-interacciones
-- Barras de búsqueda y filtros con `bg-white/80 backdrop-blur-md rounded-[24px]`.
-- Tarjetas con hover `whileHover` (framer-motion) y animación para entrada escalonada.
+### 7.2 Liquid Glass y Micro-interacciones
+- **Efecto Liquid Glass:** Tarjetas flotantes y modales usan `backdrop-filter: blur(20px)` con `-webkit-backdrop-filter: blur(20px)`, fondo `color-mix(in oklch, var(--surface) 80%, transparent)` y borde sutil.
+- Clase utilitaria `.glass` definida en `globals.css`:
+  ```css
+  .glass {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background-color: color-mix(in oklch, var(--surface) 80%, transparent);
+    border: 1px solid color-mix(in oklch, var(--fg) 10%, transparent);
+  }
+  ```
+- Barras de búsqueda y filtros con `bg-surface/80 backdrop-blur-[20px] rounded-[16px]`.
+- Tarjetas con hover sutil y animación de entrada escalonada estilo Linear.
 - Scroll snap en listas tipo Apple Maps: `scroll-snap-type: y mandatory`.
 
 ### 7.3 Accesibilidad

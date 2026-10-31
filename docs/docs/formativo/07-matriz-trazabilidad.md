@@ -55,8 +55,12 @@ Este documento garantiza que cada necesidad del negocio esté cubierta por un re
 | **RF-32** | RBAC con roles internos | CU-12 | HU-04, HU-A06 | Alta | **Parcial** — el JWT lleva el `rol` y `POST /api/operadores/:id/reinvitar` exige ADMIN; no hay política por rol ni protección del resto de rutas |
 | **RF-33** | Moderación: suspender y reactivar operadores con motivo | CU-14 | HU-A08 | Alta | **No implementado** — solo existe el estado SUSPENDIDO rechazado en el login; faltan el endpoint de administración y el ocultamiento de la sede |
 | **RF-34** | Métricas globales agregadas por ciudad y fecha | — | HU-A10 | Media | **No implementado** |
+| **RF-35** | Precios dinámicos con multiplicadores por ocupación | CU-05 | HU-10 | Media | **No implementado** |
+| **RF-36** | Bloqueo temporal en PENDING_PAYMENT y liberación automática a 10 min (doble reserva) | CU-05 | HU-16 | Alta | **No implementado** |
+| **RF-37** | Sobretiempo con multiplicador 1.5x y cobro automático de diferencia | CU-07 | HU-19 | Alta | **No implementado** |
+| **RF-38** | Cancelación escalonada con reembolso >3h 100%, 1-3h 50%, <1h 0% | CU-06 | HU-14 | Alta | **No implementado** |
 
-**Cobertura:** 34/34 requerimientos listados (RF-01 a RF-34). Implementados o parciales: 11 (RF-01 a RF-08 del onboarding, RF-09, RF-21 y RF-32 con RBAC parcial). El resto está especificado pero sin código.
+**Cobertura:** 38/38 requerimientos listados (RF-01 a RF-38). Implementados o parciales: 11 (RF-01 a RF-08 del onboarding, RF-09, RF-21 y RF-32 con RBAC parcial). El resto está especificado pero sin código.
 
 > **Nota de nomenclatura (2026-10-27).** El sprint de autenticación llamó "RF-07" al **login**. En esta matriz RF-07 es la **activación** de la cuenta, que sigue pendiente. El login es una capacidad transversal ya implementada (`POST /api/auth/login`, JWT HS256, `LoginUsuarioUseCase`); no se le asignó un RF propio. Ver `PROJECT_STATE.md`, "Autenticación JWT y RBAC".
 
@@ -92,8 +96,8 @@ Alineada con la tabla de la sección 4 del SRS. Cualquier cambio en una de las d
 
 | Tipo | Elementos | Acción requerida |
 | :--- | :--- | :--- |
-| RF sin historia de usuario | **Ninguno** (34 de 34 cubiertos) | Cerrado el 2026-10-27 con HU-27 (RF-09), HU-28 (RF-21), HU-29 (RF-17) y HU-30 (RF-26); RF-33 y RF-34 nacieron cubiertos con HU-A08 y HU-A10 el 2026-10-28 |
+| RF sin historia de usuario | **Ninguno** (38 de 38 cubiertos) | Cerrado el 2026-10-27 con HU-27 (RF-09), HU-28 (RF-21), HU-29 (RF-17) y HU-30 (RF-26); RF-33 y RF-34 nacieron cubiertos con HU-A08 y HU-A10 el 2026-10-28; RF-35 a RF-38 añadidos el 2026-10-30 |
 | RF sin caso de uso | RF-34 | Añadir CU o justificar que se cubren como regla transversal. (RF-09 y RF-21 cubiertos con CU-07 el 2026-10-30; RF-31 y RF-32 dejaron de ser huecos con CU-11 y CU-12 el 2026-10-28) |
 | RF con caso de uso parcial | RF-13, RF-20, RF-26 | Precisar el escenario en `04-casos-uso.md` |
-| Historia sin requerimiento | HU-03 (recuperación de contraseña), HU-16 (doble reserva), HU-26 (acceso multiplataforma) | Derivar el RF correspondiente o declararla transversal al alcance. (HU-A08 y HU-A10 dejaron de ser huecos con RF-33 y RF-34 el 2026-10-28) |
+| Historia sin requerimiento | HU-03 (recuperación de contraseña), HU-26 (acceso multiplataforma) | Derivar el RF correspondiente o declararla transversal al alcance. (HU-16 cubierta con RF-36 el 2026-10-30; HU-A08 y HU-A10 dejaron de ser huecos con RF-33 y RF-34 el 2026-10-28) |
 | RNF sin instrumento de verificación | RNF-01 a RNF-10 | Definir métrica, umbral y comando de verificación antes de afirmar cumplimiento |

@@ -27,6 +27,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'tecnico/flujos/flujo-01-autenticacion',
+        'tecnico/flujos/flujo-02-busqueda-reserva',
       ],
     },
     { type: 'doc', id: 'adr/ADR-001-arquitectura-hexagonal', label: 'ADR-001: Arquitectura Hexagonal' },

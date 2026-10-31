@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import ThreeScene from "@/components/ThreeScene";
+import dynamic from 'next/dynamic';
+
+const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false });
 
 /**
  * Landing page oficial LOCIFY — punto de entrada para Conductores y Operadores.
@@ -13,7 +15,7 @@ export default function PaginaInicio() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0B1220]">
       {/* 3D Scene Background */}
-      <ThreeScene />
+      <Hero3D />
 
       {/* Navbar Glassmorphism */}
       <motion.header

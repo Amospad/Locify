@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useRef } from 'react';
+import { Suspense, useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Float, Environment } from '@react-three/drei';
 import * as THREE from 'three';
@@ -49,6 +49,26 @@ function FloatingGeometry() {
 }
 
 export default function Hero3D() {
+  const [fallback, setFallback] = useState(false);
+
+  useEffect(() => {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setFallback(isMobile || prefersReduced);
+  }, []);
+
+  if (fallback) {
+    return (
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0B1220] via-[#0B1220] to-[#1a2335]" />
+        <div className="absolute inset-0 opacity-40 mix-blend-screen bg-[radial-gradient(60%_60%_at_50%_40%,rgba(47,93,159,0.35),transparent_60%),radial-gradient(40%_40%_at_70%_70%,rgba(0,200,83,0.25),transparent_60%)]" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="size-64 rounded-full bg-gradient-to-br from-acero/20 to-verde-esmeralda/20 blur-3xl" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="absolute inset-0 z-0">
       <Canvas

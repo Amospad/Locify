@@ -21,6 +21,7 @@ enum EstadoReserva {
   FINALIZADA
   CANCELADA
   EXPIRADA
+  PAGADA
 }
 
 enum EstadoSede {

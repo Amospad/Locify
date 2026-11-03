@@ -73,21 +73,21 @@ export class CrearReservaUseCase {
       throw new ErrorDeValidacion('No se pudo generar un código QR único. Inténtalo de nuevo.');
     }
 
-    // 4. Procesar pago si es modalidad GARANTIZADA
+    // 4. Procesar pago si es modalidad GARANTIZADA y se proporciona token (pago inmediato)
     if (dto.modalidad === ModalidadReserva.GARANTIZADA) {
-      if (!dto.tokenTarjeta) {
-        throw new ErrorDeValidacion('Token de tarjeta requerido para reservas garantizadas');
-      }
-      if (!this.paymentGateway) {
-        throw new Error('PaymentGateway no configurado');
-      }
+      if (dto.tokenTarjeta) {
+        if (!this.paymentGateway) {
+          throw new Error('PaymentGateway no configurado');
+        }
 
-      const monto = sede.precioHora * 1; // 1 hora mínima
-      const resultado = await this.paymentGateway.procesarPago(monto, 'COP', dto.tokenTarjeta);
-      
-      if (!resultado.exitoso) {
-        throw new PagoRechazadoError('El pago fue rechazado por el gateway');
+        const monto = sede.precioHora * 1; // 1 hora mínima
+        const resultado = await this.paymentGateway.procesarPago(monto, 'COP', dto.tokenTarjeta);
+        
+        if (!resultado.exitoso) {
+          throw new PagoRechazadoError('El pago fue rechazado por el gateway');
+        }
       }
+      // Si no hay token, se asume pago diferido vía PaymentIntent
     }
 
     // 5. Crear la entidad de dominio

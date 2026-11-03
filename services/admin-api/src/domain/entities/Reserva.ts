@@ -10,6 +10,7 @@ export enum EstadoReserva {
   FINALIZADA = 'FINALIZADA',
   CANCELADA = 'CANCELADA',
   EXPIRADA = 'EXPIRADA',
+  PAGADA = 'PAGADA',
 }
 
 /** Código QR: alfanumérico, longitud fija para legibilidad en impresión. */

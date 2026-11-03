@@ -40,18 +40,24 @@ export const viewport: Viewport = {
 };
 
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
+import { TenantProvider } from "@/components/providers/TenantProvider";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${poppins.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-fondo font-sans text-grafito">
         <SmoothScrollProvider>
-          <div className="relative flex min-h-full flex-col">
-            <div className="absolute inset-0 bg-gradient-to-br from-grafito via-[#0F172A] to-acero opacity-95 pointer-events-none" />
-            <div className="relative z-10 flex min-h-full flex-col">
-              {children}
-            </div>
-          </div>
+          <AuthProvider>
+            <TenantProvider>
+              <div className="relative flex min-h-full flex-col">
+                <div className="absolute inset-0 bg-gradient-to-br from-grafito via-[#0F172A] to-acero opacity-95 pointer-events-none" />
+                <div className="relative z-10 flex min-h-full flex-col">
+                  {children}
+                </div>
+              </div>
+            </TenantProvider>
+          </AuthProvider>
         </SmoothScrollProvider>
       </body>
     </html>

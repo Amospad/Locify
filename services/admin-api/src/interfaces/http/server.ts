@@ -13,6 +13,7 @@ import { rutasSedes } from './routes/sedes.js';
 import { rutasOperadorDashboard, type OperadorRutasDeps } from './routes/operador-dashboard.js';
 import { rutasKYB } from './routes/kyb.js';
 import { rutasWebhookStripe } from './routes/webhooks.js';
+import { rutasPagos } from './routes/payments.js';
 import { crearAutenticacion } from './auth.js';
 import { registrarManejadorDeErrores } from './errores.js';
 
@@ -27,8 +28,12 @@ export interface DependenciasHttp {
   servicioTokens: ServicioDeTokens;
   /** Repositorio de sedes para el endpoint público. */
   sedeRepository: SedeRepository;
+  /** Repositorio de reservas para pagos. */
+  reservaRepository: import('../../domain/ports/ReservaRepository.js').ReservaRepository;
   /** Servicio para operaciones KYB. */
   sedeService: any;
+  /** Gateway de pagos para integración Stripe. */
+  paymentGateway: import('../../domain/ports/PaymentGateway.js').PaymentGateway;
 }
 
 export interface OpcionesServidor {
@@ -131,7 +136,14 @@ export async function buildServer(
     sedeService: deps.sedeService,
     autenticar,
   });
-  await app.register(rutasWebhookStripe);
+  await app.register(rutasPagos, {
+    reservaRepository: deps.reservaRepository,
+    sedeRepository: deps.sedeRepository,
+    paymentGateway: deps.paymentGateway,
+  });
+  await app.register(rutasWebhookStripe, {
+    reservaRepository: deps.reservaRepository,
+  });
 
   return app;
 }

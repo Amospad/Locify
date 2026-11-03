@@ -38,7 +38,7 @@ const [
   { OperadorServiceImpl },
   { SedeService },
   { JwtService, opcionesJwtDesdeEntorno },
-  { MockPaymentGateway },
+  { WompiMockGateway },
 ] = await Promise.all([
   import('./interfaces/http/server.js'),
   import('./infrastructure/persistence/PostgresConsultadorDeBaseDeDatos.js'),
@@ -57,7 +57,7 @@ const [
   import('./application/services/OperadorService.js'),
   import('./application/services/SedeService.js'),
   import('./infrastructure/security/JwtService.js'),
-  import('./infrastructure/payments/MockPaymentGateway.js'),
+  import('./infrastructure/payments/WompiMockGateway.js'),
 ]);
 
 const db = new PostgresConsultadorDeBaseDeDatos();
@@ -95,7 +95,7 @@ const ticketKYBRepository = new PostgresTicketKYBRepository();
 const passwordHasher = new Argon2Hasher();
 const generadorId = new CryptoGeneradorId();
 const reloj = new RelojSistema();
-let paymentGateway = new MockPaymentGateway();
+let paymentGateway = new WompiMockGateway();
 const stripeKey = process.env['STRIPE_SECRET_KEY'];
 if (stripeKey && stripeKey.startsWith('sk_')) {
   const { StripePaymentGateway } = await import('./infrastructure/payments/StripePaymentGateway.js');
@@ -155,7 +155,7 @@ const authService = new AuthService(
 );
 
 const app = await buildServer(
-  { db, adminService, authService, reservaService, operadorService, servicioTokens, sedeRepository, sedeService },
+  { db, adminService, authService, reservaService, operadorService, servicioTokens, sedeRepository, reservaRepository, sedeService, paymentGateway },
   {
     logger: true,
     // Sólo true detrás de un reverse proxy propio (nginx, Vercel, ALB). A

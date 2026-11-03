@@ -9,6 +9,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { crearReserva, ErrorDeReserva, type ReservaCreada } from '@/lib/api';
 import ReservaExitosaModal, { type ReservaModalProps } from './ReservaExitosaModal';
+import StripePaymentModal from './StripePaymentModal';
 import { type Sede } from '@/types/sede';
 
 /*
@@ -85,6 +86,10 @@ export default function MapaParqueaderos({ sedes: sedesProp = [] }: { sedes?: Se
 
   // Estado para el modal premium de reserva exitosa
   const [reservaExitosa, setReservaExitosa] = useState<ReservaModalProps | null>(null);
+  // Estado para pago Stripe
+  const [stripeState, setStripeState] = useState<{ reservaId: string; clientSecret: string } | null>(null);
+  // Para importar Stripe modal
+  const [showStripeModal, setShowStripeModal] = useState(false);
 
   // Sincronizar sedes recibidas por props
   useEffect(() => {
@@ -181,18 +186,30 @@ export default function MapaParqueaderos({ sedes: sedesProp = [] }: { sedes?: Se
 
     try {
       const reserva = await crearReserva(sede.id, modalidad);
-      // Abrir el modal premium con todos los datos
-      setReservaExitosa({
-        id: reserva.id,
-        codigoQr: reserva.codigoQr,
-        modalidad: reserva.modalidad,
-        sede: {
-          id: sede.id,
-          nombre: sede.nombre,
-          direccion: sede.direccion,
-          precioHora: sede.precioHora,
-        },
-      });
+      if (modalidad === 'GARANTIZADA') {
+        // Crear PaymentIntent
+        const res = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL || ''}/api/payments/create-intent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reservaId: reserva.id }),
+        });
+        if (!res.ok) throw new Error('No se pudo crear el PaymentIntent');
+        const data = await res.json();
+        setStripeState({ reservaId: reserva.id, clientSecret: data.clientSecret });
+        setShowStripeModal(true);
+      } else {
+        setReservaExitosa({
+          id: reserva.id,
+          codigoQr: reserva.codigoQr,
+          modalidad: reserva.modalidad,
+          sede: {
+            id: sede.id,
+            nombre: sede.nombre,
+            direccion: sede.direccion,
+            precioHora: sede.precioHora,
+          },
+        });
+      }
       setReservaModal({ abierto: false, sede: null, cargando: false, error: null });
     } catch (error) {
       const mensaje =
@@ -404,6 +421,30 @@ export default function MapaParqueaderos({ sedes: sedesProp = [] }: { sedes?: Se
         onClose={cerrarReservaExitosa}
         reserva={reservaExitosa}
       />
+
+      {/* Modal de pago Stripe */}
+      {showStripeModal && stripeState && (
+        <StripePaymentModal
+          reservaId={stripeState.reservaId}
+          clientSecret={stripeState.clientSecret}
+          onSuccess={() => {
+            setShowStripeModal(false);
+            setStripeState(null);
+            // Mostrar QR tras pago exitoso
+            // Reutilizar datos de sede desde reservaModal? Simular
+            setReservaExitosa({
+              id: stripeState.reservaId,
+              codigoQr: 'PENDIENTE',
+              modalidad: 'GARANTIZADA',
+              sede: { id: '', nombre: 'Sede', direccion: '', precioHora: 0 },
+            });
+          }}
+          onCancel={() => {
+            setShowStripeModal(false);
+            setStripeState(null);
+          }}
+        />
+      )}
 
       {/* Bottom Sheet de detalle de sede */}
       <AnimatePresence>

@@ -41,3 +41,14 @@ git commit -m "feat(dashboard+stripe): dashboards premium Apex style + integraci
 git push origin docs/hu-admin
 ```
 
+# Wompi Migration 
+
+```bash
+# Añadir specs, adaptadores y documentos
+git add specs/003-wompi-payments specs/002-stripe-payments/tasks.md services/admin-api/src/infrastructure/payments/WompiMockGateway.ts services/admin-api/tests/unit/WompiMockGateway.unit.test.ts services/admin-api/src/index.ts docs/docs/tecnico/referencia/integraciones.md PROJECT_STATE.md
+
+git commit -m "feat(wompi): spec SDD para migración Wompi, WompiMockGateway TDD y documentación"
+
+git push origin docs/hu-admin
+```
+

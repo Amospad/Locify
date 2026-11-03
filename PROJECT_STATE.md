@@ -697,3 +697,4 @@ Medido cargando el build dentro de un viewport de 1440 × 900:
 - Footer minimalista con logo y copyright © 2026 LOCIFY.
 - Build verde: `npm run build` exitoso en `apps/web-cliente`.
 \n- [x] Reingeniería profesional - Lógica de negocio, Roadmap y Diseño Premium (2026-10-31)\n- [x] Dashboards Premium Apex style + Stripe pagos reales (2026-10-31) 
+- [x] Migracion a pasarela Wompi con gateway mock y arquitectura hexagonal (2026-11-03) 

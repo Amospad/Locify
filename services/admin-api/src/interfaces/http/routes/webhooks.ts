@@ -1,9 +1,14 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { procesarWebhookStripe } from '../../../infrastructure/payments/StripeWebhook.js';
+import { ConfirmarPagoPorWebhookUseCase } from '../../../domain/use-cases/ConfirmarPagoPorWebhook.js';
 
-export const rutasWebhookStripe: FastifyPluginAsync = async (app) => {
+interface OpcionesWebhook {
+  reservaRepository: any;
+}
+
+export const rutasWebhookStripe: FastifyPluginAsync<OpcionesWebhook> = async (app, opciones) => {
   app.post('/api/webhooks/stripe', {
     config: {
-      // Deshabilita el body parser de Fastify para webhooks de Stripe
       rawBody: true,
     },
     schema: {
@@ -11,15 +16,29 @@ export const rutasWebhookStripe: FastifyPluginAsync = async (app) => {
     },
   }, async (request, reply) => {
     const signature = request.headers['stripe-signature'] as string;
-    const rawBody = (request as any).rawBody;
+    const rawBodyFromRequest = (request as any).rawBody as Buffer | undefined;
+    const rawBodyBuffer = rawBodyFromRequest ?? Buffer.from(JSON.stringify(request.body));
 
-    if (!signature || !rawBody) {
+    if (!signature || !rawBodyBuffer || rawBodyBuffer.length === 0) {
       return reply.code(400).send({ error: 'Firma o cuerpo faltante' });
     }
 
     try {
-      // Aquí iría la validación real con Stripe SDK
-      // const event = stripe.webhooks.constructEvent(...)
+      const webhookSecret = process.env['STRIPE_WEBHOOK_SECRET'] ?? '';
+      const event = await procesarWebhookStripe(rawBodyBuffer, signature, webhookSecret);
+      
+      if (event.type === 'payment_intent.succeeded') {
+        const useCase = new ConfirmarPagoPorWebhookUseCase(opciones.reservaRepository);
+        await useCase.ejecutar({
+          type: event.type,
+          data: {
+            object: {
+              id: event.data.object.id,
+              metadata: event.data.object.metadata,
+            },
+          },
+        });
+      }
       
       return reply.code(200).send({ received: true });
     } catch (error) {

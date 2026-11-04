@@ -63,3 +63,39 @@ Mode: Production (touches auth, JWT, Supabase RLS)
 1. Tests de integración KYB (PostgresTicketKYBRepository + use cases)
 2. feat-005-3: Frontend páginas /registrarse, /verificar-otp conectar lib/api.ts
 3. feat-005-4: Frontend /operador/kyb y /admin/kyb conectar a API real
+
+---
+
+## Session 2026-11-04 [Cierre Spec 005]
+
+### Especificación 005-auth-kyb CERRADA ✅
+
+**Todas las features passing**
+- feat-005-1: Registro Conductor + OTP Backend → passing
+- feat-005-2: Flujo KYB Backend y Estados → passing
+- feat-005-3: Interfaz PWA Registro y Verificación → passing
+- feat-005-4: Interfaz PWA KYB & Panel Admin → passing
+
+**Entregables Frontend**
+- `apps/web-cliente/src/lib/api.ts`: registrar, verificarOtp, obtenerEstadoKYB, subirDocumentosKYB, listarTicketsKYBPendientes, cambiarEstadoTicketKYB
+- `apps/web-cliente/src/app/registrarse/page.tsx` conectado a POST /api/auth/register
+- `apps/web-cliente/src/app/verificar-otp/page.tsx` conectado a POST /api/auth/verify-otp
+- `apps/web-cliente/src/app/operador/kyb/page.tsx` conectado a GET /api/kyb/status y POST /api/kyb/subir-documentos
+- `apps/web-cliente/src/app/admin/kyb/page.tsx` conectado a GET /api/admin/kyb/pendientes y PATCH /api/admin/kyb/:id/estado
+- TypeScript sin errores: `pnpm --filter web-cliente exec tsc --noEmit`
+
+**Entregables Documentación SENA**
+- Sincronización Docusaurus → SENA ejecutada: `node scripts/sync-docs.js`
+- Matriz de trazabilidad exportada: `node scripts/export-trazabilidad.js` → 39 filas CSV
+- README maestro creado: `docs/sena/README.md`
+- Checklist entrega creado: `docs/sena/00_Gobierno_Documental/entrega-final.md`
+- Diagramas Mermaid validados en `docs/sena/03_Desarrollo/Flujos_Tecnicos/`
+- Declaración uso IA presente en `00_Gobierno_Documental/declaracion-uso-ia.md`
+
+**Verificaciones**
+- `pnpm --filter admin-api test:unit` → 88/88 passing
+- `pnpm --filter admin-api build` → TypeScript clean
+- `pnpm --filter web-cliente exec tsc --noEmit` → sin errores
+
+**Próxima spec candidata**
+- Revisar roadmap para spec 006-operator-sedes o spec 007-reservas-qr

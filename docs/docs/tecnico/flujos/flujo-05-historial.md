@@ -43,9 +43,9 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[Desde Dashboard] --> B[Ir a "Mis Beneficios"]
-    B --> C{Mostrar saldo créditos}
-    C --> D[Ver historial de créditos (CU-C-06)]
-    C --> E[Aplicar créditos a reserva (CU-C-06)]
+    B --> C{Mostrar saldo creditos}
+    C --> D[Ver historial de creditos (CU-C-06)]
+    C --> E[Aplicar creditos a reserva (CU-C-06)]
     D --> F([Fin])
-    E --> F
+    E --> F([Fin])
 ```

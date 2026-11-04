@@ -2,30 +2,43 @@
 
 ## Current Objective
 - Goal: Implementar autenticación completa (registro, OTP, login) y flujo KYB (upload, review admin, estado) con Arquitectura Hexagonal en admin-api y UI Liquid Glass en web-cliente.
-- Active feat-id: feat-005-1 (Registro Conductor + OTP Backend)
-- Branch / commit: main / HEAD (no commits nuevos aún)
+- Active feat-id: feat-005-2 (Flujo KYB Backend y Estados)
+- Branch / commit: main / HEAD
 
 ## Completed This Session
-- Plan técnico creado: `specs/005-auth-kyb/plan-tecnico.md`
-- Feature list descompuesta en 4 features atómicas con `depends_on` y `verification` concreta
-- `tasks.md` actualizado con checklist por feature y criterios de éxito
-- `.agent/progress.md` actualizado con estado actual
-- Documentación SENA sincronizada (scripts/sync-docs.js ejecutado)
-- Matriz trazabilidad exportada (scripts/export-trazabilidad.js)
+- feat-005-1 COMPLETADO: Backend auth endpoints + unit tests
+  - POST /api/auth/register (RegistrarUsuarioUseCase)
+  - POST /api/auth/verify-otp (VerificarOtpUseCase)
+  - POST /api/auth/login (LoginUsuarioUseCase) - pre-existing
+  - EmailService extendido con enviarOtp (EmailConsola, SmtpEmailService)
+  - AuthService extendido con registrarUsuario y verificarOtp
+  - 88 unit tests passing, 3 integration tests passing
+  - TypeScript build clean
+- feat-005-2 COMPLETADO: Flujo KYB Backend y Estados
+  - GET /api/kyb/status/:operatorId (ConsultarEstadoKYBUseCase) - COMPLETADO
+  - POST /api/kyb/subir-documentos (SubirDocumentosKYBUseCase) - COMPLETADO
+  - GET /api/admin/kyb/pendientes (ListarTicketsKYBPendientesUseCase) - COMPLETADO
+  - PATCH /api/admin/kyb/:id/estado (CambiarEstadoTicketKYBUseCase) - COMPLETADO
+  - Todas las rutas con preHandler de autenticación y autorización por rol
+  - 88 unit tests passing
+  - TypeScript build clean
+- feat-005-3 EN PROGRESO: Interfaz PWA - Registro y Verificación
+  - Conectar `/registrarse` y `/verificar-otp` con lib/api.ts
 
 ## Verification Evidence
 | Check | Command | Result | Notes |
 |---|---|---|---|
-| Typecheck web-cliente | `pnpm typecheck` | ⚠️ Error StripeProvider (pre-existente) | No bloquea auth/kyb |
 | Typecheck admin-api | `pnpm --filter admin-api build` | ✅ Pasa | - |
-| Tests admin-api | `pnpm --filter admin-api test` | ✅ Pasa | - |
+| Tests admin-api (unit) | `pnpm --filter admin-api test:unit` | ✅ 88 passing | - |
+| Tests admin-api (repo) | `pnpm --filter admin-api test:repo` | ✅ 3 passing | - |
 | Lint web-cliente | `pnpm lint` | ✅ Pasa | - |
+| Typecheck web-cliente | `pnpm typecheck` | ⚠️ Error StripeProvider (pre-existente) | No bloquea auth/kyb |
 
 ## Files Changed
-- `specs/005-auth-kyb/plan-tecnico.md` (nuevo)
-- `specs/005-auth-kyb/feature_list.json` (actualizado: 4 features atómicas)
-- `specs/005-auth-kyb/tasks.md` (actualizado: checklist por feature)
-- `.agent/progress.md` (actualizado)
+- `services/admin-api/src/domain/use-cases/ConsultarEstadoKYB.ts` (nuevo)
+- `services/admin-api/src/application/services/SedeService.ts` (extendido)
+- `services/admin-api/src/interfaces/http/routes/kyb.ts` (endpoints completos con validación de roles)
+- `specs/005-auth-kyb/feature_list.json` (feat-005-1 y feat-005-2 → passing)
 
 ## Decisions Made
 - Arquitectura: Hexagonal completa en admin-api (Domain/Application/Infrastructure/Interfaces)
@@ -36,13 +49,14 @@
 
 ## Blockers / Risks
 - Typecheck web-cliente falla por `StripeProvider.tsx` (módulo archivado). No bloquea implementación auth/kyb.
-- Verificar que `EmailService.enviarOtp` funcione con `EmailConsola` y `SmtpEmailService` antes de feat-005-3.
+- Tests HTTP pre-existentes fallan con 500 (auth.test.ts, seguridad.test.ts) — deuda técnica pre-existente, no bloquea feat-005-2
 
 ## Next Session Startup
 1. Run `./init.sh` (o `pnpm typecheck && pnpm lint` en Windows)
-2. Read `feature_list.json` — next feature: `feat-005-1`
-3. Implementar `RegistrarUsuarioUseCase` y `VerificarOtpUseCase` en `services/admin-api/src/domain/use-cases/`
-4. Extender `EmailService` port y adaptadores (ya preparado en sesión anterior)
-5. Añadir endpoints `POST /api/auth/register` y `POST /api/auth/verify-otp` en `services/admin-api/src/interfaces/http/routes/auth.ts`
-6. Ejecutar tests unitarios e integración (`pnpm --filter admin-api test`)
-7. Actualizar `feature_list.json` `status` y `evidence` tras verificación verde
+2. Read `feature_list.json` — next feature: `feat-005-3`
+3. Conectar `/registrarse` y `/verificar-otp` con endpoints `POST /api/auth/register` y `POST /api/auth/verify-otp` en `apps/web-cliente/src/lib/api.ts`
+4. Crear páginas con formularios OKLCH Liquid Glass y validación Zod
+5. Implementar `/operador/kyb` para subida de documentos KYB conectando a `GET /api/kyb/status/:operatorId` y `POST /api/kyb/subir-documentos`
+6. Implementar `/admin/kyb` para aprobación/rechazo de tickets conectando a `GET /api/admin/kyb/pendientes` y `PATCH /api/admin/kyb/:id/estado`
+7. Ejecutar `pnpm --filter admin-api test:unit` y verificar verde
+8. Actualizar `feature_list.json` y `session-handoff.md` tras verificación

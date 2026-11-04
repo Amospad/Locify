@@ -1,6 +1,7 @@
 import { SubirDocumentosKYBUseCase, type SubirDocumentosKYBCommand, type SubirDocumentosKYBResult } from '../../domain/use-cases/SubirDocumentosKYB.js';
 import { ListarTicketsKYBPendientesUseCase, type TicketKYBPendienteDTO } from '../../domain/use-cases/ListarTicketsKYBPendientes.js';
 import { CambiarEstadoTicketKYBUseCase, type CambiarEstadoTicketKYBCommand, type CambiarEstadoTicketKYBResult } from '../../domain/use-cases/CambiarEstadoTicketKYB.js';
+import { ConsultarEstadoKYBUseCase, type ConsultarEstadoKYBResult } from '../../domain/use-cases/ConsultarEstadoKYB.js';
 import type { TicketKYBRepository } from '../../domain/ports/TicketKYBRepository.js';
 import type { SedeRepository } from '../../domain/ports/SedeRepository.js';
 import type { GeneradorId } from '../../domain/ports/GeneradorId.js';
@@ -10,6 +11,7 @@ export class SedeService {
   private readonly subirDocumentosUseCase: SubirDocumentosKYBUseCase;
   private readonly listarPendientesUseCase: ListarTicketsKYBPendientesUseCase;
   private readonly cambiarEstadoUseCase: CambiarEstadoTicketKYBUseCase;
+  private readonly consultarEstadoUseCase: ConsultarEstadoKYBUseCase;
 
   constructor(
     ticketKYBRepository: TicketKYBRepository,
@@ -31,6 +33,10 @@ export class SedeService {
       ticketKYBRepository,
       sedeRepository,
     );
+    this.consultarEstadoUseCase = new ConsultarEstadoKYBUseCase(
+      ticketKYBRepository,
+      sedeRepository,
+    );
   }
 
   public async subirDocumentosKYB(cmd: SubirDocumentosKYBCommand): Promise<SubirDocumentosKYBResult> {
@@ -43,5 +49,9 @@ export class SedeService {
 
   public async cambiarEstadoTicket(cmd: CambiarEstadoTicketKYBCommand): Promise<CambiarEstadoTicketKYBResult> {
     return this.cambiarEstadoUseCase.ejecutar(cmd);
+  }
+
+  public async consultarEstadoKYB(operadorId: string): Promise<ConsultarEstadoKYBResult> {
+    return this.consultarEstadoUseCase.ejecutar(operadorId);
   }
 }

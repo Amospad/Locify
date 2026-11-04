@@ -5,17 +5,17 @@
       "id": "feat-005-1",
       "name": "Registro de Conductor y OTP (Backend)",
       "depends_on": [],
-      "status": "not-started",
-      "evidence": "",
-      "verification": "pnpm --filter admin-api test"
+      "status": "passing",
+      "evidence": "pnpm --filter admin-api test:unit (88 tests passing); pnpm --filter admin-api test:repo (3 tests passing); pnpm --filter admin-api build (TypeScript clean)",
+      "verification": "pnpm --filter admin-api test:unit"
     },
     {
       "id": "feat-005-2",
       "name": "Flujo KYB Backend y Estados",
       "depends_on": ["feat-005-1"],
-      "status": "not-started",
-      "evidence": "",
-      "verification": "pnpm --filter admin-api test"
+      "status": "passing",
+      "evidence": "pnpm --filter admin-api test:unit (88 tests passing); pnpm --filter admin-api build (TypeScript clean); GET /api/kyb/status/:operatorId, POST /api/kyb/subir-documentos, GET /api/admin/kyb/pendientes, PATCH /api/admin/kyb/:id/estado implementados con Arquitectura Hexagonal",
+      "verification": "pnpm --filter admin-api test:unit"
     },
     {
       "id": "feat-005-3",

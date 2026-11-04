@@ -46,9 +46,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Sistema evaluar estado cada X minutos] --> B{¿Tiempo excedido?}
-    B -->|Sí| C[Generar alerta operador]
+    A[Sistema evaluar estado cada X minutos] --> B{?Tiempo excedido?}
+    B -->|Si| C[Generar alerta operador]
     B -->|No| D[Continuar monitoreo]
     C --> E[Registrar penalidad (CU-C-04)]
-    E --> F
+    E --> F([Fin])
 ```

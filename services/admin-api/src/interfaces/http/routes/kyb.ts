@@ -3,18 +3,19 @@ import { exigirRol, type PreHandler } from '../auth.js';
 import { RolUsuario } from '../../../domain/entities/Usuario.js';
 
 export interface GestorKYB {
-  subirDocumentosKYB(
-    sedeId: string,
-    operadorId: string,
-    urlRut: string,
-    urlCamaraComercio: string,
-  ): Promise<{ ticketId: string; sedeId: string; estado: string }>;
+  subirDocumentosKYB(cmd: {
+    sedeId: string;
+    operadorId: string;
+    urlRut: string;
+    urlCamaraComercio: string;
+  }): Promise<{ ticketId: string; sedeId: string; estado: string }>;
   listarTicketsPendientes(): Promise<any[]>;
-  cambiarEstadoTicket(
-    ticketId: string,
-    estadoNuevo: 'APROBADO' | 'RECHAZADO',
-    motivo?: string,
-  ): Promise<{ ticketId: string; estado: string; sedeId: string }>;
+  cambiarEstadoTicket(cmd: {
+    ticketId: string;
+    estadoNuevo: 'APROBADO' | 'RECHAZADO';
+    motivo?: string;
+  }): Promise<{ ticketId: string; estado: string; sedeId: string }>;
+  consultarEstadoKYB(operadorId: string): Promise<any>;
 }
 
 interface OpcionesKYB {
@@ -90,14 +91,70 @@ export const rutasKYB: FastifyPluginAsync<OpcionesKYB> = async (app, opciones) =
       const { sedeId, urlRut, urlCamaraComercio } = request.body;
       const operadorId = request.usuarioAutenticado!.sub;
 
-      const resultado = await opciones.sedeService.subirDocumentosKYB(
+      const resultado = await opciones.sedeService.subirDocumentosKYB({
         sedeId,
         operadorId,
         urlRut,
         urlCamaraComercio,
-      );
+      });
 
       return reply.code(201).send(resultado);
+    },
+  );
+
+  // OPERADOR consulta el estado KYB de su sede
+  app.get<{ Params: { operatorId: string } }>(
+    '/api/kyb/status/:operatorId',
+    {
+      preHandler: [opciones.autenticar],
+      schema: {
+        params: {
+          type: 'object',
+          required: ['operatorId'],
+          properties: {
+            operatorId: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            required: ['tieneTicket', 'estadoKYB', 'estadoSede'],
+            properties: {
+              tieneTicket: { type: 'boolean' },
+              estadoKYB: { type: ['string', 'null'], enum: ['EN_REVISION', 'APROBADO', 'RECHAZADO', null] },
+              estadoSede: { type: 'string', enum: ['ACTIVA', 'PENDIENTE_KYB', 'RECHAZADA'] },
+              sedeId: { type: ['string', 'null'] },
+              sedeNombre: { type: ['string', 'null'] },
+              urlRut: { type: ['string', 'null'] },
+              urlCamaraComercio: { type: ['string', 'null'] },
+              motivoRechazo: { type: ['string', 'null'] },
+              fechaCreacion: { type: ['string', 'null'], format: 'date-time' },
+              fechaActualizacion: { type: ['string', 'null'], format: 'date-time' },
+            },
+          },
+          401: esquemaError,
+          403: esquemaError,
+          500: esquemaError,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { operatorId } = request.params;
+      const autenticadoId = request.usuarioAutenticado!.sub;
+
+      // Solo puede consultar su propio estado, o un ADMIN puede consultar cualquiera
+      const esAdmin = request.usuarioAutenticado!.rol === RolUsuario.ADMIN;
+      if (!esAdmin && operatorId !== autenticadoId) {
+        return reply.code(403).send({ error: 'No tiene permiso para consultar este estado' });
+      }
+
+      const estado = await opciones.sedeService.consultarEstadoKYB(operatorId);
+
+      return reply.code(200).send({
+        ...estado,
+        fechaCreacion: estado.fechaCreacion?.toISOString() ?? null,
+        fechaActualizacion: estado.fechaActualizacion?.toISOString() ?? null,
+      });
     },
   );
 
@@ -183,7 +240,11 @@ export const rutasKYB: FastifyPluginAsync<OpcionesKYB> = async (app, opciones) =
         return reply.code(400).send({ error: 'Debe proporcionar un motivo para rechazar' });
       }
 
-      const resultado = await opciones.sedeService.cambiarEstadoTicket(id, estado, motivo);
+      const resultado = await opciones.sedeService.cambiarEstadoTicket({
+        ticketId: id,
+        estadoNuevo: estado,
+        motivo,
+      });
 
       return reply.code(200).send(resultado);
     },

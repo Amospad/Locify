@@ -61,9 +61,16 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '09. Modelo de Negocio y Resiliencia',
+      label: '09. Manual del Operador',
       items: [
-        'formativo/modelo-negocio-y-resiliencia',
+        'formativo/manual-operador',
+      ],
+    },
+    {
+      type: 'category',
+      label: '10. Manual de Instalación',
+      items: [
+        'formativo/manual-instalacion',
       ],
     },
   ],

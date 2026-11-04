@@ -118,7 +118,21 @@ function main() {
     console.log(`  📂 Created: ${folder}`);
   }
 
-  // 8. Copiar documentos transversales existentes
+  // 8. Copiar Manuales de Usuario (06_Manuales_Usuario) desde Formativo
+  console.log('\n📁 Manuales de Usuario → 06_Manuales_Usuario');
+  const manualFiles = [
+    '08-manual-usuario.md',
+    '09-manual-operador.md',
+    '10-manual-instalacion.md',
+  ];
+  for (const file of manualFiles) {
+    copyFile(
+      path.join(SOURCE_ROOT, 'formativo', file),
+      path.join(TARGET_ROOT, '06_Manuales_Usuario', file)
+    );
+  }
+
+  // 9. Copiar documentos transversales existentes
   console.log('\n📁 Copiando documentos transversales...');
   const transversalFiles = [
     { src: '00_Gobierno_Documental/declaracion-uso-ia.md', dest: '00_Gobierno_Documental/declaracion-uso-ia.md' },
@@ -137,7 +151,7 @@ function main() {
     }
   }
 
-  // 9. Copiar specs (carpeta specs/ en raíz del proyecto)
+  // 10. Copiar specs (carpeta specs/ en raíz del proyecto)
   console.log('\n📁 Copiando specs...');
   const specsSource = path.join(__dirname, '..', 'specs');
   const specsDest = path.join(TARGET_ROOT, '09_Transversales', 'specs');

@@ -1,0 +1,13 @@
+{
+  "spec_id": "008",
+  "features": [
+    {
+      "id": "feat-008",
+      "name": "Implementar panel de administración y soporte",
+      "depends_on": [],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "./init.sh"
+    }
+  ]
+}

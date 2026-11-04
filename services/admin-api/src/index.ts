@@ -150,8 +150,11 @@ const sedeService = new SedeService(
 
 const authService = new AuthService(
   usuarioRepository,
+  emailService,
   passwordHasher,
   servicioTokens,
+  generadorId,
+  reloj,
 );
 
 const app = await buildServer(

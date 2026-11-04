@@ -1,0 +1,103 @@
+---
+sidebar_position: 7
+title: 07. Matriz de Trazabilidad
+---
+
+# Matriz Maestra de Trazabilidad
+
+Este documento garantiza que cada necesidad del negocio esté cubierta por un requerimiento, sea modelada en un caso de uso, tenga una historia de usuario y cuente con un criterio de aceptación para ser probada.
+
+> **Alcance de esta versión:** cubre los **34 requerimientos funcionales** y los **10 no funcionales** definidos en
+> [03. Alcance y Requerimientos](./03-alcance-requerimientos.md). Los identificadores de casos de uso (`CU-01…CU-16`)
+> corresponden a [04. Casos de Uso](./04-casos-uso.md) y los de historias (`HU-01…HU-30` y `HU-A05…HU-A11`) a
+> [05. Historias de Usuario](./05-historias-usuario.md). La columna *Estado en el código* distingue lo implementado,
+> lo parcial y lo que solo está especificado. `HU-26` es transversal: exige que la App del Cliente funcione en móvil
+> y en escritorio, sin sustituir la historia propia de cada requerimiento. La serie `HU-A05…HU-A11`
+> (2026-10-28) expande la Épica del Administrador: de ella se derivaron los RF-33 y RF-34
+> ([03. Alcance](./03-alcance-requerimientos.md#24-app-admin)) y los casos de uso CU-11 a CU-16
+> ([04. Casos de Uso](./04-casos-uso.md)).
+
+## 1. Matriz de requerimientos funcionales
+
+| ID | Requerimiento (resumen) | Caso de uso | Historia | Prioridad | Estado en el código |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **RF-01** | Registro con campos mínimos por rol | CU-01 | HU-01 | Alta | **Parcial** — `POST /api/operadores` de extremo a extremo (email + contraseña); faltan los demás roles y sus campos propios |
+| **RF-02** | Validación de correo y campos obligatorios | CU-01 | HU-01 | Alta | **Implementado** — JSON Schema (`required`, `additionalProperties: false`, `maxLength`) + `Usuario.validarEmail` |
+| **RF-03** | Token de invitación con 24 h de vigencia | CU-01 | HU-02 | Alta | **Implementado (dominio)** — `RegistrarOperador.ejecutar` |
+| **RF-04** | Correo automatizado con enlace de activación | CU-01 | HU-02, HU-A11 | Alta | **Implementado** — `SmtpEmailService` (nodemailer, timeouts de 10 s) + `EmailConsola` en desarrollo + reinvitación con token nuevo y reenvío |
+| **RF-05** | Validar token no expirado ni usado | CU-01 | HU-02, HU-05 | Alta | **Parcial** — JWT con expiración verificada en cada petición protegida + `Usuario.tokenHaExpirado`; no hay marca de "usado" ni revocación |
+| **RF-06** | Contraseña con política de complejidad | CU-01 | HU-01 | Alta | **Implementado** — `PoliticaPassword` (12–128, 4 categorías, 100 comunes) + Argon2id; validada antes del hasher |
+| **RF-07** | Activación: guardar contraseña y pasar a ACTIVO | CU-01 | HU-02 | Alta | **Parcial** — el login JWT (`POST /api/auth/login`) está implementado y consume `Argon2Hasher.compare`; la activación (consumir el token de invitación y pasar a ACTIVO) sigue pendiente |
+| **RF-08** | Bloquear dashboard si la cuenta no está activa | CU-01 | HU-05 | Alta | **Parcial** — el login rechaza PENDIENTE y SUSPENDIDO con 403 (`UsuarioNoActivoError`); falta el guard de las rutas del dashboard, que aún no existe |
+| **RF-09** | Dashboard del cliente con reserva o check-in activo | CU-07 | HU-27, HU-C01 | Alta | **Implementado** — `GET /api/reservas/activa` + `GET /api/reservas/mis-reservas` en `admin-api` (JWT); `ListarMisReservasUseCase`, `ObtenerReservaActivaUseCase`; dashboard en `web-cliente` con reserva activa (QR + cronómetro tiempo real), historial (badges estado, modalidad, QR) y estado vacío con CTA a `/buscar`; animaciones Framer Motion |
+| **RF-10** | Cronómetro desde el check-in | CU-07 | HU-19 | Alta | **No implementado** |
+| **RF-11** | Mapa interactivo con ubicación de sedes | CU-05 | HU-10, HU-C01 | Alta | **Implementado** — `GET /api/sedes` en `admin-api` consumido por `MapaParqueaderos.tsx` en `web-cliente` con MapLibre GL |
+| **RF-12** | Filtros por precio, horario, vehículo y disponibilidad | CU-05 | HU-11 | Media | **No implementado** |
+| **RF-13** | Cálculo del valor estimado antes del pago | CU-05 | HU-12 (parcial) | Alta | **No implementado** |
+| **RF-14** | Modelo híbrido Garantizada / Exprés | CU-05 | HU-12 | Alta | **No implementado** |
+| **RF-15** | QR único con caducidad de 5 min en Exprés | CU-05 | HU-13 | Alta | **No implementado** |
+| **RF-16** | Cancelación con ventana de gratuidad | CU-06 | HU-14 | Alta | **No implementado** |
+| **RF-17** | Recalculo y abono de créditos por uso menor | CU-09 | HU-29 | Media | **No implementado** |
+| **RF-18** | Validación de vigencia del QR al escanear | CU-07 | HU-18 | Alta | **No implementado** |
+| **RF-19** | Cobro automático al registrar check-out | CU-09 | HU-20 | Alta | **No implementado** |
+| **RF-20** | Alta, modificación e inactivación de placas | CU-05 | HU-15 | Alta | **No implementado** |
+| **RF-21** | Historial con desglose económico | CU-07 | HU-28 | Media | **Implementado** — `GET /api/reservas/mis-reservas` en `admin-api` (JWT); `ListarMisReservasUseCase` con `buscarPorUsuario` ordenado por fecha descendente; dashboard en `web-cliente` muestra historial con sede, fecha, badge de estado (Azul Acero=Activa, Verde Esmeralda=Completada, Rojo=Cancelada, Ámbar=Expirada), modalidad y código QR; diseño LOCIFY con Framer Motion |
+| **RF-22** | Tickets de soporte con evidencias | CU-10 | HU-23 | Alta | **No implementado** |
+| **RF-23** | Carga de documentos KYB | CU-02 | HU-06 | Alta | **Implementado** |
+| **RF-24** | Bloqueo de la sede hasta aprobar el KYB | CU-02, CU-03 | HU-08 | Alta | **Implementado** |
+| **RF-25** | Parametrización de sedes y cupos | CU-04 | HU-09 | Alta | **No implementado** |
+| **RF-26** | Dashboard de ocupación con alertas | CU-04 (parcial) | HU-30 | Alta | **No implementado** |
+| **RF-27** | Búsqueda por placa y registro manual | CU-08 | HU-21 | Alta | **No implementado** |
+| **RF-28** | Reportes de ingresos, penalidades y caja | CU-09 | HU-25 | Alta | **No implementado** |
+| **RF-29** | Auditoría de tickets KYB | CU-03 | HU-07 | Alta | **Implementado** |
+| **RF-30** | Vista de disputas con línea de tiempo | CU-10, CU-13 | HU-24, HU-A07 | Alta | **No implementado** |
+| **RF-31** | Motor de reglas configurable | CU-11 | HU-22, HU-A05 | Alta | **No implementado** |
+| **RF-32** | RBAC con roles internos | CU-12 | HU-04, HU-A06 | Alta | **Parcial** — el JWT lleva el `rol` y `POST /api/operadores/:id/reinvitar` exige ADMIN; no hay política por rol ni protección del resto de rutas |
+| **RF-33** | Moderación: suspender y reactivar operadores con motivo | CU-14 | HU-A08 | Alta | **No implementado** — solo existe el estado SUSPENDIDO rechazado en el login; faltan el endpoint de administración y el ocultamiento de la sede |
+| **RF-34** | Métricas globales agregadas por ciudad y fecha | — | HU-A10 | Media | **No implementado** |
+| **RF-35** | Precios dinámicos con multiplicadores por ocupación | CU-05 | HU-10 | Media | **No implementado** |
+| **RF-36** | Bloqueo temporal en PENDING_PAYMENT y liberación automática a 10 min (doble reserva) | CU-05 | HU-16 | Alta | **No implementado** |
+| **RF-37** | Sobretiempo con multiplicador 1.5x y cobro automático de diferencia | CU-07 | HU-19 | Alta | **No implementado** |
+| **RF-38** | Cancelación escalonada con reembolso &gt;3h 100%, 1-3h 50%, &lt;1h 0% | CU-06 | HU-14 | Alta | **No implementado** |
+
+**Cobertura:** 38/38 requerimientos listados (RF-01 a RF-38). Implementados o parciales: 11 (RF-01 a RF-08 del onboarding, RF-09, RF-21 y RF-32 con RBAC parcial). El resto está especificado pero sin código.
+
+> **Nota de nomenclatura (2026-10-27).** El sprint de autenticación llamó "RF-07" al **login**. En esta matriz RF-07 es la **activación** de la cuenta, que sigue pendiente. El login es una capacidad transversal ya implementada (`POST /api/auth/login`, JWT HS256, `LoginUsuarioUseCase`); no se le asignó un RF propio. Ver `PROJECT_STATE.md`, "Autenticación JWT y RBAC".
+
+> **Nota de auditoría de seguridad (2026-10-29).** Batería ofensiva de 17 casos (`tests/http/seguridad.test.ts`, AN-A1…AN-E1): JWT con `alg none`/secreto ajeno/expirado/payload alterado → 401; inyección en email → 401 genérico; 6.º intento en un minuto → 429; `X-Forwarded-For` rotado no evade el límite (sin `trustProxy`); sin `X-Powered-By`; helmet y CORS por defecto cerrados; fallo interno → 500 genérico sin detalles de Prisma. Corrección aplicada al hallazgo único real: `bodyLimit` de 32 KiB (antes aceptaba cuerpos de 1 MiB de Fastify por defecto). Además, `admin-api` expone `GET /health` (200/503) para monitores de disponibilidad: es observabilidad, no RF.
+
+## 2. Matriz de requerimientos no funcionales
+
+| ID | Requerimiento | Gate o evidencia verificable | Estado |
+| :--- | :--- | :--- | :--- |
+| **RNF-01** | HTTPS/TLS 1.3 y hashing BCrypt/Argon2 | Hashing: `Argon2Hasher` con Argon2id m=65536 t=3 p=4 y `PoliticaPassword` (24 pruebas). TLS: no hay terminación TLS ni proxy configurado | **Parcial** |
+| **RNF-02** | Logs de auditoría inmutables | No existe tabla ni escritor de eventos; CU-15 e historia HU-A09 definen el comportamiento esperado (*append-only*, reconstrucción por objeto) | **No implementado** |
+| **RNF-03** | Ley 1581: consentimiento antes de persistir | No existe entidad de aceptación ni validación | **No implementado** |
+| **RNF-04** | Peticiones críticas ≤ 3 s | Sin pruebas de carga ni métricas | **Sin medición** |
+| **RNF-05** | Disponibilidad ≥ 99.5 % mensual | Sin monitoreo ni SLA | **Sin medición** |
+| **RNF-06** | ACID para evitar sobreventa | Solo operaciones de una tabla (`upsert`); no hay transacciones multi-tabla ni tabla de reservas | **Parcial** |
+| **RNF-07** | Sincronización de cupos ≤ 500 ms | No existe sincronización | **No implementado** |
+| **RNF-08** | Operación offline con caché seguro | No implementado | **No implementado** |
+| **RNF-09** | CRON que libera reservas exprés > 5 min | No existe worker ni `pago-worker` | **No implementado** |
+| **RNF-10** | Reportes sobre réplicas de lectura | `compose.yaml` solo define una instancia; sin réplica | **No implementado** |
+
+## 3. Trazabilidad de criterios de aceptación
+
+Alineada con la tabla de la sección 4 del SRS. Cualquier cambio en una de las dos tablas debe replicarse en la otra.
+
+| Criterio de Aceptación | Módulo | RF cubiertos | RNF cubiertos |
+| :--- | :--- | :--- | :--- |
+| **CA-01** Interoperabilidad y Sincronización | Todos | RF-01 a RF-04, RF-09 a RF-11, RF-26 a RF-28 | RNF-01, RNF-04, RNF-05, RNF-07, RNF-08 |
+| **CA-02** Validación de Roles y Seguridad | Onboarding/Admin | RF-05 a RF-08, RF-18, RF-24, RF-29, RF-32, RF-33 | RNF-01, RNF-02 |
+| **CA-03** Exactitud del Motor de Reservas | Cliente/Operador | RF-13 a RF-19, RF-31 | RNF-06, RNF-09 |
+| **CA-04** Trazabilidad y Cumplimiento | Onboarding/Admin | RF-01, RF-02, RF-21, RF-23, RF-30, RF-34 | RNF-02, RNF-03, RNF-10 |
+
+## 4. Huecos de trazabilidad detectados
+
+| Tipo | Elementos | Acción requerida |
+| :--- | :--- | :--- |
+| RF sin historia de usuario | **Ninguno** (38 de 38 cubiertos) | Cerrado el 2026-10-27 con HU-27 (RF-09), HU-28 (RF-21), HU-29 (RF-17) y HU-30 (RF-26); RF-33 y RF-34 nacieron cubiertos con HU-A08 y HU-A10 el 2026-10-28; RF-35 a RF-38 añadidos el 2026-10-30 |
+| RF sin caso de uso | RF-34 | Añadir CU o justificar que se cubren como regla transversal. (RF-09 y RF-21 cubiertos con CU-07 el 2026-10-30; RF-31 y RF-32 dejaron de ser huecos con CU-11 y CU-12 el 2026-10-28) |
+| RF con caso de uso parcial | RF-13, RF-20, RF-26 | Precisar el escenario en `04-casos-uso.md` |
+| Historia sin requerimiento | HU-03 (recuperación de contraseña), HU-26 (acceso multiplataforma) | Derivar el RF correspondiente o declararla transversal al alcance. (HU-16 cubierta con RF-36 el 2026-10-30; HU-A08 y HU-A10 dejaron de ser huecos con RF-33 y RF-34 el 2026-10-28) |
+| RNF sin instrumento de verificación | RNF-01 a RNF-10 | Definir métrica, umbral y comando de verificación antes de afirmar cumplimiento |

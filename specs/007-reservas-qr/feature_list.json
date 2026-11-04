@@ -1,0 +1,13 @@
+{
+  "spec_id": "007",
+  "features": [
+    {
+      "id": "feat-007",
+      "name": "Implementar sistema de reservas y QR",
+      "depends_on": [],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "./init.sh"
+    }
+  ]
+}

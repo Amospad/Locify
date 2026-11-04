@@ -1,6 +1,7 @@
 import { createTransport, type SendMailOptions } from 'nodemailer';
 import type { EmailService } from '../../domain/ports/EmailService.js';
 import { construirInvitacion } from './plantillas/invitacion.js';
+import { construirOtp } from './plantillas/otp.js';
 
 /**
  * Tiempo máximo por fase del protocolo SMTP: apertura de conexión, saludo del
@@ -139,6 +140,22 @@ export class SmtpEmailService implements EmailService {
       emailDestino,
       enlace,
       token,
+      remitente: this.opciones.remitente,
+    });
+
+    await this.enviador.sendMail({
+      from: this.opciones.remitente,
+      to: emailDestino,
+      subject: asunto,
+      text: texto,
+      html,
+    });
+  }
+
+  async enviarOtp(emailDestino: string, codigo: string): Promise<void> {
+    const { asunto, texto, html } = construirOtp({
+      emailDestino,
+      codigo,
       remitente: this.opciones.remitente,
     });
 

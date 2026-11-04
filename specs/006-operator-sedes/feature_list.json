@@ -1,0 +1,13 @@
+{
+  "spec_id": "006",
+  "features": [
+    {
+      "id": "feat-006",
+      "name": "Implementar gestión de sedes por operador",
+      "depends_on": [],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "./init.sh"
+    }
+  ]
+}

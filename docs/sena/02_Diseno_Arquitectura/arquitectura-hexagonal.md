@@ -1,0 +1,158 @@
+---
+sidebar_position: 1
+title: Arquitectura Hexagonal (Ports & Adapters)
+---
+
+# Arquitectura Hexagonal en LOCIFY
+
+Para garantizar que el código de LOCIFY sea mantenible, testeable y escalable, hemos adoptado el patrón de **Arquitectura Hexagonal** (también conocido como *Ports & Adapters*).
+
+## 1. ¿Por qué Hexagonal y no MVC?
+
+En un proyecto tradicional (MVC), la lógica de negocio suele quedar fuertemente acoplada al framework (ej. Express, NestJS), al ORM (ej. Prisma, TypeORM) o a servicios externos (Stripe). Esto genera dos problemas graves:
+1. **Difícil de testear:** Para probar una regla de negocio, necesitas levantar una base de datos o mockear medio framework.
+2. **Difícil de cambiar:** Si mañana decidimos cambiar la pasarela de pagos, tendríamos que modificar los controladores, los servicios y los tests.
+
+La Arquitectura Hexagonal resuelve esto poniendo el **Dominio (lógica de negocio pura) en el centro**, aislado de todo lo externo.
+
+## 2. Las 4 Capas de LOCIFY
+
+El módulo implementado (`admin-api`) sigue esta estructura. Los otros tres (`cliente-api`, `operador-api`, `pago-worker`) están especificados en la documentación pero **todavía no existen en el repositorio**; la estructura es esta:
+
+:::info Decisión vigente
+El [ADR-003](../adr/ADR-003-monolito-modular-vs-microservicios.md) quedó **Aceptado** el 2026-10-27: los cuatro nombres anteriores son **módulos de un monolito modular**, no servicios con despliegue independiente. Cada módulo conserva su propio hexágono y su propio esquema de base de datos.
+:::
+
+```mermaid
+flowchart TD
+    subgraph Interfaces ["1. Interfaces (Entrada)"]
+        HTTP[HTTP Controllers]
+        CRON[CRON Jobs]
+    end
+
+    subgraph Infrastructure ["2. Infraestructura (Salida)"]
+        DB[(PostgreSQL)]
+        Stripe[Pasarela de Pagos]
+        Sendgrid[Servicio de Correos]
+    end
+
+    subgraph Application ["3. Aplicación (Orquestación)"]
+        Services[Servicios de Aplicación]
+    end
+
+    subgraph Domain ["4. Dominio (Núcleo Puro)"]
+        Entities[Entidades: Reserva, Usuario]
+        VO[Value Objects: Placa, QR]
+        UseCases[Casos de Uso]
+        Ports[[Puertos / Interfaces]]
+    end
+
+    %% Conexiones
+    HTTP --> Services
+    CRON --> Services
+    Services --> UseCases
+    UseCases --> Entities
+    UseCases --> VO
+    UseCases --> Ports
+    
+    %% Adaptadores implementan los puertos
+    DB -.->|Implementa| Ports
+    Stripe -.->|Implementa| Ports
+    Sendgrid -.->|Implementa| Ports
+```
+
+## 3. La Regla de Dependencia
+
+La flechas del diagrama apuntan siempre **hacia el dominio**. Esa es la regla que hace que el patrón funcione:
+
+| Capa | Puede importar de | No puede importar de |
+| :--- | :--- | :--- |
+| **Dominio** | Nada externo (solo TypeScript estándar) | Prisma, Express, Stripe, Sendgrid |
+| **Aplicación** | Dominio | Detalles de infraestructura |
+| **Infraestructura** | Dominio (implementa sus puertos) | Aplicación |
+| **Interfaces** | Aplicación | Dominio directamente |
+
+Consecuencia práctica: un caso de uso como `RegistrarOperador` se puede probar **sin base de datos**, porque depende de la interfaz `UsuarioRepository` y no de PostgreSQL. Eso no es una promesa: `tests/unit/RegistrarOperador.test.ts` lo ejecuta con repositorio, correo, generador de IDs y reloj en memoria.
+
+Para que la regla se cumpla también con el tiempo y los identificadores, el dominio no importa `node:crypto` ni llama a `new Date()`: recibe los puertos `GeneradorId` y `Reloj`, y la infraestructura aporta `CryptoGeneradorId` y `RelojSistema`.
+
+```ts
+// src/domain/ports/UsuarioRepository.ts — el dominio define QUÉ necesita
+export interface UsuarioRepository {
+  guardar(usuario: Usuario): Promise<void>;
+  buscarPorEmail(email: string): Promise<Usuario | null>;
+  buscarPorId(id: string): Promise<Usuario | null>;
+}
+
+// src/infrastructure/persistence/PostgresUsuarioRepository.ts — la infraestructura define CÓMO
+export class PostgresUsuarioRepository implements UsuarioRepository {
+  // ...
+}
+```
+
+Si mañana se cambia PostgreSQL por otro motor, cambia el adaptador y **no** el caso de uso.
+
+## 4. Estructura real del microservicio
+
+```text
+services/admin-api/src/
+├── domain/                       # Núcleo puro: no conoce nada externo
+│   ├── entities/Usuario.ts
+│   ├── ports/UsuarioRepository.ts
+│   └── use-cases/RegistrarOperador.ts
+├── application/
+│   ├── ports/ConsultadorDeBaseDeDatos.ts
+│   └── services/AdminService.ts  # Orquesta casos de uso
+├── infrastructure/               # Adaptadores de salida
+│   ├── id/CryptoGeneradorId.ts
+│   ├── time/RelojSistema.ts
+│   └── persistence/
+│       ├── PostgresUsuarioRepository.ts
+│       ├── PostgresConsultadorDeBaseDeDatos.ts
+│       └── test-connection.ts
+├── interfaces/http/              # Adaptadores de entrada (Fastify)
+│   ├── server.ts                 # buildServer(): no llama a listen
+│   └── routes/health.ts
+└── prisma/                       # Contrato y cliente de persistencia
+    ├── contract.prisma
+    ├── contract.json             # Generado: no editar
+    └── db.ts
+```
+
+## 5. Cómo se verifica cada capa
+
+| Capa | Tipo de prueba | Comando |
+| :--- | :--- | :--- |
+| Dominio (entidades, reglas) | Unitaria, sin mocks de base de datos | `npm run test:unit` |
+| Adaptador de persistencia | Integración contra PostgreSQL real | `npm run test:repo` |
+| Contrato de datos ↔ base de datos | Verificación de esquema | `npx prisma db verify` |
+| Todo el microservicio | Suite completa | `npm test` |
+
+Una prueba de integración que pasa contra una base de datos vacía no demuestra nada: antes de correrla hay que aplicar el contrato con `npm run db:init` (o `db update` si el esquema ya existe).
+
+## 6. Frontends: `web-cliente` como PWA mobile-first
+
+Los frontends son **adaptadores de entrada** del mismo hexágono: consumen la API HTTP y no contienen reglas de negocio. Hay tres consumidores y dos estrategias de diseño:
+
+| Aplicación | Usuarios | Estrategia |
+| :--- | :--- | :--- |
+| `web-cliente` | Conductores | **Mobile-first** + PWA instalable; se usa igual desde escritorio |
+| `web-operador` | Parqueaderos | Responsive con prioridad escritorio (dashboard de ocupación) |
+| `web-admin` | Personal interno | Responsive con prioridad escritorio (tablas y auditoría) |
+
+### 6.1 `web-cliente`
+
+- **Tecnología:** **Next.js (App Router)** o React + Vite si se opta por SPA pura; un único código fuente para móvil y escritorio.
+- **Mobile-first:** el CSS parte del caso de 360 px y amplía con `min-width`; no se diseña el escritorio primero para luego "encogerlo".
+- **PWA:** `manifest.webmanifest` (nombre, iconos 192/512, `display: standalone`, `theme_color` de marca) y *service worker* con el *shell* en caché. Se instala desde el navegador; **no** se publica en App Store ni Play Store en esta fase.
+- **Sin dependencia de hardware:** cámara, GPS y notificaciones son mejoras progresivas. La reserva, el historial y el QR funcionan con teclado y ratón.
+- **Sesión única:** cookie `httpOnly` + `SameSite=Lax`; el mismo inicio de sesión sirve en móvil y escritorio (HU-26).
+- **Alcance offline:** sólo el *shell* y la última reserva/QR en caché (RNF-08). No se encola la creación de reservas sin conexión: eso exigiría un *outbox* en el cliente y queda fuera de esta fase.
+
+### 6.2 Consecuencias para el backend
+
+- La API debe aceptar CORS sólo desde los orígenes declarados (`CORS_ORIGINS`) y admitir cookies; `src/interfaces/http/server.ts` ya aplica esa allowlist.
+- El QR se entrega como dato (token) y lo dibuja el frontend: el mismo endpoint sirve a la PWA, al dashboard del operador y a la impresión en escritorio.
+- Las notificaciones no se implementan en esta fase; cuando lleguen serán Web Push (VAPID) más correo, nunca un canal exclusivo de móvil.
+
+> **Estado:** todavía no hay código de frontend en el repositorio. Esta sección fija la decisión para cuando se cree el módulo `web-cliente`.

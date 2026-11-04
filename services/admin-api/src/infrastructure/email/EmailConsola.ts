@@ -43,4 +43,18 @@ export class EmailConsola implements EmailService {
       ].join('\n'),
     );
   }
+
+  async enviarOtp(emailDestino: string, codigo: string): Promise<void> {
+    const base = process.env['APP_URL'] ?? 'http://localhost:5173';
+
+    this.escribir(
+      [
+        '[email:consola] OTP de verificación (sólo desarrollo)',
+        `  Destino:  ${emailDestino}`,
+        `  Código:   ${codigo}`,
+        `  Enlace:   ${base}/verificar-otp?email=${encodeURIComponent(emailDestino)}&codigo=${codigo}`,
+        '  Vigencia: 15 minutos',
+      ].join('\n'),
+    );
+  }
 }

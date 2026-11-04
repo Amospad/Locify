@@ -16,7 +16,7 @@ title: Roadmap de Sprints
 | Sprint | Fechas (Sem 1 a Sem 16) | Objetivo | Entregables | Estado |
 | :--- | :--- | :--- | :--- | :--- |
 | **Sprint 1** | Sem 1-2 | Implementar autenticación y autorización multi-tenant | Sistema de login/registro, JWT, middleware de tenant, roles básicos | ✅ Completado |
-| **Sprint 2** | Sem 3-4 | Onboarding KYB para barbershops | Formulario KYB, verificación de documentos, aprobación manual, estado de cuenta | ✅ Completado |
+| **Sprint 2** | Sem 3-4 | Onboarding KYB para parqueaderos | Formulario KYB, verificación de documentos, aprobación manual, estado de cuenta | ✅ Completado |
 | **Sprint 3** | Sem 5-6 | Módulo de reservas y agenda | Creación de servicios, slots disponibles, reserva de clientes, confirmación por email | ✅ Completado |
 | **Sprint 4** | Sem 7-8 | Integración de pagos | Pasarela de pago, cobro anticipado, webhooks, historial de transacciones | ✅ Completado |
 | **Sprint 5** | Sem 9-10 | Dashboards parciales | Dashboard propietario, métricas básicas de ingresos y citas, panel de barberos | ✅ Completado |

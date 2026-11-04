@@ -7,7 +7,7 @@ Esta Constitución define los principios fundamentales e innegociables que rigen
 
 ## 1. Simplicidad y Reutilización (Pragmatismo)
 **Principio:** Evitar la sobre-ingeniería a toda costa.
-- Se priorizará el uso de servicios gestionados y librerías con alta adopción y madurez (Supabase para backend/auth, Stripe para pagos, Radix UI y Shadcn/ui para componentes).
+- Se priorizará el uso de servicios gestionados y librerías con alta adopción y madurez (Supabase para backend/auth, Wompi para pagos, Radix UI y Shadcn/ui para componentes).
 - No se desarrollará internamente aquello que ya esté resuelto de manera eficiente por la industria, permitiendo que el esfuerzo se concentre en el valor diferencial del negocio.
 
 ## 2. Relación entre Spec y Código (SDD)

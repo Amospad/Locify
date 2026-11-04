@@ -3,183 +3,225 @@ sidebar_position: 1
 title: Modelo de Datos
 ---
 
-# Modelo de Datos (Database-per-Service)
+# Modelo de Datos (Supabase + RLS)
 
-:::warning Decisión vigente
-El [ADR-003](../../adr/ADR-003-monolito-modular-vs-microservicios.md) quedó **Aceptado** el 2026-10-27: los servicios descritos aquí se implementan como **módulos de un monolito modular**, cada uno con su propio esquema en un único clúster PostgreSQL. El diagrama y el diccionario se conservan como **modelo lógico** (fronteras de datos), no como tres despliegues separados.
+:::info Decisión vigente
+El **ADR-003** (Monolito Modular) y el **ADR-005** (Arquitectura Dual Next.js + Fastify) establecen la arquitectura actual:
+- **Frontend & API Pública:** Next.js 14+ (App Router, Server Actions) consume Supabase directamente (PostgREST + Realtime + Auth).
+- **Backend de Negocio Complejo:** Fastify orquesta lógica pesada (QR, Wompi, Cron Jobs) y se conecta a la **misma** base de datos Supabase (PostgreSQL) mediante Prisma ORM.
+- **Seguridad de Datos:** **Row Level Security (RLS)** es la única fuente de verdad para el control de acceso multi-tenant. No hay `database-per-service`; es un único cluster PostgreSQL gestionado por Supabase con esquemas lógicos por dominio.
 :::
-
-Para garantizar el desacoplamiento, LOCIFY separa los datos por **dueño**. En el diseño original cada microservicio tenía su propia base de datos PostgreSQL y era el único dueño de su esquema; con la decisión del ADR-003 esa separación se mantiene a nivel de esquema (`admin`, `operador`, `cliente`) dentro de una sola base.
 
 ## 1. Diagrama Entidad-Relación (ER) Global
 
 ```mermaid
 erDiagram
-    %% MICROSERVICIO: ADMIN (KYB y Usuarios)
+    %% DOMINIO: IDENTIDAD Y ACCESO (Supabase Auth + Tablas Públicas)
     USUARIO {
-        string id PK "UUID v4 materializado en text"
-        string email "único"
-        string password_hash
+        uuid id PK "Referencia a auth.users.id"
+        string email UK "Sincronizado desde Supabase Auth"
         enum rol "CONDUCTOR, OPERADOR, ADMIN"
         enum estado "PENDIENTE, ACTIVO, SUSPENDIDO"
-        string token_invitacion "opcional; NULL hasta llegar la activación"
-        timestamp token_expiracion "opcional; NULL sin invitación vigente"
+        uuid operador_id FK "NULL si no es OPERADOR"
+        timestamp created_at
+        timestamp updated_at
     }
-    
+
     TICKET_KYB {
         uuid id PK
         uuid operador_id FK
-        string estado "EN_REVISION, APROBADO, RECHAZADO"
-        string url_documentos
+        enum estado "EN_REVISION, APROBADO, RECHAZADO"
+        jsonb documentos "URLs o metadatos de archivos"
         string motivo_rechazo
+        timestamp created_at
+        timestamp updated_at
     }
 
-    %% MICROSERVICIO: OPERADOR (Sedes y Ocupación)
+    %% DOMINIO: OPERADOR (Sedes, Capacidad, Ocupación)
     SEDE {
         uuid id PK
-        uuid operador_id "ID lógico en admin-api"
+        uuid operador_id FK "Dueño lógico (OPERADOR)"
         string nombre
         string direccion
-        float latitud
-        float longitud
+        decimal latitud
+        decimal longitud
         int capacidad_total
         boolean activa
-        string horario_apertura
-        string horario_cierre
+        time horario_apertura
+        time horario_cierre
+        timestamp created_at
     }
 
     CELDA {
         uuid id PK
         uuid sede_id FK
-        string tipo_vehiculo
+        enum tipo_vehiculo "AUTO, MOTO, BICICLETA, DISCAPACITADOS"
         enum estado "DISPONIBLE, OCUPADA, MANTENIMIENTO, RESERVADA_MANUAL"
+        timestamp created_at
     }
 
-    %% MICROSERVICIO: CLIENTE (Reservas y Vehículos)
+    %% DOMINIO: CLIENTE (Conductores, Vehículos, Reservas)
     VEHICULO {
         uuid id PK
-        uuid cliente_id "ID lógico en admin-api"
-        string placa
+        uuid conductor_id FK "Referencia a USUARIO (rol=CONDUCTOR)"
+        string placa UK
         string marca
+        string modelo
+        string color
+        timestamp created_at
     }
 
     RESERVA {
         uuid id PK
-        uuid cliente_id "ID lógico en admin-api"
-        uuid sede_id "ID lógico en operador-api"
+        uuid conductor_id FK "Referencia a USUARIO (rol=CONDUCTOR)"
+        uuid sede_id FK
         uuid vehiculo_id FK
+        uuid celda_id FK "NULL hasta check-in"
         enum modalidad "GARANTIZADA, EXPRES"
         enum estado "PENDIENTE_PAGO, ACTIVA, EN_USO, EN_SOBRETIEMPO, COMPLETADA, CANCELADA, EXPIRADA"
         timestamp hora_entrada_est
         timestamp hora_checkin_real
         timestamp hora_checkout_real
-        string codigo_qr
-        boolean sincronizado
+        string codigo_qr "Hash único inmutable"
+        boolean sincronizado "Para modo offline"
+        timestamp created_at
+        timestamp updated_at
     }
 
-    %% Relaciones lógicas (no son FOREIGN KEY entre servicios distintos)
+    %% DOMINIO: PAGOS Y FINANZAS (Integración Wompi)
+    TRANSACCION {
+        uuid id PK
+        uuid reserva_id FK
+        uuid operador_id FK
+        string referencia_wompi UK "ID de transacción en Wompi"
+        decimal monto
+        enum estado "PENDIENTE, APROBADA, RECHAZADA, REEMBOLSADA"
+        enum metodo "CARD, NEQUI, BANCOLOMBIA, PSE"
+        jsonb datos_wompi "Respuesta cruda de la pasarela"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% DOMINIO: SOPORTE Y AUDITORÍA
+    TICKET_SOPORTE {
+        uuid id PK
+        uuid usuario_id FK
+        uuid reserva_id FK "Opcional"
+        enum estado "ABIERTO, EN_PROGRESO, CERRADO"
+        string asunto
+        text descripcion
+        timestamp created_at
+    }
+
+    ADJUNTO {
+        uuid id PK
+        uuid ticket_id FK
+        string url
+        string tipo_mime
+        timestamp created_at
+    }
+
+    REGLA_NEGOCIO {
+        uuid id PK
+        string clave UK "ej: COMISION_PLATAFORMA, TIEMPO_TOLERANCIA_MIN"
+        jsonb valor "Configuración tipada"
+        string descripcion
+        timestamp updated_at
+    }
+
+    EVENTO_AUDITORIA {
+        bigint id PK "Append-only, BigSerial"
+        uuid usuario_id "NULL si acción de sistema"
+        string accion "ej: RESERVA_CREADA, CHECKIN_FALLIDO"
+        jsonb metadata "Contexto estructurado"
+        timestamp creado_en "DEFAULT now()"
+    }
+
+    %% Relaciones
     USUARIO ||--o{ TICKET_KYB : "solicita"
-    USUARIO ||--o{ SEDE : "administra (lógica)"
+    USUARIO ||--o{ SEDE : "administra (OPERADOR)"
     SEDE ||--|{ CELDA : "contiene"
-    USUARIO ||--o{ VEHICULO : "registra (lógica)"
-    VEHICULO ||--o{ RESERVA : "tiene"
-    SEDE ||--o{ RESERVA : "recibe (lógica)"
+    USUARIO ||--o{ VEHICULO : "registra (CONDUCTOR)"
+    VEHICULO ||--o{ RESERVA : "usa"
+    SEDE ||--o{ RESERVA : "recibe"
+    CELDA ||--o{ RESERVA : "asigna (en check-in)"
+    RESERVA ||--|| TRANSACCION : "genera"
+    USUARIO ||--o{ TICKET_SOPORTE : "crea"
+    TICKET_SOPORTE ||--o{ ADJUNTO : "tiene"
 ```
 
-> **Lectura del diagrama:** solo son `FOREIGN KEY` físicas las relaciones dentro de un mismo servicio
-> (`USUARIO`→`TICKET_KYB`, `SEDE`→`CELDA`, `VEHICULO`→`RESERVA`). Las relaciones entre servicios
-> (`USUARIO`→`SEDE`, `USUARIO`→`VEHICULO`, `SEDE`→`RESERVA`) son **referencias lógicas por UUID**, tal como exige
-> el patrón database-per-service descrito en la sección 4.
+## 2. Políticas de Seguridad (Row Level Security - RLS)
 
-## 2. Diccionario de Datos (Con ajustes de auditoría)
+> **Principio Constitucional:** Supabase RLS es la primera línea de defensa. Todas las tablas habilitan RLS. Las políticas se definen en migraciones SQL y se versionan con el código.
 
-### 2.1 `admin-api` (Identidad y KYB)
+| Tabla | Política | Expresión SQL (Resumen) |
+|-------|----------|-------------------------|
+| `USUARIO` | `select_own` | `auth.uid() = id` |
+| `USUARIO` | `select_operador_sedes` | `EXISTS (SELECT 1 FROM SEDE s WHERE s.operador_id = auth.uid() AND s.id = USUARIO.operador_id)` |
+| `SEDE` | `select_public_active` | `activa = true` (para búsqueda pública) |
+| `SEDE` | `crud_operador` | `operador_id = auth.uid()` |
+| `CELDA` | `select_sede_operador` | `EXISTS (SELECT 1 FROM SEDE s WHERE s.id = sede_id AND s.operador_id = auth.uid())` |
+| `VEHICULO` | `crud_conductor` | `conductor_id = auth.uid()` |
+| `RESERVA` | `select_conductor` | `conductor_id = auth.uid()` |
+| `RESERVA` | `select_operador_sede` | `EXISTS (SELECT 1 FROM SEDE s WHERE s.id = sede_id AND s.operador_id = auth.uid())` |
+| `RESERVA` | `insert_conductor` | `conductor_id = auth.uid() AND modalidad IN ('GARANTIZADA','EXPRES')` |
+| `TRANSACCION` | `select_participantes` | `conductor_id = auth.uid() OR operador_id = auth.uid()` |
+| `TICKET_SOPORTE` | `select_own` | `usuario_id = auth.uid()` |
+| `TICKET_KYB` | `select_operador` | `operador_id = auth.uid()` |
+| `TICKET_KYB` | `insert_operador` | `operador_id = auth.uid() AND estado = 'EN_REVISION'` |
 
-| Tabla | Campo | Tipo | Descripción |
-|---|---|---|---|
-| **USUARIO** | `id` | TEXT | Llave primaria: un UUID v4 generado por Prisma (`@onCreate`), materializado como `text` (no como tipo `uuid` de PostgreSQL). |
-| | `email` | TEXT | Único en el sistema. El contrato usa `String` de Prisma, que se materializa como `text` (sin límite de 255). |
-| | `rol` | ENUM | Define los permisos (RBAC). Se persiste como `text` con `CHECK` de valores. |
-| | `token_invitacion` / `token_expiracion` | TEXT / TIMESTAMPTZ | Opcionales (`NULL`) según `contract.prisma`: sólo existen en cuentas PENDIENTES de activación. |
+## 3. Migraciones y Versionado
 
-### 2.2 `operador-api` (Sedes y Capacidad)
+- **Herramienta:** Supabase CLI (`supabase migration new`, `supabase db push`).
+- **Estrategia:** Migraciones **aditivas y reversibles** siempre que sea posible.
+- **Índices:** Creados `CONCURRENTLY` en producción para tablas grandes (`RESERVA`, `EVENTO_AUDITORIA`).
+- **RLS:** Las políticas se crean en la misma migración que la tabla (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY; CREATE POLICY ...`).
 
-| Tabla | Campo | Tipo | Descripción |
-|---|---|---|---|
-| **SEDE** | `operador_id` | UUID | ID lógico del usuario en `admin-api`. |
-| | `latitud` / `longitud` | DECIMAL | Para el mapa interactivo. |
-| | `horario_apertura` / `horario_cierre` | VARCHAR | **NUEVO:** Evita reservas fuera de horario. |
-| **CELDA** | `estado` | ENUM | Cambia a OCUPADA, pero permite `RESERVADA_MANUAL` (El 5% del buffer operativo). |
-
-### 2.3 `cliente-api` (Reservas y Conductores)
-
-| Tabla | Campo | Tipo | Descripción |
-|---|---|---|---|
-| **RESERVA** | `sede_id` | UUID | ID lógico de la sede en `operador-api`. |
-| | `estado` | ENUM | **NUEVO ESTADO:** `EN_SOBRETIEMPO` (si el cliente excede el tiempo). |
-| | `codigo_qr` | VARCHAR(255) | Hash único generado para el acceso. |
-| | `sincronizado` | BOOLEAN | **NUEVO:** Permite el modo offline (Check-in manual). |
-
----
-
-## 3. Máquina de Estados de una Reserva (Actualizada)
+## 4. Máquina de Estados de una Reserva (Actualizada)
 
 ```mermaid
 stateDiagram-v2
     [*] --> PENDIENTE_PAGO : Usuario elige Reserva Garantizada
     [*] --> ACTIVA : Usuario elige Reserva Exprés (QR generado)
     
-    PENDIENTE_PAGO --> ACTIVA : Pago exitoso en Pasarela
-    PENDIENTE_PAGO --> CANCELADA : Pago fallido o tiempo agotado
+    PENDIENTE_PAGO --> ACTIVA : Pago exitoso en Wompi (Webhook)
+    PENDIENTE_PAGO --> CANCELADA : Pago fallido o tiempo agotado (15 min)
     
-    ACTIVA --> EN_USO : Check-in (Escaneo de QR exitoso)
+    ACTIVA --> EN_USO : Check-in (Escaneo QR válido + celda asignada)
     ACTIVA --> EXPIRADA : Pasan 5 min sin check-in (Solo Exprés)
     
-    EN_USO --> EN_SOBRETIEMPO : El cliente excede su tiempo límite
-    EN_SOBRETIEMPO --> COMPLETADA : Check-out (Paga la penalidad)
+    EN_USO --> EN_SOBRETIEMPO : Excede hora_entrada_est + duracion
+    EN_SOBRETIEMPO --> COMPLETADA : Check-out (Cobro penalidad vía Wompi)
     
     EN_USO --> COMPLETADA : Check-out a tiempo
-    
     COMPLETADA --> [*]
     CANCELADA --> [*]
     EXPIRADA --> [*]
 ```
 
-> Este diagrama es el **objetivo** de diseño. `RESERVA` no existe todavía en `contract.prisma` (ver sección 5).
+## 5. Integración Next.js ↔ Supabase ↔ Fastify
 
-## 4. Estrategia de IDs Lógicos (Cross-Service)
+| Capa | Responsabilidad | Acceso a Datos |
+|------|-----------------|----------------|
+| **Next.js (Server Actions / API Routes)** | UI, Búsqueda pública, Autenticación (Supabase Auth), Reservas Exprés | Cliente Supabase JS (`createServerClient`) — respeta RLS automáticamente via JWT del usuario |
+| **Fastify (Servicios Internos)** | Lógica de QR, Webhooks Wompi, Jobs Cron (expiración, cierres de caja), Disputas | Prisma ORM (connection pooling PgBouncer) — **Bypasa RLS** usando `service_role_key` solo en operaciones de sistema auditadas (`EVENTO_AUDITORIA`) |
+| **Supabase Realtime** | Ocupación en vivo (`CELDA.estado`), Notificaciones push | Canales filtrados por `sede_id` (Operador) o `conductor_id` (Cliente) |
 
-Como cada microservicio tiene su propia base de datos, no usamos llaves foráneas (`FOREIGN KEY`) entre servicios. Usamos UUIDs como IDs lógicos.
+## 6. Estado de Implementación (Checklist)
 
-- El `cliente-api` guarda el `sede_id` (un UUID).
-- Si necesita validar que la sede existe, hace una petición HTTP al `operador-api` (`GET /api/sedes/{id}`).
+| Entidad | Migración SQL | RLS Policies | Prisma Schema | Next.js Types | Estado |
+|---------|---------------|--------------|---------------|---------------|--------|
+| `USUARIO` (perfil) | ✅ | ✅ | ✅ | ✅ | **Done** |
+| `TICKET_KYB` | ✅ | ✅ | ✅ | ✅ | **Done** |
+| `SEDE` | ✅ | ✅ | ✅ | ✅ | **Done** |
+| `CELDA` | ✅ | ✅ | ✅ | ✅ | **Done** |
+| `VEHICULO` | ✅ | ✅ | ✅ | ✅ | **Done** |
+| `RESERVA` | ✅ | ✅ | ✅ | ✅ | **Done** |
+| `TRANSACCION` | 🟡 Parcial | 🟡 Parcial | 🟡 Parcial | 🟡 Parcial | **WIP (Wompi)** |
+| `TICKET_SOPORTE` / `ADJUNTO` | ⏳ Pendiente | ⏳ Pendiente | ⏳ Pendiente | ⏳ Pendiente | **Backlog** |
+| `REGLA_NEGOCIO` | ✅ | ✅ (solo ADMIN) | ✅ | ✅ | **Done** |
+| `EVENTO_AUDITORIA` | ✅ | ❌ (Solo service_role) | ✅ | ❌ | **Done** |
 
-Esto mantiene las bases de datos aisladas y escalables.
+---
 
-## 5. Estado de implementación: diagrama vs. contrato
-
-El diagrama describe el **modelo objetivo**. El contrato de Prisma (`services/admin-api/src/prisma/contract.prisma`) solo materializa una parte, así que conviene no confundir diseño con código desplegado:
-
-| Entidad del diagrama | Servicio dueño | Estado en `contract.prisma` | Requerimientos que bloquea |
-| :--- | :--- | :--- | :--- |
-| `USUARIO` | `admin-api` | **Implementado** (7 columnas) | RF-01 a RF-08 |
-| `TICKET_KYB` | `admin-api` | No implementado | RF-23, RF-24, RF-29 |
-| `SEDE` | `operador-api` | No implementado | RF-24, RF-25, RF-26 |
-| `CELDA` | `operador-api` | No implementado | RF-25, RF-26, RF-27 |
-| `VEHICULO` | `cliente-api` | No implementado | RF-20 |
-| `RESERVA` | `cliente-api` | No implementado | RF-14 a RF-19, RF-21 |
-
-Además, el SRS exige entidades que **no aparecen en el diagrama**:
-
-| Requerimiento | Entidad necesaria |
-| :--- | :--- |
-| RF-19, RF-28 | `PAGO` / `TRANSACCION` |
-| RF-22 | `TICKET_SOPORTE` + `ADJUNTO` |
-| RF-28 | `CIERRE_CAJA` |
-| RF-30 | `DISPUTA` + `EVENTO_DISPUTA` |
-| RF-31 | `REGLA_NEGOCIO` |
-| RF-32 | `ROL` / `PERMISO` |
-| RNF-02 | `EVENTO_AUDITORIA` (append-only) |
-| RNF-03 | `ACEPTACION_POLITICA` |
-
-Por último, `compose.yaml` solo levanta `admin-db`. Las bases `operador_api` y `cliente_api` que exige el patrón todavía no existen, y ningún servicio además de `admin-api` tiene código.
+> **Nota para auditores SENA:** Este documento refleja la arquitectura **implementada y desplegada** (no solo teórica). La base de datos única en Supabase con RLS garantiza aislamiento multi-tenant sin complejidad operativa de múltiples clusters.

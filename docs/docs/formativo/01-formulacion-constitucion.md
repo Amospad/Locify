@@ -1,76 +1,76 @@
-Ôªø---
+---
 sidebar_position: 1
-title: 01. Formulaci√≥n y Constituci√≥n
+title: 01. FormulaciÛn y ConstituciÛn
 ---
 
-# Formulaci√≥n y Constituci√≥n del Proyecto de Software ‚Äî LOCIFY
+# FormulaciÛn y ConstituciÛn del Proyecto de Software ó LOCIFY
 
 **Documento 01 de la arquitectura documental del proyecto**
 
-| Campo | Informaci√≥n |
+| Campo | InformaciÛn |
 | :--- | :--- |
-| **C√≥digo del documento** | DOC-01-FCP |
-| **Nombre** | Formulaci√≥n y Constituci√≥n del Proyecto |
-| **Estado** | En revisi√≥n |
-| **Clasificaci√≥n** | Documento de formulaci√≥n y gobierno inicial |
-| **Responsable de elaboraci√≥n** | Andr√©s Mosquera, Lilia Torres, Denis Cuervo |
-| **Responsable de revisi√≥n** | Deimer Miranda MSc(c) - Instructor |
-| **Versi√≥n** | 1.0 |
+| **CÛdigo del documento** | DOC-01-FCP |
+| **Nombre** | FormulaciÛn y ConstituciÛn del Proyecto |
+| **Estado** | En revisiÛn |
+| **ClasificaciÛn** | Documento de formulaciÛn y gobierno inicial |
+| **Responsable de elaboraciÛn** | AndrÈs Mosquera, Lilia Torres, Denis Cuervo |
+| **Responsable de revisiÛn** | Deimer Miranda MSc(c) - Instructor |
+| **VersiÛn** | 1.0 |
 
 ---
 
-## 1. Prop√≥sito y uso del documento
+## 1. PropÛsito y uso del documento
 
 ### 1.1 Objetivos del documento
 - Definir el problema u oportunidad que origina el proyecto LOCIFY.
-- Establecer objetivos, beneficios, indicadores y criterios de √©xito medibles.
+- Establecer objetivos, beneficios, indicadores y criterios de Èxito medibles.
 - Identificar al equipo y responsables iniciales.
 - Registrar entregables, hitos, restricciones y riesgos.
 - Autorizar formalmente el inicio del proyecto formativo.
 
 ### 1.2 Alcance documental
-Este documento act√∫a como el contrato t√©cnico y metodol√≥gico para las fases de dise√±o, desarrollo y pruebas del ecosistema LOCIFY en el marco del programa ADSO del SENA.
+Este documento act˙a como el contrato tÈcnico y metodolÛgico para las fases de diseÒo, desarrollo y pruebas del ecosistema LOCIFY en el marco del programa ADSO del SENA.
 
 ---
 
-## 2. Informaci√≥n general del proyecto
+## 2. InformaciÛn general del proyecto
 
-| Campo | Informaci√≥n |
+| Campo | InformaciÛn |
 | :--- | :--- |
-| **C√≥digo interno** | LOCIFY-ADSO-3314811 |
-| **Nombre oficial** | LOCIFY: Ecosistema digital para la gesti√≥n de parqueaderos urbanos |
+| **CÛdigo interno** | LOCIFY-ADSO-3314811 |
+| **Nombre oficial** | LOCIFY: Ecosistema digital para la gestiÛn de parqueaderos urbanos |
 | **Nombre corto** | LOCIFY |
 
-**Descripci√≥n en una frase:** 
-LOCIFY es una plataforma web y m√≥vil que conecta a conductores y operadores de parqueaderos mediante reservas anticipadas, control de ocupaci√≥n en tiempo real y validaci√≥n de acceso mediante c√≥digos QR inmutables, eliminando la fricci√≥n del papel y el efectivo.
+**DescripciÛn en una frase:** 
+LOCIFY es una plataforma web y mÛvil que conecta a conductores y operadores de parqueaderos mediante reservas anticipadas, control de ocupaciÛn en tiempo real y validaciÛn de acceso mediante cÛdigos QR inmutables, eliminando la fricciÛn del papel y el efectivo.
 
-### 2.2 Clasificaci√≥n del proyecto
+### 2.2 ClasificaciÛn del proyecto
 
-| Criterio | Selecci√≥n |
+| Criterio | SelecciÛn |
 | :--- | :--- |
-| **Plataforma** | Web / M√≥vil / API (H√≠brida) |
-| **Contexto de uso** | Acad√©mico / Empresarial (Simulado) |
+| **Plataforma** | Web / MÛvil / API (HÌbrida) |
+| **Contexto de uso** | AcadÈmico / Empresarial (Simulado) |
 | **Nivel de madurez esperado** | Producto funcional (MVP) |
 | **Existencia de cliente real** | No (Proyecto formativo) |
-| **Tratamiento de datos personales** | S√≠ (Requiere consentimiento Ley 1581) |
-| **Integraciones externas** | S√≠ (Pasarela de Pagos en Sandbox) |
+| **Tratamiento de datos personales** | SÌ (Requiere consentimiento Ley 1581) |
+| **Integraciones externas** | SÌ (Pasarela de Pagos en Sandbox) |
 
 ---
 
 ## 3. Contexto y antecedentes
 
 ### 3.1 Contexto organizacional o sectorial
-En las ciudades colombianas (particularmente en el Valle de Aburr√°), la b√∫squeda de estacionamiento es un proceso manual y reactivo. Los conductores pierden tiempo valioso dando vueltas (fen√≥meno conocido como *Cruising for Parking*), lo que genera micro-congesti√≥n, mayor consumo de combustible y emisiones de CO2. 
+En las ciudades colombianas (particularmente en el Valle de Aburr·), la b˙squeda de estacionamiento es un proceso manual y reactivo. Los conductores pierden tiempo valioso dando vueltas (fenÛmeno conocido como *Cruising for Parking*), lo que genera micro-congestiÛn, mayor consumo de combustible y emisiones de CO2. 
 
-Por otro lado, los operadores de parqueaderos operan con taquillas f√≠sicas, dispensadores de papel t√©rmico y cobros en efectivo. Esto genera filas, vulnerabilidad ante la p√©rdida de tiquetes y una total opacidad sobre su propia demanda, impidi√©ndoles optimizar tarifas o capacidad.
+Por otro lado, los operadores de parqueaderos operan con taquillas fÌsicas, dispensadores de papel tÈrmico y cobros en efectivo. Esto genera filas, vulnerabilidad ante la pÈrdida de tiquetes y una total opacidad sobre su propia demanda, impidiÈndoles optimizar tarifas o capacidad.
 
 ### 3.2 Evidencias iniciales
 
 | ID | Evidencia | Tipo | Fuente | Hallazgo principal |
 | :--- | :--- | :--- | :--- | :--- |
-| **EVI-01** | Estudio de tr√°fico en Medell√≠n | Documento | TomTom Traffic Index (2023) | Un conductor pierde en promedio 94 horas al a√±o en el tr√°fico. |
-| **EVI-02** | Crecimiento del parque automotor | Base de datos | RUNT (2023) | El Valle de Aburr√° supera los 1.5 millones de veh√≠culos matriculados. |
-| **EVI-03** | Fen√≥meno de b√∫squeda de parqueo | Libro | Donald Shoup, *The High Cost of Free Parking* (2005) | Hasta el 30% del tr√°fico urbano se debe a veh√≠culos buscando estacionamiento. |
+| **EVI-01** | Estudio de tr·fico en MedellÌn | Documento | TomTom Traffic Index (2023) | Un conductor pierde en promedio 94 horas al aÒo en el tr·fico. |
+| **EVI-02** | Crecimiento del parque automotor | Base de datos | RUNT (2023) | El Valle de Aburr· supera los 1.5 millones de vehÌculos matriculados. |
+| **EVI-03** | FenÛmeno de b˙squeda de parqueo | Libro | Donald Shoup, *The High Cost of Free Parking* (2005) | Hasta el 30% del tr·fico urbano se debe a vehÌculos buscando estacionamiento. |
 
 ---
 
@@ -78,55 +78,55 @@ Por otro lado, los operadores de parqueaderos operan con taquillas f√≠sicas, dis
 
 ### 4.1 Enunciado del problema
 
-| Elemento | Redacci√≥n |
+| Elemento | RedacciÛn |
 | :--- | :--- |
-| **Situaci√≥n actual** | B√∫squeda ineficiente de estacionamiento y gesti√≥n manual de parqueaderos. |
-| **Poblaci√≥n afectada** | Conductores (p√©rdida de tiempo) y Operadores (p√©rdida de ingresos/opacidad). |
+| **SituaciÛn actual** | B˙squeda ineficiente de estacionamiento y gestiÛn manual de parqueaderos. |
+| **PoblaciÛn afectada** | Conductores (pÈrdida de tiempo) y Operadores (pÈrdida de ingresos/opacidad). |
 | **Proceso afectado** | Movilidad urbana y transacciones de estacionamiento. |
-| **Causas principales** | Falta de informaci√≥n en tiempo real y procesos anal√≥gicos (papel/efectivo). |
-| **Consecuencias** | Congesti√≥n vehicular, contaminaci√≥n, filas y sobreventa de cupos. |
-| **Magnitud** | 94 horas perdidas al a√±o por conductor y 30% del tr√°fico buscando parqueo. |
-| **Pregunta orientadora** | ¬øC√≥mo podr√≠a un ecosistema digital optimizar la reserva y el acceso a parqueaderos? |
+| **Causas principales** | Falta de informaciÛn en tiempo real y procesos analÛgicos (papel/efectivo). |
+| **Consecuencias** | CongestiÛn vehicular, contaminaciÛn, filas y sobreventa de cupos. |
+| **Magnitud** | 94 horas perdidas al aÒo por conductor y 30% del tr·fico buscando parqueo. |
+| **Pregunta orientadora** | øCÛmo podrÌa un ecosistema digital optimizar la reserva y el acceso a parqueaderos? |
 
-### 4.2 √Årbol del problema
+### 4.2 ¡rbol del problema
 
-| Nivel | ID | Descripci√≥n | Evidencia relacionada |
+| Nivel | ID | DescripciÛn | Evidencia relacionada |
 | :--- | :--- | :--- | :--- |
-| **Efecto** | EFE-01 | Aumento de la micro-congesti√≥n y emisiones de CO2. | EVI-01, EVI-03 |
-| **Efecto** | EFE-02 | P√©rdida de ingresos potenciales para los operadores. | EVI-02 |
-| **Problema Central** | PRO-01 | Ineficiencia en la gesti√≥n y asignaci√≥n de espacios de estacionamiento en entornos urbanos. | - |
-| **Causa Directa** | CAU-01 | Conductores carecen de informaci√≥n sobre disponibilidad antes de llegar. | EVI-03 |
-| **Causa Directa** | CAU-02 | Procesos de acceso y pago son manuales (taquillas, papel, efectivo). | Entrevista/Observaci√≥n |
-| **Causa Ra√≠z** | CAU-03 | Falta de digitalizaci√≥n y centralizaci√≥n de la oferta de parqueaderos. | An√°lisis del sector |
+| **Efecto** | EFE-01 | Aumento de la micro-congestiÛn y emisiones de CO2. | EVI-01, EVI-03 |
+| **Efecto** | EFE-02 | PÈrdida de ingresos potenciales para los operadores. | EVI-02 |
+| **Problema Central** | PRO-01 | Ineficiencia en la gestiÛn y asignaciÛn de espacios de estacionamiento en entornos urbanos. | - |
+| **Causa Directa** | CAU-01 | Conductores carecen de informaciÛn sobre disponibilidad antes de llegar. | EVI-03 |
+| **Causa Directa** | CAU-02 | Procesos de acceso y pago son manuales (taquillas, papel, efectivo). | Entrevista/ObservaciÛn |
+| **Causa RaÌz** | CAU-03 | Falta de digitalizaciÛn y centralizaciÛn de la oferta de parqueaderos. | An·lisis del sector |
 
-### 4.3 Validaci√≥n del problema
-- **¬øDescribe una situaci√≥n verificable?** S√≠, el tr√°fico y la p√©rdida de tiempo est√°n documentados.
-- **¬øIdentifica la poblaci√≥n?** S√≠ (Conductores y Operadores).
-- **¬øDistingue causas y consecuencias?** S√≠.
-- **¬øCuenta con evidencia?** S√≠ (EVI-01, EVI-02, EVI-03).
+### 4.3 ValidaciÛn del problema
+- **øDescribe una situaciÛn verificable?** SÌ, el tr·fico y la pÈrdida de tiempo est·n documentados.
+- **øIdentifica la poblaciÛn?** SÌ (Conductores y Operadores).
+- **øDistingue causas y consecuencias?** SÌ.
+- **øCuenta con evidencia?** SÌ (EVI-01, EVI-02, EVI-03).
 ---
 
-## 5. Justificaci√≥n
+## 5. JustificaciÛn
 
-### 5.1 Dimensiones de justificaci√≥n
+### 5.1 Dimensiones de justificaciÛn
 
-| Dimensi√≥n | Argumento y evidencia |
+| DimensiÛn | Argumento y evidencia |
 | :--- | :--- |
-| **Necesidad** | El d√©ficit de celdas y la p√©rdida de tiempo (EVI-01) exigen una soluci√≥n digital inmediata. |
-| **Valor para usuarios** | Certeza de cupo, acceso sin fricci√≥n (QR) y transparencia en tarifas. |
-| **Valor organizacional** | Digitalizaci√≥n de aforos, control de ingresos y profesionalizaci√≥n (KYB). |
-| **Viabilidad t√©cnica** | Uso de stack moderno Open Source (Node.js, React) y microservicios escalables. |
-| **Viabilidad operativa** | Plataforma intuitiva Web/M√≥vil sin requerir hardware costoso (talanqueras). |
-| **Viabilidad econ√≥mica** | Bajo costo de infraestructura en la nube frente al alto retorno por optimizaci√≥n de cupos. |
-| **Pertinencia formativa** | Aplica competencias ADSO: an√°lisis, dise√±o de arquitectura hexagonal, desarrollo Full-Stack y QA. |
+| **Necesidad** | El dÈficit de celdas y la pÈrdida de tiempo (EVI-01) exigen una soluciÛn digital inmediata. |
+| **Valor para usuarios** | Certeza de cupo, acceso sin fricciÛn (QR) y transparencia en tarifas. |
+| **Valor organizacional** | DigitalizaciÛn de aforos, control de ingresos y profesionalizaciÛn (KYB). |
+| **Viabilidad tÈcnica** | Uso de stack moderno Open Source (Node.js, React) y microservicios escalables. |
+| **Viabilidad operativa** | Plataforma intuitiva Web/MÛvil sin requerir hardware costoso (talanqueras). |
+| **Viabilidad econÛmica** | Bajo costo de infraestructura en la nube frente al alto retorno por optimizaciÛn de cupos. |
+| **Pertinencia formativa** | Aplica competencias ADSO: an·lisis, diseÒo de arquitectura hexagonal, desarrollo Full-Stack y QA. |
 | **Aspectos legales** | Cumplimiento estricto de la Ley 1581 de 2012 (Habeas Data) y Ley 1480 (Estatuto del Consumidor). |
 
 ### 5.2 Alternativas consideradas
 
-| Alternativa | Descripci√≥n | Ventajas | Desventajas | Decisi√≥n |
+| Alternativa | DescripciÛn | Ventajas | Desventajas | DecisiÛn |
 | :--- | :--- | :--- | :--- | :--- |
-| **ALT-01** | Mantener proceso actual (manual) | Cero inversi√≥n inicial. | Mantiene congesti√≥n y p√©rdida de tiempo. | Descartada |
-| **ALT-02** | Instalar hardware automatizado (talanqueras) | Control f√≠sico total. | Alt√≠simo costo de instalaci√≥n y mantenimiento. | Descartada |
+| **ALT-01** | Mantener proceso actual (manual) | Cero inversiÛn inicial. | Mantiene congestiÛn y pÈrdida de tiempo. | Descartada |
+| **ALT-02** | Instalar hardware automatizado (talanqueras) | Control fÌsico total. | AltÌsimo costo de instalaciÛn y mantenimiento. | Descartada |
 | **ALT-03** | Desarrollar LOCIFY (Software) | Bajo costo, escalable, usa QR y mapas. | Requiere conectividad a internet. | **Seleccionada** |
 
 ---
@@ -134,23 +134,23 @@ Por otro lado, los operadores de parqueaderos operan con taquillas f√≠sicas, dis
 ## 6. Objetivos
 
 ### 6.1 Objetivo general
-Desarrollar un ecosistema tecnol√≥gico web y m√≥vil que conecte a conductores y operadores, para optimizar la reserva, el control de acceso y la gesti√≥n inteligente de parqueaderos urbanos.
+Desarrollar un ecosistema tecnolÛgico web y mÛvil que conecte a conductores y operadores, para optimizar la reserva, el control de acceso y la gestiÛn inteligente de parqueaderos urbanos.
 
-### 6.2 Objetivos espec√≠ficos
+### 6.2 Objetivos especÌficos
 
-| ID | Objetivo espec√≠fico | Entregable relacionado | Indicador relacionado |
+| ID | Objetivo especÌfico | Entregable relacionado | Indicador relacionado |
 | :--- | :--- | :--- | :--- |
-| **OBJ-01** | Dise√±ar la arquitectura de microservicios y el modelo de datos relacional. | Documento de arquitectura y scripts SQL. | 100% de microservicios definidos y documentados. |
-| **OBJ-02** | Desarrollar el m√≥dulo de reservas h√≠bridas y validaci√≥n de acceso por QR. | C√≥digo fuente de `cliente-api`. | Flujo de check-in completado en < 3 segundos. |
-| **OBJ-03** | Implementar el panel de control (Dashboard) para operadores en tiempo real. | C√≥digo fuente de `operador-api`. | Latencia de actualizaci√≥n de cupos < 500 ms. |
-| **OBJ-04** | Validar la calidad del software mediante pruebas unitarias y de integraci√≥n. | Reporte de pruebas QA. | > 80% de cobertura en el dominio (Hexagonal). |
+| **OBJ-01** | DiseÒar la arquitectura de microservicios y el modelo de datos relacional. | Documento de arquitectura y scripts SQL. | 100% de microservicios definidos y documentados. |
+| **OBJ-02** | Desarrollar el mÛdulo de reservas hÌbridas y validaciÛn de acceso por QR. | CÛdigo fuente de `cliente-api`. | Flujo de check-in completado en < 3 segundos. |
+| **OBJ-03** | Implementar el panel de control (Dashboard) para operadores en tiempo real. | CÛdigo fuente de `operador-api`. | Latencia de actualizaciÛn de cupos < 500 ms. |
+| **OBJ-04** | Validar la calidad del software mediante pruebas unitarias y de integraciÛn. | Reporte de pruebas QA. | > 80% de cobertura en el dominio (Hexagonal). |
 
-### 6.3 Validaci√≥n SMART
-- **Espec√≠fico:** Cada objetivo tiene un m√≥dulo y funcionalidad clara.
-- **Medible:** Se usan m√©tricas de tiempo (< 3s) y porcentajes (80% cobertura).
+### 6.3 ValidaciÛn SMART
+- **EspecÌfico:** Cada objetivo tiene un mÛdulo y funcionalidad clara.
+- **Medible:** Se usan mÈtricas de tiempo (< 3s) y porcentajes (80% cobertura).
 - **Alcanzable:** Acorde al tiempo de 8 sprints del SENA.
 - **Relevante:** Resuelve el problema central (CAU-01 y CAU-02).
-- **Temporal:** Se ejecutar√° dentro del cronograma formativo 2026.
+- **Temporal:** Se ejecutar· dentro del cronograma formativo 2026.
 
 ---
 
@@ -158,49 +158,49 @@ Desarrollar un ecosistema tecnol√≥gico web y m√≥vil que conecte a conductores y 
 
 | ID | Beneficio esperado | Beneficiario | Tipo | Indicador |
 | :--- | :--- | :--- | :--- | :--- |
-| **BEN-01** | Reducci√≥n del tiempo de b√∫squeda de parqueo. | Conductor | Directo | Disminuci√≥n de vueltas (estimado 15 min ahorrados). |
-| **BEN-02** | Aumento de la rotaci√≥n y visibilidad del parqueadero. | Operador | Directo | Ocupaci√≥n medida desde el dashboard. |
-| **BEN-03** | Digitalizaci√≥n y eliminaci√≥n del papel t√©rmico. | Ambos | Indirecto | 0 tiquetes f√≠sicos emitidos. |
-| **BEN-04** | Reducci√≥n de emisiones de CO2 por micro-congesti√≥n. | Ciudad | Indirecto | Huella de carbono (estimaci√≥n te√≥rica). |
+| **BEN-01** | ReducciÛn del tiempo de b˙squeda de parqueo. | Conductor | Directo | DisminuciÛn de vueltas (estimado 15 min ahorrados). |
+| **BEN-02** | Aumento de la rotaciÛn y visibilidad del parqueadero. | Operador | Directo | OcupaciÛn medida desde el dashboard. |
+| **BEN-03** | DigitalizaciÛn y eliminaciÛn del papel tÈrmico. | Ambos | Indirecto | 0 tiquetes fÌsicos emitidos. |
+| **BEN-04** | ReducciÛn de emisiones de CO2 por micro-congestiÛn. | Ciudad | Indirecto | Huella de carbono (estimaciÛn teÛrica). |
 
 ### 7.1 Propuesta de valor
 
 | Para | Que necesita | El proyecto propone | A diferencia de | El valor principal es |
 | :--- | :--- | :--- | :--- | :--- |
-| Conductores y Operadores | Agilizar el acceso a estacionamientos. | Un ecosistema con reservas anticipadas y QR. | Taquillas manuales y papel. | Eliminar la fricci√≥n y la incertidumbre. |
+| Conductores y Operadores | Agilizar el acceso a estacionamientos. | Un ecosistema con reservas anticipadas y QR. | Taquillas manuales y papel. | Eliminar la fricciÛn y la incertidumbre. |
 
 ---
 
-## 8. Indicadores de √©xito
+## 8. Indicadores de Èxito
 
-| ID | Indicador | Objetivo | Meta | M√©todo / Fuente |
+| ID | Indicador | Objetivo | Meta | MÈtodo / Fuente |
 | :--- | :--- | :--- | :--- | :--- |
 | **IND-01** | Cobertura de pruebas unitarias. | OBJ-04 | > 80% | Reporte de Jest/Vitest. |
 | **IND-02** | Tiempo de respuesta de la API (Check-in). | OBJ-02 | < 3 segundos | Logs del servidor. |
-| **IND-03** | Latencia de sincronizaci√≥n de cupos. | OBJ-03 | < 500 ms | Prueba de carga (Postman). |
-| **IND-04** | Finalizaci√≥n del flujo de reserva. | OBJ-01 | 100% exitoso | Prueba End-to-End (E2E). |
+| **IND-03** | Latencia de sincronizaciÛn de cupos. | OBJ-03 | < 500 ms | Prueba de carga (Postman). |
+| **IND-04** | FinalizaciÛn del flujo de reserva. | OBJ-01 | 100% exitoso | Prueba End-to-End (E2E). |
 
 ---
 
 ## 9. Alcance preliminar
 
-### 9.1 Capacidades o m√≥dulos incluidos
+### 9.1 Capacidades o mÛdulos incluidos
 
-| ID | Capacidad o m√≥dulo | Descripci√≥n | Prioridad |
+| ID | Capacidad o mÛdulo | DescripciÛn | Prioridad |
 | :--- | :--- | :--- | :--- |
-| **ALC-01** | Onboarding Universal (KYB) | Registro y validaci√≥n de operadores. | Alta |
-| **ALC-02** | App Cliente (B√∫squeda y Reserva) | Mapa, modelo h√≠brido y generaci√≥n de QR. | Alta |
-| **ALC-03** | App Operador (Dashboard y Check-in) | Panel de ocupaci√≥n y esc√°ner de QR. | Alta |
-| **ALC-04** | App Admin (Motor de reglas) | Auditor√≠a, resoluci√≥n de disputas. | Media |
+| **ALC-01** | Onboarding Universal (KYB) | Registro y validaciÛn de operadores. | Alta |
+| **ALC-02** | App Cliente (B˙squeda y Reserva) | Mapa, modelo hÌbrido y generaciÛn de QR. | Alta |
+| **ALC-03** | App Operador (Dashboard y Check-in) | Panel de ocupaciÛn y esc·ner de QR. | Alta |
+| **ALC-04** | App Admin (Motor de reglas) | AuditorÌa, resoluciÛn de disputas. | Media |
 
 ### 9.2 Fuera de alcance
 - Control automatizado de hardware (talanqueras/plumas).
-- Reconocimiento de placas por c√°maras (LPR).
-- Servicios adicionales (lavado, mec√°nica).
+- Reconocimiento de placas por c·maras (LPR).
+- Servicios adicionales (lavado, mec·nica).
 
-### 9.3 Producto m√≠nimo viable (MVP)
+### 9.3 Producto mÌnimo viable (MVP)
 
-| Flujo cr√≠tico | Resultado m√≠nimo esperado | Evidencia de funcionamiento |
+| Flujo crÌtico | Resultado mÌnimo esperado | Evidencia de funcionamiento |
 | :--- | :--- | :--- |
 | **Reserva y Check-in** | Un conductor busca una sede, reserva (con o sin pago) y el operador valida su QR. | Video demostrativo y pruebas E2E. |
 
@@ -210,59 +210,59 @@ Desarrollar un ecosistema tecnol√≥gico web y m√≥vil que conecte a conductores y 
 
 ### 10.1 Entregables principales
 
-| ID | Entregable | Descripci√≥n | Criterio de aceptaci√≥n |
+| ID | Entregable | DescripciÛn | Criterio de aceptaciÛn |
 | :--- | :--- | :--- | :--- |
-| **ENTG-01** | Formulaci√≥n y constituci√≥n | Este documento. | Aprobado por el instructor. |
-| **ENTG-02** | Alcance y requisitos | SRS (32 RF, 10 RNF). | Sin ambig√ºedades, con matriz de trazabilidad. |
-| **ENTG-03** | Dise√±o y arquitectura | Hexagonal y Modelo ER. | Diagramas claros y c√≥digo base compilando. |
-| **ENTG-04** | Producto funcional (MVP) | C√≥digo fuente en GitHub. | Flujo E2E funcionando. |
+| **ENTG-01** | FormulaciÛn y constituciÛn | Este documento. | Aprobado por el instructor. |
+| **ENTG-02** | Alcance y requisitos | SRS (32 RF, 10 RNF). | Sin ambig¸edades, con matriz de trazabilidad. |
+| **ENTG-03** | DiseÒo y arquitectura | Hexagonal y Modelo ER. | Diagramas claros y cÛdigo base compilando. |
+| **ENTG-04** | Producto funcional (MVP) | CÛdigo fuente en GitHub. | Flujo E2E funcionando. |
 | **ENTG-05** | Pruebas y evidencias | Reporte QA. | Cobertura > 80%. |
 
 ### 10.2 Hitos generales
 
 | ID | Hito | Resultado verificable | Fecha estimada |
 | :--- | :--- | :--- | :--- |
-| **HIT-01** | Formulaci√≥n aprobada | Documento DOC-01 | Semana 2 |
+| **HIT-01** | FormulaciÛn aprobada | Documento DOC-01 | Semana 2 |
 | **HIT-02** | MVP demostrable | App funcional en la nube | Semana 6 |
-| **HIT-03** | Pruebas y aceptaci√≥n | QA aprobado | Semana 8 |
+| **HIT-03** | Pruebas y aceptaciÛn | QA aprobado | Semana 8 |
 
 ---
 
-## 11. Organizaci√≥n y gobierno inicial
+## 11. OrganizaciÛn y gobierno inicial
 
 | Rol | Nombre / cargo | Responsabilidades principales |
 | :--- | :--- | :--- |
 | **Patrocinador / Cliente** | *[Por definir con el Instructor]* | Validar necesidades y aceptar entregables. |
-| **L√≠der del Proyecto** | Andr√©s Mosquera | Coordinar, planificar y controlar cambios (Scrum Master). |
+| **LÌder del Proyecto** | AndrÈs Mosquera | Coordinar, planificar y controlar cambios (Scrum Master). |
 | **Product Owner** | Lilia Torres | Priorizar el backlog y gestionar stakeholders. |
-| **QA / Developer** | Denis Cuervo | Asegurar calidad t√©cnica y pruebas. |
+| **QA / Developer** | Denis Cuervo | Asegurar calidad tÈcnica y pruebas. |
 | **Instructor** | Deimer Miranda MSc(c) | Orientar, revisar evidencias y evaluar competencias. |
 
 ---
 
 ## 12. Recursos y viabilidad preliminar
 
-| Categor√≠a | Recurso | Disponibilidad | Costo estimado |
+| CategorÌa | Recurso | Disponibilidad | Costo estimado |
 | :--- | :--- | :--- | :--- |
 | **Talento humano** | Equipo de 3 aprendices SENA. | Disponible | $0 |
 | **Software** | Node.js, React, PostgreSQL, Docker. | Disponible | $0 (Open Source) |
 | **Infraestructura** | GitHub, Vercel, Render (Free Tier). | Parcial | $0 |
-| **Asesor√≠a** | Instructor Deimer Miranda. | Disponible | $0 |
+| **AsesorÌa** | Instructor Deimer Miranda. | Disponible | $0 |
 
 ---
 
 ## 13. Restricciones, supuestos y dependencias
 
 ### 13.1 Restricciones
-| ID | Tipo | Restricci√≥n | Impacto |
+| ID | Tipo | RestricciÛn | Impacto |
 | :--- | :--- | :--- | :--- |
 | **RES-01** | Temporal | 8 sprints para el desarrollo. | Alto (obliga a priorizar MVP). |
-| **RES-02** | Acad√©mica | Cumplimiento de r√∫bricas SENA. | Medio. |
+| **RES-02** | AcadÈmica | Cumplimiento de r˙bricas SENA. | Medio. |
 
 ### 13.2 Supuestos
 | ID | Supuesto | Consecuencia si es falso |
 | :--- | :--- | :--- |
-| **SUP-01** | Los servicios gratuitos en la nube soportar√°n el MVP. | Se requerir√≠a buscar hosting pago o local. |
+| **SUP-01** | Los servicios gratuitos en la nube soportar·n el MVP. | Se requerirÌa buscar hosting pago o local. |
 
 ### 13.3 Dependencias
 | ID | Dependencia | Tipo | Plan alternativo |
@@ -276,57 +276,57 @@ Desarrollar un ecosistema tecnol√≥gico web y m√≥vil que conecte a conductores y 
 | ID | Riesgo | Causa | Consecuencia | P | I | Nivel | Respuesta |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **RSK-01** | Sobrecarga del equipo | Solo 3 personas. | Retraso en sprints. | 3 | 4 | Alto | Mitigar (Arquitectura Hexagonal y APIs claras). |
-| **RSK-02** | Falla de conectividad | Ca√≠da de internet en la demo. | No poder mostrar el MVP. | 2 | 5 | Medio | Mitigar (Grabar video de respaldo de la demo). |
-| **RSK-03** | Scope Creep | A√±adir funciones no planeadas. | No terminar el MVP. | 3 | 5 | Alto | Evitar (PO protege el backlog). |
+| **RSK-02** | Falla de conectividad | CaÌda de internet en la demo. | No poder mostrar el MVP. | 2 | 5 | Medio | Mitigar (Grabar video de respaldo de la demo). |
+| **RSK-03** | Scope Creep | AÒadir funciones no planeadas. | No terminar el MVP. | 3 | 5 | Alto | Evitar (PO protege el backlog). |
 
 ---
 
-## 15. Criterios de autorizaci√≥n del proyecto
+## 15. Criterios de autorizaciÛn del proyecto
 
 | ID | Criterio | Cumple | Evidencia |
 | :--- | :--- | :--- | :--- |
-| **AUT-01** | Problema definido con evidencia. | S√≠ | Secci√≥n 3 y 4. |
-| **AUT-02** | Objetivos SMART verificables. | S√≠ | Secci√≥n 6. |
-| **AUT-03** | Alcance y exclusiones claros. | S√≠ | Secci√≥n 9. |
-| **AUT-04** | Riesgos cr√≠ticos con tratamiento. | S√≠ | Secci√≥n 14. |
+| **AUT-01** | Problema definido con evidencia. | SÌ | SecciÛn 3 y 4. |
+| **AUT-02** | Objetivos SMART verificables. | SÌ | SecciÛn 6. |
+| **AUT-03** | Alcance y exclusiones claros. | SÌ | SecciÛn 9. |
+| **AUT-04** | Riesgos crÌticos con tratamiento. | SÌ | SecciÛn 14. |
 
-### 15.1 Decisi√≥n
+### 15.1 DecisiÛn
 - [X] Proyecto autorizado.
 - [ ] Autorizado con condiciones.
-- [ ] Requiere reformulaci√≥n.
+- [ ] Requiere reformulaciÛn.
 
 ---
 
-## 16. Declaraci√≥n de constituci√≥n
+## 16. DeclaraciÛn de constituciÛn
 
-Mediante la aprobaci√≥n de este documento, las partes reconocen la necesidad descrita, autorizan el inicio formal del proyecto dentro del alcance preliminar establecido y designan al l√≠der del proyecto para coordinar las actividades necesarias, sujeto a las restricciones y criterios de √©xito aqu√≠ definidos.
+Mediante la aprobaciÛn de este documento, las partes reconocen la necesidad descrita, autorizan el inicio formal del proyecto dentro del alcance preliminar establecido y designan al lÌder del proyecto para coordinar las actividades necesarias, sujeto a las restricciones y criterios de Èxito aquÌ definidos.
 
 ---
 
-## 17. Lista de verificaci√≥n de calidad
+## 17. Lista de verificaciÛn de calidad
 
-| N.¬∫ | Verificaci√≥n | Cumple |
+| N.∫ | VerificaciÛn | Cumple |
 | :--- | :--- | :--- |
-| 1 | El contexto explica c√≥mo funciona actualmente el proceso. | S√≠ |
-| 2 | El problema no est√° redactado como ausencia de una soluci√≥n. | S√≠ |
-| 3 | Las causas y efectos est√°n diferenciados. | S√≠ |
-| 4 | Existe evidencia inicial que respalda el problema. | S√≠ |
-| 5 | La poblaci√≥n afectada est√° identificada. | S√≠ |
-| 6 | La justificaci√≥n considera valor y viabilidad. | S√≠ |
-| 7 | El objetivo general se relaciona directamente con el problema. | S√≠ |
-| 8 | Los objetivos espec√≠ficos son verificables. | S√≠ |
-| 9 | Los indicadores tienen meta, unidad y m√©todo de medici√≥n. | S√≠ |
-| 10 | El alcance preliminar distingue inclusiones y exclusiones. | S√≠ |
-| 11 | El MVP est√° claramente identificado. | S√≠ |
-| 12 | Los entregables tienen criterios de aceptaci√≥n. | S√≠ |
-| 13 | Los hitos son realistas frente al tiempo y recursos. | S√≠ |
-| 14 | Los roles, responsables y autoridad del l√≠der est√°n definidos. | S√≠ |
-| 15 | La viabilidad preliminar fue evaluada. | S√≠ |
-| 16 | Restricciones, supuestos y dependencias est√°n diferenciados. | S√≠ |
-| 17 | Los riesgos cr√≠ticos tienen responsable y respuesta. | S√≠ |
-| 18 | La decisi√≥n de autorizaci√≥n est√° registrada. | S√≠ |
-| 19 | El documento tiene versi√≥n, responsables e historial de cambios. | S√≠ |
-| 20 | La informaci√≥n es consistente con la arquitectura documental. | S√≠ |
+| 1 | El contexto explica cÛmo funciona actualmente el proceso. | SÌ |
+| 2 | El problema no est· redactado como ausencia de una soluciÛn. | SÌ |
+| 3 | Las causas y efectos est·n diferenciados. | SÌ |
+| 4 | Existe evidencia inicial que respalda el problema. | SÌ |
+| 5 | La poblaciÛn afectada est· identificada. | SÌ |
+| 6 | La justificaciÛn considera valor y viabilidad. | SÌ |
+| 7 | El objetivo general se relaciona directamente con el problema. | SÌ |
+| 8 | Los objetivos especÌficos son verificables. | SÌ |
+| 9 | Los indicadores tienen meta, unidad y mÈtodo de mediciÛn. | SÌ |
+| 10 | El alcance preliminar distingue inclusiones y exclusiones. | SÌ |
+| 11 | El MVP est· claramente identificado. | SÌ |
+| 12 | Los entregables tienen criterios de aceptaciÛn. | SÌ |
+| 13 | Los hitos son realistas frente al tiempo y recursos. | SÌ |
+| 14 | Los roles, responsables y autoridad del lÌder est·n definidos. | SÌ |
+| 15 | La viabilidad preliminar fue evaluada. | SÌ |
+| 16 | Restricciones, supuestos y dependencias est·n diferenciados. | SÌ |
+| 17 | Los riesgos crÌticos tienen responsable y respuesta. | SÌ |
+| 18 | La decisiÛn de autorizaciÛn est· registrada. | SÌ |
+| 19 | El documento tiene versiÛn, responsables e historial de cambios. | SÌ |
+| 20 | La informaciÛn es consistente con la arquitectura documental. | SÌ |
 
 ---
 **Fin del documento**

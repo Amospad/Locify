@@ -87,6 +87,70 @@ export async function login(
   );
 }
 
+export async function registrar(
+  email: string,
+  password: string,
+  nombre: string,
+  celular: string,
+): Promise<{ id: string; email: string }> {
+  let respuesta: Response;
+
+  try {
+    respuesta = await fetch(`${URL_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, nombre, celular }),
+    });
+  } catch {
+    throw new Error('No se pudo conectar con el servidor.');
+  }
+
+  if (respuesta.ok) {
+    return (await respuesta.json()) as { id: string; email: string };
+  }
+
+  const cuerpo = (await respuesta.json().catch(() => null)) as {
+    error?: string;
+  } | null;
+
+  if (respuesta.status === 409) {
+    throw new Error(cuerpo?.error ?? 'El email ya está registrado.');
+  }
+
+  throw new Error(cuerpo?.error ?? 'Error al registrar usuario.');
+}
+
+export async function verificarOtp(
+  email: string,
+  codigo: string,
+): Promise<{ id: string; email: string; rol: string }> {
+  let respuesta: Response;
+
+  try {
+    respuesta = await fetch(`${URL_BASE}/api/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, codigo }),
+    });
+  } catch {
+    throw new Error('No se pudo conectar con el servidor.');
+  }
+
+  if (respuesta.ok) {
+    return (await respuesta.json()) as { id: string; email: string; rol: string };
+  }
+
+  const cuerpo = (await respuesta.json().catch(() => null)) as {
+    error?: string;
+  } | null;
+
+  if (respuesta.status === 422) {
+    throw new Error(cuerpo?.error ?? 'Código incorrecto o expirado.');
+  }
+
+  throw new Error(cuerpo?.error ?? 'Error al verificar el código.');
+}
+
 /*
  * Sesión en el navegador. Por ahora viaja en localStorage (plan del MVP);
  * la migración a cookie httpOnly es la misma que pide docs/formativo
@@ -380,4 +444,96 @@ export async function obtenerReservaActiva(): Promise<ReservaActivaUsuario | nul
   }
 
   return (await respuesta.json()) as ReservaActivaUsuario | null;
+}
+
+export interface EstadoKYB {
+  estado: 'PENDIENTE' | 'EN_REVISION' | 'APROBADO' | 'RECHAZADO';
+  mensaje?: string;
+  fecha?: string;
+}
+
+export async function obtenerEstadoKYB(operatorId: string): Promise<EstadoKYB> {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error('No hay sesión activa');
+
+  const respuesta = await fetch(`${URL_BASE}/api/kyb/status/${encodeURIComponent(operatorId)}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sesion.token}`,
+    },
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => ({ error: 'Error desconocido' }));
+    throw new Error(error.error || 'Error al obtener estado KYB');
+  }
+
+  return (await respuesta.json()) as EstadoKYB;
+}
+
+export async function subirDocumentosKYB(operatorId: string, urlRut: string, urlCamaraComercio: string): Promise<void> {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error('No hay sesión activa');
+
+  const respuesta = await fetch(`${URL_BASE}/api/kyb/subir-documentos`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sesion.token}`,
+    },
+    body: JSON.stringify({ operatorId, urlRut, urlCamaraComercio }),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => ({ error: 'Error desconocido' }));
+    throw new Error(error.error || 'Error al subir documentos');
+  }
+}
+
+export interface TicketKYB {
+  id: string;
+  operatorId: string;
+  nombreSede: string;
+  estado: 'PENDIENTE' | 'EN_REVISION' | 'APROBADO' | 'RECHAZADO';
+  motivo?: string;
+}
+
+export async function listarTicketsKYBPendientes(): Promise<TicketKYB[]> {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error('No hay sesión activa');
+
+  const respuesta = await fetch(`${URL_BASE}/api/admin/kyb/pendientes`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sesion.token}`,
+    },
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => ({ error: 'Error desconocido' }));
+    throw new Error(error.error || 'Error al listar tickets KYB');
+  }
+
+  return (await respuesta.json()) as TicketKYB[];
+}
+
+export async function cambiarEstadoTicketKYB(id: string, estado: 'APROBADO' | 'RECHAZADO', motivo?: string): Promise<void> {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error('No hay sesión activa');
+
+  const respuesta = await fetch(`${URL_BASE}/api/admin/kyb/${encodeURIComponent(id)}/estado`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sesion.token}`,
+    },
+    body: JSON.stringify({ estado, motivo }),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => ({ error: 'Error desconocido' }));
+    throw new Error(error.error || 'Error al cambiar estado');
+  }
 }

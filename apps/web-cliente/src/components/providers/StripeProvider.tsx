@@ -1,11 +1,11 @@
 'use client';
 
-import { Elements, ElementsOptions } from '@stripe/react-stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '@/lib/stripe';
 
 interface StripeProviderProps {
   children: React.ReactNode;
-  options?: ElementsOptions;
+  options?: React.ComponentProps<typeof Elements>['options'];
 }
 
 /**

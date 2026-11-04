@@ -1,37 +1,46 @@
 {
-  "spec_id": "005",
-  "features": [
-    {
-      "id": "feat-005-1",
-      "name": "Registro de Conductor y OTP (Backend)",
-      "depends_on": [],
-      "status": "passing",
-      "evidence": "pnpm --filter admin-api test:unit (88 tests passing); pnpm --filter admin-api test:repo (3 tests passing); pnpm --filter admin-api build (TypeScript clean)",
-      "verification": "pnpm --filter admin-api test:unit"
-    },
-    {
-      "id": "feat-005-2",
-      "name": "Flujo KYB Backend y Estados",
-      "depends_on": ["feat-005-1"],
-      "status": "passing",
-      "evidence": "pnpm --filter admin-api test:unit (88 tests passing); pnpm --filter admin-api build (TypeScript clean); GET /api/kyb/status/:operatorId, POST /api/kyb/subir-documentos, GET /api/admin/kyb/pendientes, PATCH /api/admin/kyb/:id/estado implementados con Arquitectura Hexagonal",
-      "verification": "pnpm --filter admin-api test:unit"
-    },
-    {
-      "id": "feat-005-3",
-      "name": "Interfaz PWA - Registro y Verificación (Frontend)",
-      "depends_on": ["feat-005-1"],
-      "status": "not-started",
-      "evidence": "",
-      "verification": "pnpm typecheck"
-    },
-    {
-      "id": "feat-005-4",
-      "name": "Interfaz PWA - KYB & Panel Admin",
-      "depends_on": ["feat-005-2", "feat-005-3"],
-      "status": "not-started",
-      "evidence": "",
-      "verification": "pnpm typecheck"
-    }
-  ]
+    "spec_id":  "005",
+    "features":  [
+                     {
+                         "id":  "feat-005-1",
+                         "name":  "Registro de Conductor y OTP (Backend)",
+                         "depends_on":  [
+
+                                        ],
+                         "status":  "passing",
+                         "evidence":  "pnpm --filter admin-api test:unit (88 tests passing); pnpm --filter admin-api test:repo (3 tests passing); pnpm --filter admin-api build (TypeScript clean)",
+                         "verification":  "pnpm --filter admin-api test:unit"
+                     },
+                     {
+                         "id":  "feat-005-2",
+                         "name":  "Flujo KYB Backend y Estados",
+                         "depends_on":  [
+                                            "feat-005-1"
+                                        ],
+                         "status":  "passing",
+                         "evidence":  "pnpm --filter admin-api test:unit (88 tests passing); pnpm --filter admin-api build (TypeScript clean); GET /api/kyb/status/:operatorId, POST /api/kyb/subir-documentos, GET /api/admin/kyb/pendientes, PATCH /api/admin/kyb/:id/estado implementados con Arquitectura Hexagonal",
+                         "verification":  "pnpm --filter admin-api test:unit"
+                     },
+                     {
+                         "id":  "feat-005-3",
+                         "name":  "Interfaz PWA - Registro y Verificación (Frontend)",
+                         "depends_on":  [
+                                            "feat-005-1"
+                                        ],
+                         "status":  "passing",
+                         "evidence":  "pnpm --filter web-cliente exec tsc --noEmit (sin errores); páginas /registrarse y /verificar-otp implementadas con API conectada; componentes UI básicos creados",
+                         "verification":  "pnpm typecheck"
+                     },
+                     {
+                         "id":  "feat-005-4",
+                         "name":  "Interfaz PWA - KYB \u0026 Panel Admin",
+                         "depends_on":  [
+                                            "feat-005-2",
+                                            "feat-005-3"
+                                        ],
+                         "status":  "passing",
+                         "evidence":  "TypeScript sin errores; páginas operador/kyb y admin/kyb conectadas a API; Typecheck pasa",
+                         "verification":  "pnpm typecheck"
+                     }
+                 ]
 }

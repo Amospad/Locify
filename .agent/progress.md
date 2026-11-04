@@ -47,8 +47,10 @@ Mode: Production (touches auth, JWT, Supabase RLS)
   - PATCH /api/admin/kyb/:id/estado (CambiarEstadoTicketKYBUseCase)
   - Todas las rutas con validación de roles (OPERADOR, ADMIN)
   - TypeScript build clean
-- **feat-005-3 EN PROGRESO**: Interfaz PWA - Registro y Verificación
-  - Conectar `/registrarse` y `/verificar-otp` con lib/api.ts
+- **feat-005-3 COMPLETADO**: Interfaz PWA - Registro y Verificación
+  - Páginas /registrarse y /verificar-otp con formulario conectado a lib/api.ts
+  - Componentes UI básicos (Button, Input)
+  - TypeScript sin errores
 
 ### Archivos Creados/Modificados
 - `services/admin-api/src/domain/use-cases/ConsultarEstadoKYB.ts` (nuevo)

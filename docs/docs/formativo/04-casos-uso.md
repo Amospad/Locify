@@ -1,192 +1,130 @@
 ---
 sidebar_position: 4
-title: 04. Casos de Uso y Escenarios
+title: 04. Casos de Uso y Escenarios Completos
 ---
 
-# Casos de Uso y Escenarios — LOCIFY
+# Casos de Uso y Escenarios — LOCIFY (Documento Oficial Completo)
 
-Este documento detalla los 16 casos de uso principales del sistema, incluyendo escenarios de éxito y flujos alternativos (errores y contingencias). Los casos CU-11 a CU-16 (2026-10-28) corresponden al Administrador de LOCIFY y responden a las historias [HU-A05…HU-A11](./05-historias-usuario.md#épica-6-administrador-locify--operación-del-saas).
-
-## Diagrama General de Casos de Uso
-
-```mermaid
-flowchart LR
-    %% Actores
-    A1((Administrador))
-    A2((Operador))
-    A3((Conductor))
-    A4[(Pasarela de Pagos)]
-    A5((Soporte))
-
-    %% Sistema
-    subgraph LOCIFY [Ecosistema Digital]
-        CU1[CU-01: Registro y Activación]
-        CU2[CU-02: Onboarding KYB]
-        CU3[CU-03: Auditoría KYB]
-        CU4[CU-04: Gestión de Sede y Celdas]
-        CU5[CU-05: Reservar Espacio Híbrido]
-        CU6[CU-06: Cancelación y Reembolso]
-        CU7[CU-07: Check-in QR]
-        CU8[CU-08: Check-in Manual]
-        CU9[CU-09: Check-out y Cobro]
-        CU10[CU-10: Gestión de Tickets y Disputas]
-        CU11[CU-11: Configurar Motor de Reglas]
-        CU12[CU-12: Gestionar Roles RBAC]
-        CU13[CU-13: Resolver Disputa y Reembolsar]
-        CU14[CU-14: Suspender Operador]
-        CU15[CU-15: Consultar Auditoría]
-        CU16[CU-16: Reenviar Invitación]
-    end
-
-    %% Relaciones
-    A3 --> CU1
-    A2 --> CU2
-    A2 --> CU16
-    A1 --> CU3
-    A2 --> CU4
-    A3 --> CU5
-    A3 --> CU6
-    A2 --> CU7
-    A2 --> CU8
-    A2 --> CU9
-    A3 --> CU10
-    A1 --> CU10
-    A1 --> CU11
-    A1 --> CU12
-    A1 --> CU13
-    A1 --> CU14
-    A1 --> CU15
-    A1 --> CU16
-    A5 --> CU10
-    A5 --> CU13
-    
-    %% Dependencias
-    CU5 -.-> A4
-    CU6 -.-> A4
-    CU9 -.-> A4
-    CU13 -.-> A4
-    CU11 -.-> CU9
-    CU16 -.-> CU1
-``` 
-## Detalle de los Casos de Uso
-
-### CU-01: Registro y Activación
-- **Actor:** Conductor / Operador.
-- **Flujo:** El usuario llena el formulario. El sistema envía un correo con token (24h). El usuario hace clic y activa su cuenta.
-- **Excepción:** Si el token expira, el sistema permite solicitar un nuevo enlace.
-
-### CU-02: Onboarding KYB
-- **Actor:** Operador.
-- **Flujo:** El operador sube el RUT y fotos. El sistema genera un Ticket en estado "En Revisión".
-- **Regla:** La sede no se muestra en el mapa hasta que el Admin apruebe el ticket.
-
-### CU-03: Auditoría KYB
-- **Actor:** Administrador.
-- **Flujo:** El admin revisa el ticket. Si aprueba, la sede se activa. Si rechaza, debe escribir el motivo.
-- **Excepción:** El operador puede volver a subir documentos si fue rechazado.
-
-### CU-04: Gestión de Sede y Celdas
-- **Actor:** Operador.
-- **Flujo:** El operador define cuántas celdas tiene (ej. 10 para carros, 5 para motos). El sistema actualiza la capacidad disponible.
-
-### CU-05: Reservar Espacio Híbrido
-- **Actor:** Conductor. **Secundario:** Pasarela de Pagos.
-- **Flujo:** El conductor elige modalidad:
-  - **Garantizada:** Paga y el cupo se bloquea.
-  - **Exprés:** El sistema genera QR y un temporizador de 5 min.
-- **Regla:** Si el conductor tiene doble reserva con la misma placa, el sistema lo bloquea.
-
-### CU-06: Cancelación y Reembolso
-- **Actor:** Conductor.
-- **Flujo:** El conductor cancela desde la app. El sistema evalúa la regla:
-  - Si es Exprés y está en tiempo: Cancela sin penalidad.
-  - Si es Garantizada y faltan >30 min: Devuelve el dinero o da crédito.
-- **Excepción:** Si el tiempo ya pasó, se aplica penalidad.
-
-### CU-07: Check-in QR
-- **Actor:** Operador / Conductor.
-- **Flujo:** Se escanea el QR. El sistema valida y arranca el cronómetro.
-- **Excepción:** QR expirado -> Muestra mensaje de "Reserva Caducada" y libera el cupo.
-
-### CU-08: Check-in Manual (Contingencia)
-- **Actor:** Operador.
-- **Flujo:** Si el escáner falla, el operador busca la reserva por placa y hace clic en "Ingreso Manual".
-- **Regla:** Se debe registrar una nota explicando el fallo técnico.
-
-### CU-09: Check-out y Cobro
-- **Actor:** Operador.
-- **Flujo:** El operador da salida. El sistema calcula el tiempo y cobra a la tarjeta del cliente automáticamente.
-- **Excepción:** Si el pago falla, el sistema envía un correo al cliente con un enlace de pago para que pueda salir (sin bloquear el vehículo).
-
-### CU-10: Gestión de Tickets y Disputas
-- **Actor:** Conductor, Operador y Administrador.
-- **Flujo:** El cliente abre un ticket. El operador intenta resolverlo. Si no puede, lo escala al Admin, quien revisa la cronología y decide.
+Este documento detalla todos los casos de uso oficiales del sistema extraídos del documento fuente corporativo (versión 001, 14 de marzo de 2026), abarcando los módulos de **Onboarding**, **Cliente**, **Parqueadero** y **Administrador**, con sus respectivos flujos y escenarios BDD.
 
 ---
 
-## Casos de Uso del Administrador de LOCIFY (CU-11 a CU-16)
+## 1. Módulo Onboarding (CU-O-01 a CU-O-10)
 
-Responden a la [HU-A05…HU-A11](./05-historias-usuario.md#épica-6-administrador-locify--operación-del-saas) del backlog del SaaS. Todos exigen sesión con JWT válido y se evalúan con RBAC en cada petición (RF-32); una respuesta 403 indica que el rol no alcanza.
+| Código | Nombre | Actor Principal | Descripción | Referencia RF |
+| :--- | :--- | :--- | :--- | :--- |
+| **CU-O-01** | Registrar usuario mediante formulario | Usuario | Permite completar el formulario inicial de onboarding. | RFO-01 |
+| **CU-O-02** | Validar datos del formulario | Sistema | Valida campos obligatorios y formato de correo electrónico. | RFO-02 |
+| **CU-O-03** | Generar invitación de activación | Sistema | Genera invitación con vigencia limitada tras el envío del formulario. | RFO-03 |
+| **CU-O-04** | Enviar correo de activación | Sistema | Envía un correo con el enlace único para activar la cuenta. | RFO-04 |
+| **CU-O-05** | Generar enlace único de activación | Sistema | Crea el token seguro asociado a la invitación. | RFO-05 |
+| **CU-O-06** | Verificar vigencia de invitación | Sistema | Valida que la invitación no haya expirado al acceder al enlace. | RFO-06 |
+| **CU-O-07** | Crear contraseña inicial | Usuario | Permite al usuario definir su contraseña al usar el enlace válido. | RFO-07 |
+| **CU-O-08** | Activar cuenta de usuario | Sistema | Cambia el estado de la cuenta a activa tras definir la contraseña. | RFO-08 |
+| **CU-O-09** | Restringir acceso antes de activación | Sistema | Impide el inicio de sesión si la cuenta no ha sido activada. | RFO-09 |
+| **CU-O-10** | Gestionar invitación expirada | Sistema | Informa al usuario y bloquea el acceso si el enlace venció (24h). | RFO-10 |
 
-### CU-11: Configurar Motor de Reglas
-- **Actor:** Administrador. **RF:** RF-31. **Historias:** HU-A05, HU-22.
-- **Precondición:** Sesión con `rol=ADMIN`.
-- **Flujo principal (éxito):**
-  1. El admin abre el panel de reglas y configura minutos de gracia, tarifa base y fracción mínima de cobro.
-  2. El sistema valida los valores (rangos y unidades); si son válidos, persiste la nueva versión.
-  3. Las reservas **nuevas** aplican la configuración vigente; las reservas **en curso** conservan la tarifa con que se crearon.
-- **Escenario alternativo 1 (valor inválido):** gracia negativa o tarifa 0 → rechazo con 400 y mensaje que nombra el campo; la configuración vigente no se altera.
-- **Escenario alternativo 2 (rol insuficiente):** un SOPORTE intenta editar (vía CU-12) → 403 sin cambios.
-- **Postcondición:** el cambio queda en el log de auditoría como evento (CU-15).
+---
 
-### CU-12: Gestionar Roles de Usuario (RBAC)
-- **Actor:** Administrador. **RF:** RF-32. **Historias:** HU-A06, HU-04.
-- **Precondición:** Sesión con `rol=ADMIN`.
-- **Flujo principal (éxito):**
-  1. El admin crea la cuenta interna (Superadmin, Financiero o Soporte) con email y contraseña con la política de complejidad RF-06.
-  2. La cuenta nace PENDIENTE y recibe el correo de activación del onboarding (CU-01).
-  3. En cada request el sistema aplica la política de rol: Soporte ve tickets y disputas, Financiero ve reportes, solo Superadmin configura el motor de reglas (RF-31).
-- **Escenario alternativo 1 (rol insuficiente):** operación fuera del alcance del rol → 403; se audita el intento (CU-15).
-- **Escenario alternativo 2 (cuenta suspendida):** el login da 403 lo mismo que para operadores (RF-08).
-- **Nota honesta:** hoy la plataforma ya issuer JWT con `rol` y protege la reinvitación con ADMIN; la política por rol para el resto de rutas (CU-11 a CU-13) está especificada, no implementada (RF-32 en *Parcial*).
+## 2. Módulo Cliente (CU-C-01 a CU-C-10)
 
-### CU-13: Resolver Disputa y Emitir Reembolso
-- **Actor:** Administrador (secundario: Pasarela de Pagos). **RF:** RF-30, RF-22. **Historias:** HU-A07, HU-24.
-- **Precondición:** Existe un ticket escalado (CU-10) o una reserva con queja.
-- **Flujo principal (éxito):**
-  1. El admin abre la línea de tiempo de la reserva: creación, check-in, check-out, cobros, abonos y ajustes, cada uno con fuente (operador o sistema) e hora.
-  2. Si la evidencia confirma el cobro indebido, emite reembolso total o parcial pasando por la pasarela.
-  3. El reembolso vuelve a aparecer en la línea de tiempo, el crédito se refleja en el historial del cliente (HU-28) y **no** suma como ingreso en los reportes (RF-28).
-- **Escenario alternativo 1 (a favor del operador):** se cierra el ticket justificado; la reserva conserva su estado económico y la timeline queda como evidencia.
-- **Escenario alternativo 2 (fallo de pasarela):** el reembolso se marca como pendiente con la causa; se reintenta, sin escribir dos veces el mismo ajuste (RNF-02).
+| Código | Nombre | Actor Principal | Descripción | Referencia RF |
+| :--- | :--- | :--- | :--- | :--- |
+| **CU-C-01** | Consultar Dashboard | Usuario | Visualiza estado actual, reservas activas, contador y alertas. | RFC-01 a RFC-05 |
+| **CU-C-02** | Gestionar Reservas | Usuario | Búsqueda de espacios, filtros, horarios, pagos, cancelar/extender. | RFC-06 a RFC-15 |
+| **CU-C-03** | Realizar Check-in y Uso del Espacio | Usuario | Valida medios de pago, disponibilidad, check-in digital y cronómetro. | RFC-16 a RFC-19 |
+| **CU-C-04** | Finalizar Uso y Procesar Pago | Sistema / Usuario | Calcula tarifa proporcional, cobro automático y recordatorios. | RFC-20 a RFC-22 |
+| **CU-C-05** | Consultar Actividad y Transacciones | Usuario | Historial de usos, estados de transacciones y detalle financiero. | RFC-23 a RFC-26 |
+| **CU-C-06** | Gestionar Beneficios y Créditos | Usuario | Consulta saldo, historial y aplica créditos en reservas. | RFC-27 a RFC-29 |
+| **CU-C-07** | Gestionar Vehículos | Usuario | Registrar, editar o eliminar placas asociadas a la cuenta. | RFC-30 a RFC-31 |
+| **CU-C-08** | Gestionar Soporte | Usuario | Crear tickets, adjuntar evidencia y consultar estado del caso. | RFC-32 a RFC-34 |
+| **CU-C-09** | Gestionar Configuración de Cuenta | Usuario | Datos personales, métodos de pago, seguridad y notificaciones. | RFC-35 a RFC-38 |
+| **CU-C-10** | Consultar Módulo de Ayuda | Usuario | Tutoriales, reglas, FAQ, búsqueda y redirección a soporte. | RFC-39 a RFC-48 |
 
-### CU-14: Suspender Operador
-- **Actor:** Administrador. **RF:** RF-33 (derivado; apoya RF-08 y RF-24). **Historias:** HU-A08.
-- **Precondición:** Operador con quejas acumulada en tickets (CU-10).
-- **Flujo principal (éxito):**
-  1. El admin marca la cuenta como SUSPENDIDO escribiendo el **motivo obligatorio** (el sistema lo exige).
-  2. La sede deja de aparecer en el mapa (HU-08/RF-24), el login del operador responde 403 (RF-08) y su dashboard queda bloqueado.
-  3. El ciclo de suspensión queda registrado en el historial de la cuenta y en el log de auditoría.
-- **Escenario alternativo 1 (reactivación):** si la queja se resuelve, el admin reactiva la cuenta; la sede vuelve a ser visible y el acceso se restaura.
-- **Escenario alternativo 2 (motivo faltante o rol insuficiente):** suspensión sin motivo → 400; intento de un Soporte sin permiso → 403.
+### Escenarios Específicos (BDD) — Cliente
+- **CUO01 (Dashboard)**: Escenario 1 (Dashboard con reserva activa - *Given* usuario logueado, *When* accede, *Then* muestra reserva activa); Escenario 2 (Dashboard sin reservas - *Given* sin reservas, *When* accede, *Then* indica ausencia de reservas).
+- **CUO02 (Reservas)**: Escenario 1 (Reserva exitosa - calcula valor y permite pago); Escenario 2 (Cancelación de reserva - valida reglas y confirma); Escenario 3 (Extensión de reserva - verifica disponibilidad y aprueba).
+- **CUO03 (Check-in)**: Escenario 1 (Check-in exitoso - genera QR y cronómetro); Escenario 2 (Sin método de pago - solicita agregar medio de pago).
+- **CUO04 (Finalizar Uso)**: Escenario 1 (Finaliza correctamente - calcula tiempo y cobra); Escenario 2 (Sobretiempo - aplica penalidad).
+- **CUO05 a CUO10**: Consultas de historial, aplicación de créditos, registro de vehículos, gestión de tickets de soporte, actualización de configuración y uso de la base de conocimiento de ayuda.
 
-### CU-15: Consultar Auditoría del Sistema
-- **Actor:** Administrador. **RF:** apoya a RNF-02. **Historias:** HU-A09, HU-A05.
-- **Precondición:** Sesión con `rol=ADMIN`.
-- **Flujo principal (éxito):**
-  1. El admin consulta el log de acciones críticas: cambios de tarifas, suspensiones, reembolsos, aprobaciones KYB y conteos de invitación.
-  2. Filtra por actor, tipo de acción y rango de fechas; cada registro muestra actor, rol, acción, fecha/hora, objeto afectado y detalle antes/después.
-  3. Si se solicita, el sistema reconstruye la secuencia completa de acciones de un objeto (por ejemplo la tarifa de una sede), sin huecos ni duplicados.
-- **Regla (el corazón del caso de uso):** el log es **append-only**. Ningún rol, incluso el ADMIN, puede modificar o eliminar un evento existente; solo se agregan eventos nuevos, de modo que el trazo queda inmutable y deniega la acción que lo intenta anular (RNF-02).
-- **Escenario alternativo (sin resultados):** el filtro no arroja eventos → la UI muestra un estado vacío explicativo, no una tabla sin datos.
+---
 
-### CU-16: Reenviar Invitación de Operador
-- **Actor:** Administrador. **RF:** RF-04. **Historias:** HU-A11, HU-02.
-- **Precondición:** Existe un operador en estado PENDIENTE.
-- **Flujo principal (éxito):**
-  1. El admin busca al operador por id o email y solicita la reinvitación.
-  2. El sistema genera un token nuevo con vigencia de 24 h, lo persiste y reenvía el correo con el enlace `APP_URL/activar?token=…`.
-  3. El token anterior queda invalidado porque solo se guarda un token.
-- **Escenario alternativo 1 (cuenta no reinvitable):** si la cuenta está ACTIVA o SUSPENDIDA → 400 sin enviar correo.
-- **Escenario alternativo 2 (fallo SMTP):** → 502; la cuenta sigue PENDIENTE con token vigente y el cliente puede reintentar sin duplicar el registro (409).
-- **Estado en el código: implementado y probado.** Caso de uso `ReinvitarOperadorUseCase` y endpoint `POST /api/operadores/:id/reinvitar` (RBAC: solo ADMIN); ver la fila RF-04 de la [matriz](./07-matriz-trazabilidad.md).
+## 3. Módulo Parqueadero (CUP-01 a CUP-25)
+
+Agrupado en 6 sub-módulos operativos:
+
+### 3.1. Gestión de Registro y Configuración
+- **CUP-01**: Controlar acceso inicial del parqueadero (bloqueado hasta aprobación del Admin).
+- **CUP-02**: Registrar empresa operadora (datos jurídicos).
+- **CUP-03**: Registrar representante legal.
+- **CUP-04**: Cargar documentos obligatorios (RUT, cámara de comercio).
+- **CUP-05**: Registrar vigencia de pólizas.
+- **CUP-06**: Crear sede de parqueadero.
+- **CUP-07**: Registrar capacidad del parqueadero (cupos totales).
+- **CUP-08**: Registrar características del parqueadero (tipos de vehículo).
+- **CUP-09**: Cargar fotos de la sede.
+- **CUP-10**: Validar registro antes del envío (integridad de datos).
+- **CUP-11**: Enviar solicitud de revisión al Administrador.
+
+### 3.2. Gestión Operativa del Parqueadero
+- **CUP-12 (CUP-P-12)**: Visualizar dashboard operativo (ocupación en tiempo real).
+- **CUP-13 (CUP-P-13)**: Mostrar alertas operativas (conflictos o sobretiempos).
+- **CUP-14 (CUP-P-14)**: Buscar vehículo por placa.
+- **CUP-15 (CUP-P-15)**: Registrar ingreso de vehículo (validar reserva o manual).
+- **CUP-16 (CUP-P-16)**: Registrar eventos manuales (entrada/salida).
+- **CUP-17 (CUP-P-17)**: Forzar salida de vehículo (cierre excepcional).
+
+### 3.3. Gestión de Reservas
+- **CUP-18 (CUP-P-18)**: Visualizar reservas por sede.
+- **CUP-19 (CUP-P-19)**: Filtrar reservas por estado (activa, completada, cancelada).
+
+### 3.4. Control de Vehículos y Tiempos
+- **CUP-20 (CUP-P-20)**: Visualizar vehículos activos en la sede.
+- **CUP-21 (CUP-P-21)**: Detectar sobretiempos automáticamente.
+
+### 3.5. Gestión Financiera
+- **CUP-22 (CUP-P-22)**: Generar reportes de ingresos por periodo.
+- **CUP-23 (CUP-P-23)**: Consultar penalidades registradas.
+
+### 3.6. Gestión de Usuarios y Seguridad
+- **CUP-24 (CUP-P-24)**: Crear usuarios internos (equipo operador).
+- **CUP-25 (CUP-P-25)**: Controlar permisos por rol.
+
+### Escenarios Específicos (BDD) — Parqueadero
+- **Escenario 1 (Registro empresa)**: *Given* en formulario, *When* ingresa datos jurídicos, *Then* guarda datos.
+- **Escenario 4 (Creación sede)**: *Given* empresa registrada, *When* crea sede, *Then* registra sede.
+- **Escenario 6 (Validación incompleta)**: *Given* intenta enviar, *When* falta info, *Then* bloquea y solicita completar.
+- **Escenario 9 (Ingreso vehículo)**: *Given* vehículo llega, *When* confirma ingreso, *Then* valida reserva o registra manual.
+- **Escenario 11 (Detección sobretiempo)**: *Given* vehículo excede tiempo, *When* sistema evalúa, *Then* genera alerta.
+
+---
+
+## 4. Módulo Administrador (CUA-01 a CUA-12)
+
+| Código | Nombre | Actor Principal | Descripción | Referencia RF |
+| :--- | :--- | :--- | :--- | :--- |
+| **CUA-01** | Consultar Dashboard Ejecutivo | Administrador | Indicadores estratégicos y métricas globales de la plataforma. | RFA-01 a RFA-08 |
+| **CUA-02** | Gestionar Operadores | Administrador | Aprobar, suspender o modificar estado de operadores. | RFA-09, 10, 14-16 |
+| **CUA-03** | Consultar Información de Operadores | Administrador | Visualizar info legal, documentos e historial de revisión. | RFA-11-13, 17 |
+| **CUA-04** | Gestionar Sedes | Administrador | Supervisar y modificar el estado operativo de las sedes. | RFA-18 a RFA-23 |
+| **CUA-05** | Consultar Transacciones Financieras | Administrador | Visualizar todas las transacciones de la plataforma. | RFA-24 |
+| **CUA-06** | Filtrar y Analizar Transacciones | Administrador | Análisis financiero de penalidades, créditos y liquidaciones. | RFA-25 a RFA-29 |
+| **CUA-07** | Gestionar Incidencias | Administrador | Revisar incidencias, evidencias, registrar decisiones y estados. | RFA-30 a RFA-34 |
+| **CUA-08** | Proteger Historial de Incidencias | Sistema | Garantiza que los registros históricos no sean eliminados ni alterados. | RFA-35 |
+| **CUA-09** | Configurar Penalidades y Reglas | Administrador | Definir penalidades, tiempos de gracia y fórmulas de créditos. | RFA-36 a RFA-38 |
+| **CUA-10** | Configurar Políticas Financieras | Administrador | Establecer límites de créditos y políticas de compensación. | RFA-39, RFA-40 |
+| **CUA-11** | Gestionar Versionamiento de Reglas | Administrador | Registrar nuevas versiones al modificar reglas globales. | RFA-41 |
+| **CUA-12** | Gestionar Usuarios Internos | Administrador | Crear usuarios administrativos, asignar roles, permisos e historial. | RFA-42 a RFA-46 |
+
+### Escenarios Específicos (BDD) — Administrador
+- **CUA-01 (Dashboard)**: Visualización exitosa y manejo de errores de conexión con recarga.
+- **CUA-02 (Operadores)**: Aprobación de operadores pendientes y suspensión por irregularidades.
+- **CUA-04 (Sedes)**: Consulta general de sedes y cambio de estado a suspendida.
+- **CUA-06 (Transacciones)**: Filtrado por rango de fechas y por tipo de transacción (ej. penalidades).
+- **CUA-08 (Inmutabilidad)**: Bloqueo de intentos de eliminación de registros históricos de incidencias.
+- **CUA-09 / 10 / 11 (Reglas y Versionamiento)**: Configuración de tiempos de gracia y creación de versiones de reglas globales.
+- **CUA-12 (Usuarios Internos)**: Creación de usuarios administrativos y asignación de roles.
+
+---
+*Documento oficial sincronizado con las especificaciones técnicas y requerimientos funcionales de LOCIFY.*

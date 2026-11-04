@@ -5,7 +5,7 @@ title: Flujo 4 - Cancelación y Reembolso
 
 # Flujo 4 - Cancelación y Reembolso
 
-**Objetivo:** Permitir al conductor cancelar una reserva garantizada y calcular el reembolso según la política escalonada por anticipación.
+**Objetivo:** Permitir al conductor cancelar una reserva garantizada y calcular el reembolso según la política escalonada por anticipación (Ref: **CU-C-02**, **CU-C-04**).
 
 **Actores:** Conductor, Frontend, Backend, Pasarela de Pagos.
 

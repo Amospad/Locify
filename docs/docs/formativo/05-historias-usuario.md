@@ -36,7 +36,7 @@ Este documento contiene el Product Backlog completo del proyecto LOCIFY, organiz
 | **HU-12** | Como cliente, quiero elegir entre Pago Anticipado o Reserva Exprés para tener flexibilidad al reservar. | Alta | 5 |
 | **HU-13** | Como cliente, quiero recibir un código QR único tras mi reserva para poder ingresar al parqueadero. | Alta | 3 |
 | **HU-14** | Como cliente, quiero cancelar mi reserva (con o sin reembolso) para no perder mi dinero si mis planes cambian. | Media | 3 |
-| **HU-15** | Como cliente, quiero registrar múltiples vehículos (placas) para poder reservar con cualquiera de ellos. | Media | 2 |
+| **HU-15** | Como cliente, quiero registrar múltiples vehículos (placas) para poder reservar con cualquiera de ellos. | Media | 2 | <!-- CU-C-07 -->
 | **HU-16** | Como sistema, quiero validar que un vehículo no tenga una reserva activa para evitar doble reserva. | Alta | 2 |
 | **HU-27** | Como cliente, quiero que mi panel me muestre si tengo una reserva activa o un check-in en curso, con la sede, la placa y el tiempo restante, para saber de un vistazo qué está pasando con mi vehículo sin buscar entre pantallas. | Alta | 3 |
 | **HU-28** | Como cliente, quiero consultar el historial de mis reservas y pagos con fecha, hora, estado y desglose económico, para controlar en qué se gastó mi dinero y reclamar cobros incorrectos. | Media | 3 |
@@ -60,9 +60,9 @@ Este documento contiene el Product Backlog completo del proyecto LOCIFY, organiz
 | ID | Historia de Usuario | Prioridad | Estimación |
 | :--- | :--- | :--- | :--- |
 | **HU-22** | Como administrador, quiero modificar las reglas del negocio (multas, tiempos de gracia) sin afectar las reservas en curso. | Alta | 5 |
-| **HU-23** | Como cliente, quiero abrir un ticket de soporte si el QR no funciona o si hay un cobro indebido. | Alta | 3 |
-| **HU-24** | Como administrador, quiero gestionar los tickets escalados y resolver disputas con evidencia. | Alta | 3 |
-| **HU-25** | Como operador, quiero ver reportes financieros (ingresos, multas) de mi sede para conciliar mis cuentas. | Media | 5 |
+| **HU-23** | Como cliente, quiero abrir un ticket de soporte si el QR no funciona o si hay un cobro indebido. | Alta | 3 | <!-- CU-C-08 -->
+| **HU-24** | Como administrador, quiero gestionar los tickets escalados y resolver disputas con evidencia. | Alta | 3 | <!-- CU-C-08 -->
+| **HU-25** | Como operador, quiero ver reportes financieros (ingresos, multas) de mi sede para conciliar mis cuentas. | Media | 5 | <!-- CU-P-22, CU-P-23 -->
 
 ## Épica 6: Administrador (LOCIFY) — Operación del SaaS
 

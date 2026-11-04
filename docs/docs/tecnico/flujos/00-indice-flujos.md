@@ -15,8 +15,10 @@ Este directorio contiene la definición de los flujos técnicos y escenarios de 
 | FT-02 | [flujo-06-onboarding-kyb.md](./flujo-06-onboarding-kyb.md) | CU-P-01 a CU-P-11 (KYB Operador) | Carga de documentos, validación de pólizas y flujo de aprobación Admin. |
 | FT-03 | [flujo-02-busqueda-reserva.md](./flujo-02-busqueda-reserva.md) | CU-C-02 (Gestión Reservas) | Proceso completo de pago y generación de reserva. |
 | FT-04 | [flujo-03-acceso-uso.md](./flujo-03-acceso-uso.md) | CU-C-03, CU-C-04, CU-P-15, CU-P-21 | Escaneo, inicio de cronómetro, detección de sobretiempo y cobro automático. |
-| FT-05 | [flujo-04-cancelacion.md](./flujo-04-cancelacion.md) | CU-C-02 (Extensión) | Extensión de reserva y reembolsos según política. |
+| FT-05 | [flujo-04-cancelacion.md](./flujo-04-cancelacion.md) | CU-C-02 (Cancelación) | Proceso de cancelación y reembolso según política. |
 | FT-06 | [flujo-05-historial.md](./flujo-05-historial.md) | CU-C-05, CU-C-06 | Historial económico, aplicación de créditos. |
+| FT-07 | [flujo-07-gestion-vehiculos-soporte.md](./flujo-07-gestion-vehiculos-soporte.md) | CU-C-07, CU-C-08, CU-C-09, CU-C-10 | Gestión de vehículos, soporte, configuración y ayuda. |
+| FT-08 | [flujo-08-reportes-penalidades.md](./flujo-08-reportes-penalidades.md) | CU-P-22, CU-P-23 | Reportes financieros y penalidades. |
 
 ---
 
@@ -42,15 +44,15 @@ Este directorio contiene la definición de los flujos técnicos y escenarios de 
 | CU-C-04 | HU-20, HU-29 | RFC-20 a RFC-22 | FT-04 | 🔄 |
 | CU-C-05 | HU-28 | RFC-23 a RFC-26 | FT-06 | 🔄 |
 | CU-C-06 | HU-29 | RFC-27 a RFC-29 | FT-06 | 🔄 |
-| CU-C-07 | HU-15 | RFC-30 a RFC-31 | - | ❌ |
-| CU-C-08 | HU-23, HU-24 | RFC-32 a RFC-34 | - | ❌ |
-| CU-C-09 | HU-04 | RFC-35 a RFC-38 | - | ❌ |
-| CU-C-10 | HU-23 | RFC-39 a RFC-48 | - | ❌ |
+| CU-C-07 | HU-15 | RFC-30 a RFC-31 | FT-07 | ✅ |
+| CU-C-08 | HU-23, HU-24 | RFC-32 a RFC-34 | FT-07 | ✅ |
+| CU-C-09 | HU-04 | RFC-35 a RFC-38 | FT-07 | ✅ |
+| CU-C-10 | HU-23 | RFC-39 a RFC-48 | FT-07 | ✅ |
 | CU-P-15 | HU-17, HU-21 | RFP-15 | FT-04 | 🔄 |
 | CU-P-17 | HU-20 | RFP-17 | FT-04 | 🔄 |
 | CU-P-21 | HU-30 | RFP-21 | FT-04 | 🔄 |
-| CU-P-22 | HU-25 | RFP-22 | - | ❌ |
-| CU-P-23 | HU-25 | RFP-23 | - | ❌ |
+| CU-P-22 | HU-25 | RFP-22 | FT-08 | ✅ |
+| CU-P-23 | HU-25 | RFP-23 | FT-08 | ✅ |
 | CU-P-24 | HU-04 | RFP-24 | - | ❌ |
 | CU-P-25 | HU-04 | RFP-25 | - | ❌ |
 | CUA-01 a CUA-12 | HU-A05 a HU-A11 | RFA-01 a RFA-46 | - | ❌ |

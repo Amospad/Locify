@@ -2,12 +2,72 @@
   "spec_id": "006",
   "features": [
     {
-      "id": "feat-006",
-      "name": "Implementar gestión de sedes por operador",
+      "id": "feat-006-1",
+      "name": "CRUD de sedes y RBAC por operador",
       "depends_on": [],
       "status": "not-started",
       "evidence": "",
-      "verification": "./init.sh"
+      "verification": "pnpm --filter admin-api test:unit"
+    },
+    {
+      "id": "feat-006-2",
+      "name": "Editor visual de celdas y CSV",
+      "depends_on": [
+        "feat-006-1"
+      ],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "pnpm --filter admin-api test:unit"
+    },
+    {
+      "id": "feat-006-3",
+      "name": "Monitoría tiempo real de ocupación",
+      "depends_on": [
+        "feat-006-2"
+      ],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "pnpm --filter admin-api test:unit"
+    },
+    {
+      "id": "feat-006-4",
+      "name": "Check-in / Check-out manual con cálculo tarifario",
+      "depends_on": [
+        "feat-006-3"
+      ],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "pnpm --filter admin-api test:unit"
+    },
+    {
+      "id": "feat-006-5",
+      "name": "Mantenimiento de celdas",
+      "depends_on": [
+        "feat-006-3"
+      ],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "pnpm --filter admin-api test:unit"
+    },
+    {
+      "id": "feat-006-6",
+      "name": "Reportes y cierre de caja",
+      "depends_on": [
+        "feat-006-4"
+      ],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "pnpm --filter admin-api test:unit"
+    },
+    {
+      "id": "feat-006-7",
+      "name": "Motor de reglas y configuración operativa",
+      "depends_on": [
+        "feat-006-1"
+      ],
+      "status": "not-started",
+      "evidence": "",
+      "verification": "pnpm --filter admin-api test:unit"
     }
   ]
 }

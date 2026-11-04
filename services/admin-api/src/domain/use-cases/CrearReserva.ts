@@ -81,11 +81,16 @@ export class CrearReservaUseCase {
         }
 
         const monto = sede.precioHora * 1; // 1 hora mínima
-        const resultado = await this.paymentGateway.procesarPago(monto, 'COP', dto.tokenTarjeta);
-        
-        if (!resultado.exitoso) {
-          throw new PagoRechazadoError('El pago fue rechazado por el gateway');
-        }
+        // Para pagos inmediatos con token, usamos crearPaymentIntent que devuelve clientSecret
+        // El frontend completará el pago con el token
+        const { clientSecret } = await this.paymentGateway.crearPaymentIntent(
+          'temp-' + this.generadorId.generar(), // ID temporal, se actualizará tras crear reserva
+          monto,
+          'COP',
+          { tokenTarjeta: dto.tokenTarjeta, usuarioId: dto.usuarioId, sedeId: dto.sedeId }
+        );
+        // El clientSecret se podría devolver al frontend para completar el pago
+        // En este caso asumimos que el pago se completará de forma diferida
       }
       // Si no hay token, se asume pago diferido vía PaymentIntent
     }

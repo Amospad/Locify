@@ -12,7 +12,6 @@ import { rutasReservas, type GestorDeReservas } from './routes/reservas.js';
 import { rutasSedes } from './routes/sedes.js';
 import { rutasOperadorDashboard, type OperadorRutasDeps } from './routes/operador-dashboard.js';
 import { rutasKYB } from './routes/kyb.js';
-import { rutasWebhookStripe } from './routes/webhooks.js';
 import { rutasPagos } from './routes/payments.js';
 import { crearAutenticacion } from './auth.js';
 import { registrarManejadorDeErrores } from './errores.js';
@@ -32,7 +31,7 @@ export interface DependenciasHttp {
   reservaRepository: import('../../domain/ports/ReservaRepository.js').ReservaRepository;
   /** Servicio para operaciones KYB. */
   sedeService: any;
-  /** Gateway de pagos para integración Stripe. */
+  /** Gateway de pagos (Wompi para Colombia). */
   paymentGateway: import('../../domain/ports/PaymentGateway.js').PaymentGateway;
 }
 
@@ -140,9 +139,6 @@ export async function buildServer(
     reservaRepository: deps.reservaRepository,
     sedeRepository: deps.sedeRepository,
     paymentGateway: deps.paymentGateway,
-  });
-  await app.register(rutasWebhookStripe, {
-    reservaRepository: deps.reservaRepository,
   });
 
   return app;

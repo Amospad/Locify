@@ -537,3 +537,108 @@ export async function cambiarEstadoTicketKYB(id: string, estado: 'APROBADO' | 'R
     throw new Error(error.error || 'Error al cambiar estado');
   }
 }
+
+export interface SedeOperador {
+  id: string;
+  nombre: string;
+  direccion: string;
+  latitud: number;
+  longitud: number;
+  capacidadTotal: number;
+  precioHora: number;
+  estado: string;
+}
+
+export interface CrearSedePayload {
+  nombre: string;
+  direccion: string;
+  latitud: number;
+  longitud: number;
+  capacidadTotal: number;
+  precioHora: number;
+}
+
+export async function listarSedesOperador(): Promise<SedeOperador[]> {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error('No hay sesión activa');
+
+  const respuesta = await fetch(`${URL_BASE}/api/operador/sedes`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sesion.token}`,
+    },
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => ({ error: 'Error al listar sedes' }));
+    throw new Error(error.error || 'Error al listar sedes');
+  }
+
+  return (await respuesta.json()) as SedeOperador[];
+}
+
+export async function crearSedeOperador(datos: CrearSedePayload): Promise<{ sedeId: string; nombre: string }> {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error('No hay sesión activa');
+
+  const respuesta = await fetch(`${URL_BASE}/api/operador/sedes`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sesion.token}`,
+    },
+    body: JSON.stringify(datos),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => ({ error: 'Error al crear sede' }));
+    throw new Error(error.error || 'Error al crear sede');
+  }
+
+  return (await respuesta.json()) as { sedeId: string; nombre: string };
+}
+
+export async function actualizarSedeOperador(
+  id: string,
+  datos: Partial<CrearSedePayload>,
+): Promise<{ sedeId: string; nombre: string }> {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error('No hay sesión activa');
+
+  const respuesta = await fetch(`${URL_BASE}/api/operador/sedes/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sesion.token}`,
+    },
+    body: JSON.stringify(datos),
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => ({ error: 'Error al actualizar sede' }));
+    throw new Error(error.error || 'Error al actualizar sede');
+  }
+
+  return (await respuesta.json()) as { sedeId: string; nombre: string };
+}
+
+export async function eliminarSedeOperador(id: string): Promise<{ sedeId: string }> {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error('No hay sesión activa');
+
+  const respuesta = await fetch(`${URL_BASE}/api/operador/sedes/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sesion.token}`,
+    },
+  });
+
+  if (!respuesta.ok) {
+    const error = await respuesta.json().catch(() => ({ error: 'Error al eliminar sede' }));
+    throw new Error(error.error || 'Error al eliminar sede');
+  }
+
+  return (await respuesta.json()) as { sedeId: string };
+}

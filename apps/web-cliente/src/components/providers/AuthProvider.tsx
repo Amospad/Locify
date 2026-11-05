@@ -16,9 +16,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const isSupabaseDummy = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('dummy');
 
   useEffect(() => {
+    if (isSupabaseDummy) {
+      // Demo mode: fake authenticated user
+      setSession({ user: { id: 'demo-operador', email: 'operador1@test.com' } } as any);
+      setUser({ id: 'demo-operador', email: 'operador1@test.com' } as any);
+      setLoading(false);
+      return;
+    }
+
+    const supabase = createClient();
     let mounted = true;
 
     const init = async () => {
@@ -40,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       listener.subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [isSupabaseDummy]);
 
   return (
     <AuthContext.Provider value={{ session, user, loading }}>

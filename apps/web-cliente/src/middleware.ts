@@ -4,6 +4,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
+  const isSupabaseDummy = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('dummy') || !process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (isSupabaseDummy) {
+    // Bypass Supabase auth in demo mode
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

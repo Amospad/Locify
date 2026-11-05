@@ -13,6 +13,7 @@ import { rutasSedes } from './routes/sedes.js';
 import { rutasOperadorDashboard, type OperadorRutasDeps } from './routes/operador-dashboard.js';
 import { rutasKYB } from './routes/kyb.js';
 import { rutasPagos } from './routes/payments.js';
+import { rutasOperadorSedes } from './routes/operador-sedes.js';
 import { crearAutenticacion } from './auth.js';
 import { registrarManejadorDeErrores } from './errores.js';
 
@@ -33,6 +34,8 @@ export interface DependenciasHttp {
   sedeService: any;
   /** Gateway de pagos (Wompi para Colombia). */
   paymentGateway: import('../../domain/ports/PaymentGateway.js').PaymentGateway;
+  /** Generador de IDs para dominio. */
+  generadorId: import('../../domain/ports/GeneradorId.js').GeneradorId;
 }
 
 export interface OpcionesServidor {
@@ -133,6 +136,11 @@ export async function buildServer(
   });
   await app.register(rutasKYB, {
     sedeService: deps.sedeService,
+    autenticar,
+  });
+  await app.register(rutasOperadorSedes, {
+    sedeRepository: deps.sedeRepository,
+    generadorId: deps.generadorId,
     autenticar,
   });
   await app.register(rutasPagos, {

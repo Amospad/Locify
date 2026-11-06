@@ -16,9 +16,9 @@ flowchart TD
     A([Inicio]) --> B[/Cliente inicia sesión/]
     B --> C[CU-C-01: Sistema consulta estado del cliente]
     C --> D{¿Cliente tiene actividad?}
-    D -->|Reserva activa| E[Muestra tarjeta de reserva con: sede, placa, hora inicio, tiempo restante]
-    D -->|Check-in en curso| F[Muestra estado "En curso" con cronómetro activo]
-    D -->|Sin actividad| G[Muestra estado vacío con botón "Buscar parqueadero"]
+    D -->|Reserva activa| E["Muestra tarjeta de reserva con: sede, placa, hora inicio, tiempo restante"]
+    D -->|Check-in en curso| F["Muestra estado 'En curso' con cronómetro activo"]
+    D -->|Sin actividad| G["Muestra estado vacío con botón 'Buscar parqueadero'"]
     E --> H[Muestra acciones: Ver QR, Cancelar]
     F --> I[Muestra acciones: Ver QR, Finalizar uso]
     G --> J[Muestra sugerencias y parqueaderos cercanos]

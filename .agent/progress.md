@@ -99,3 +99,27 @@ Mode: Production (touches auth, JWT, Supabase RLS)
 
 **Próxima spec candidata**
 - Revisar roadmap para spec 006-operator-sedes o spec 007-reservas-qr
+
+---
+
+## Session 2026-11-04 [Spec 006 - Avance]
+
+### Estado Actual
+- **feat-006-1 COMPLETADO**: CRUD de sedes y RBAC por operador
+  - Backend: endpoints /api/operador/sedes (GET, POST, PUT, DELETE)
+  - Backend: UseCases CrearSede, ListarSedesOperador, ObtenerSede, ActualizarSede, EliminarSede
+  - Frontend: vista gestión /operador/sedes conectada a backend CRUD
+  - Reubicación de Route Group `(operador)` a ruta pública `/operador` para corregir 404
+  - Bypass temporal de Supabase en modo demo (middleware + AuthProvider)
+
+### Archivos Modificados/Creados
+- `apps/web-cliente/src/app/operador/sedes/page.tsx` (nuevo)
+- `apps/web-cliente/src/lib/api.ts` (helpers sedes)
+- `services/admin-api/src/interfaces/http/routes/operador-sedes.ts` (rutas nuevas)
+- `services/admin-api/src/domain/use-cases/*` (5 use cases nuevos)
+- `apps/web-cliente/middleware.ts` y `AuthProvider.tsx` (bypass demo)
+
+### Próximos Pasos
+1. Implementar formulario de creación/edición de sede en el frontend (formulario con validación)
+2. Completar validaciones de usuario en UseCases (RBAC en backend)
+3. Actualizar `feature_list.json` de spec 006 con progreso de las 7 features

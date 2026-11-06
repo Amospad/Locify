@@ -5,8 +5,8 @@
       "id": "feat-006-1",
       "name": "CRUD de sedes y RBAC por operador",
       "depends_on": [],
-      "status": "not-started",
-      "evidence": "",
+      "status": "passing",
+      "evidence": "services/admin-api/tests/unit/CrearSedeUseCase.test.ts, ListarSedesOperadorUseCase.test.ts, ObtenerSedeUseCase.test.ts, ActualizarSedeUseCase.test.ts, EliminarSedeUseCase.test.ts (107 tests passing)",
       "verification": "pnpm --filter admin-api test:unit"
     },
     {

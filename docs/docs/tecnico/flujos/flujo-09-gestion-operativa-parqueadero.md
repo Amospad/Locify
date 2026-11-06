@@ -13,13 +13,13 @@ title: Flujo 9 - Gestión Operativa del Parqueadero
 
 ```mermaid
 flowchart TD
-    A([Inicio]) --> B[/Operador inicia sesión en Dashboard Operativo/]
+  A(["Inicio"]) --> B[/Operador inicia sesión en Dashboard Operativo/]
     B --> C[CU-P-12: Visualiza dashboard con ocupación en tiempo real]
-    C --> D[CU-P-13: Revisa alertas operativas (conflictos o sobretiempos)]
-    D --> E{¿Acción requerida?}
+    C --> D["CU-P-13: Revisa alertas operativas (conflictos o sobretiempos)"]
+    D --> E{"¿Acción requerida?"}
     E -->|Búsqueda| F[CU-P-14: Busca vehículo por placa]
-    E -->|Ingreso| G[CU-P-15: Registra ingreso de vehículo (validar reserva o manual)]
-    E -->|Evento manual| H[CU-P-16: Registra eventos manuales entrada/salida]
+    E -->|Ingreso| G["CU-P-15: Registra ingreso de vehículo (validar reserva o manual)"]
+    E -->|Evento manual| H["CU-P-16: Registra eventos manuales entrada/salida"]
     E -->|Forzar salida| I[CU-P-17: Forzar salida de vehículo]
     F --> J[Backend valida y retorna resultados]
     G --> K[Backend actualiza estado y cronómetro]
@@ -28,7 +28,7 @@ flowchart TD
     J --> M[Actualiza interfaz de operador]
     K --> M
     L --> M
-    M --> N([Fin])
+    M --> N(["Fin"])
 ```
 
 ## Escenarios BDD Asociados

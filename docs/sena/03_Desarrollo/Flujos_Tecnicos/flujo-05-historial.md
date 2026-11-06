@@ -42,7 +42,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[Desde Dashboard] --> B[Ir a "Mis Beneficios"]
+    A[Desde Dashboard] --> B["Ir a 'Mis Beneficios'"]
     B --> C{Mostrar saldo creditos}
     C --> D[Ver historial de creditos (CU-C-06)]
     C --> E[Aplicar creditos a reserva (CU-C-06)]

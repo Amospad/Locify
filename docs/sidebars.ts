@@ -13,7 +13,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: '02. Stakeholders',
       items: [
-        'formativo/stakeholders',
+        'formativo/02.stakeholders',
       ],
     },
     {
@@ -27,7 +27,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: '04. Casos de Uso',
       items: [
-        'formativo/indice-casos-uso',
+        'formativo/00-indice-casos-uso',
         'formativo/casos-uso',
       ],
     },
@@ -71,6 +71,13 @@ const sidebars: SidebarsConfig = {
       label: '10. Manual de Instalación',
       items: [
         'formativo/manual-instalacion',
+      ],
+    },
+    {
+      type: 'category',
+      label: '11. Reglas de Negocio',
+      items: [
+        'formativo/11-reglas-negocio',
       ],
     },
   ],

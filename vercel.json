@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm install && cd docs && pnpm run build",
+  "outputDirectory": "docs/build",
+  "installCommand": "pnpm install"
+}

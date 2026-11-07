@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm install && cd docs && pnpm run build",
-  "outputDirectory": "docs/build",
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install --filter docs",
+  "buildCommand": "cd docs && pnpm run build",
+  "outputDirectory": "docs/build"
 }

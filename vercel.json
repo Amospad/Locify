@@ -1,5 +1,5 @@
 {
-  "installCommand": "pnpm install --filter docs... ",
-  "buildCommand": "cd docs && npx docusaurus build",
+  "installCommand": "pnpm install --filter docs... --no-frozen-lockfile",
+  "buildCommand": "cd docs && pnpm run build",
   "outputDirectory": "docs/build"
 }

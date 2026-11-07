@@ -4,7 +4,7 @@
   "packageManager": "pnpm@10.0.0",
   "private": true,
   "scripts": {
-    "build": "pnpm docusaurus build",
+    "build": "./node_modules/.bin/docusaurus build",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",

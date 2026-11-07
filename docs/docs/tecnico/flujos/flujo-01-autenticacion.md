@@ -29,16 +29,16 @@ title: Flujo 1 - Autenticación
 ```mermaid
 flowchart TD
     A([Inicio]) --> B{¿Tiene cuenta?}
-    B -->|No| C[/Formulario de Registro (CU-O-01)/]
-    C --> D[/Validar datos (CU-O-02)/]
-    D --> E[/Generar invitación (CU-O-03)/]
-    E --> F[/Enviar correo (CU-O-04)/]
+    B -->|No| C[/Formulario de Registro/]
+    C --> D[/Validar datos/]
+    D --> E[/Generar invitación/]
+    E --> F[/Enviar correo/]
     F --> G[Recibe token en email]
     G --> H{¿Token válido?}
-    H -->|Sí| I[Crear contraseña (CU-O-07)]
-    H -->|No/Vencido| J[ mostrar error (CU-O-06, CU-O-10)]
-    I --> K[Activar cuenta (CU-O-08)]
-    K --> L[Iniciar sesión (CU-O-09)]
+    H -->|Sí| I[Crear contraseña]
+    H -->|No/Vencido| J["Mostrar error (CU-O-06, CU-O-10)"]
+    I --> K[Activar cuenta]
+    K --> L[Iniciar sesión]
     L --> M[Redirige a /buscar]
     B -->|Sí| L
     M --> N([Fin])

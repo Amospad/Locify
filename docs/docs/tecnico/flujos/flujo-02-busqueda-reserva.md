@@ -19,23 +19,24 @@ title: Flujo 2 - Búsqueda y Reserva (Crítico)
 
 **Diagrama de Flujo (Simbología Estándar):**
 
+
 ```mermaid
 flowchart TD
-    A([Inicio]) --> B[/Conductor busca sede (CU-C-02)/]
+    A([Inicio]) --> B[/"Conductor busca sede (CU-C-02)"/]
     B --> C[Aplica filtros y hora]
-    C --> D{¿Vehículo registrado?}
-    D -->|Sí| E[Selecciona vehículo (CU-C-07)]
-    D -->|No| F[/Agregar vehículo (CU-C-07)/]
+    C --> D{"¿Vehículo registrado?"}
+    D -->|Sí| E["Selecciona vehículo (CU-C-07)"]
+    D -->|No| F[/"Agregar vehículo (CU-C-07)"/]
     E --> G[Elige modalidad]
     F --> G
-    G --> H{¿Paga anticipado?}
-    H -->|Sí| I[Procesar pago (CU-C-02)]
-    I --> J{Pago Exitoso?}
+    G --> H{"¿Paga anticipado?"}
+    H -->|Sí| I["Procesar pago (CU-C-02)"]
+    I --> J{"¿Pago Exitoso?"}
     J -->|No| K[Error, reintentar]
     K --> G
     J -->|Sí| L[Crear reserva]
     H -->|No| L
-    L --> M[/Generar QR (CU-C-02)/]
+    L --> M[/"Generar QR (CU-C-02)"/]
     M --> N[Mostrar confirmación]
     N --> O([Fin])
 ```

@@ -16,12 +16,12 @@ flowchart TD
     A([Inicio]) --> B[/Administrador inicia sesión/]
     B --> C[CUA-01: Dashboard Ejecutivo - Métricas globales]
     C --> D{¿Módulo a gestionar?}
-    D -->|Operadores| E[CUA-02: Gestionar Operadores (aprobar/suspender) / CUA-03: Consultar información]
-    D -->|Sedes| F[CUA-04: Gestionar Sedes (estado operativo)]
-    D -->|Finanzas| G[CUA-05: Consultar transacciones / CUA-06: Filtrar y analizar]
-    D -->|Incidencias| H[CUA-07: Gestionar incidencias / CUA-08: Proteger historial]
-    D -->|Reglas| I[CUA-09: Configurar penalidades / CUA-10: Configurar políticas / CUA-11: Versionamiento]
-    D -->|Usuarios| J[CUA-12: Gestionar usuarios internos]
+    D -->|Operadores| E["CUA-02: Gestionar Operadores (aprobar/suspender) / CUA-03: Consultar información"]
+    D -->|Sedes| F["CUA-04: Gestionar Sedes (estado operativo)"]
+    D -->|Finanzas| G["CUA-05: Consultar transacciones / CUA-06: Filtrar y analizar"]
+    D -->|Incidencias| H["CUA-07: Gestionar incidencias / CUA-08: Proteger historial"]
+    D -->|Reglas| I["CUA-09: Configurar penalidades / CUA-10: Configurar políticas / CUA-11: Versionamiento"]
+    D -->|Usuarios| J["CUA-12: Gestionar usuarios internos"]
     E --> K[Backend valida y aplica cambios]
     F --> K
     G --> K

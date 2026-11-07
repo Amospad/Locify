@@ -23,22 +23,22 @@ title: Flujo 3 - Acceso y Uso (Check-in/out)
 
 ```mermaid
 flowchart TD
-    A([Inicio - Llegada]) --> B[/Conductor muestra QR (CU-C-03)/]
+    A([Inicio - Llegada]) --> B[/"Conductor muestra QR (CU-C-03)"/]
     B --> C[Operador escanea QR]
     C --> D{¿QR Válido?}
-    D -->|No| E[Denegar acceso (CU-P-17 opcional)]
+    D -->|No| E["Denegar acceso (CU-P-17 opcional)"]
     E --> F([Fin])
-    D -->|Sí| G[Activar estado EN_USO (CU-C-03)]
-    G --> H[Iniciar cronómetro (CU-P-21 detecta SOBRETIEMPO)]
+    D -->|Sí| G["Activar estado EN_USO (CU-C-03)"]
+    G --> H["Iniciar cronómetro (CU-P-21 detecta SOBRETIEMPO)"]
     H --> I[Transcurre tiempo de parqueo]
     I --> J[Operador solicita Check-out]
-    J --> K[Calcular tiempo total (CU-C-04)]
+    J --> K["Calcular tiempo total (CU-C-04)"]
     K --> L{¿Cobro automático?}
-    L -->|Sí| M[Procesar pago automático (CU-C-04)]
+    L -->|Sí| M["Procesar pago automático (CU-C-04)"]
     L -->|No| N[Cobrar manual]
     M --> O[Marcar COMPLETADA y liberar cupo]
     N --> O
-    O --> P[Generar penalidad si hubo sobretiempo (CU-P-21)]
+    O --> P["Generar penalidad si hubo sobretiempo (CU-P-21)"]
     P --> Q([Fin])
 ```
 
@@ -46,9 +46,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Sistema evaluar estado cada X minutos] --> B{?Tiempo excedido?}
+    A[Sistema evaluar estado cada X minutos] --> B{"¿Tiempo excedido?"}
     B -->|Si| C[Generar alerta operador]
     B -->|No| D[Continuar monitoreo]
-    C --> E[Registrar penalidad (CU-C-04)]
+    C --> E["Registrar penalidad (CU-C-04)"]
     E --> F([Fin])
 ```

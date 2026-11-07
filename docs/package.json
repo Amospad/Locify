@@ -1,9 +1,10 @@
 {
   "name": "docs",
   "version": "0.0.0",
+  "packageManager": "pnpm@10.0.0",
   "private": true,
   "scripts": {
-    "docusaurus": "docusaurus",
+    "build": "node ../node_modules/@docusaurus/core/bin/docusaurus.js build",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
@@ -16,6 +17,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
+    "@mermaid-js/layout-elk": "^1.0.2",
     "@docusaurus/faster": "3.10.2",
     "@docusaurus/preset-classic": "3.10.2",
     "@docusaurus/theme-mermaid": "^3.10.2",
@@ -33,19 +35,7 @@
     "@types/react": "^19.0.0",
     "typescript": "~6.0.2"
   },
-  "browserslist": {
-    "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 3 chrome version",
-      "last 3 firefox version",
-      "last 5 safari version"
-    ]
-  },
   "engines": {
-    "node": ">=20.0"
+    "node": "26.x"
   }
 }

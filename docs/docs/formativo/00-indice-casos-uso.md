@@ -6,7 +6,7 @@ title: 00. Índice Casos de Uso vs Historias de Usuario
 # Índice Casos de Uso ↔ Historias de Usuario — LOCIFY
 
 **Fuente oficial:** `casos-de-uso-escenarios.pdf` — Versión 001, 14 de marzo de 2026  
-**Elaborado por:** Ficha 3314811 ADSO — Andrés Mosquera, Johan Ríos, Santiago Montoya, Jhonatan García, Manuel Cetre, Lilia Torres, Yuri Díaz, Diego Morelo, Felipe Albarán  
+**Elaborado por:** Ficha 3314811 ADSO — Andrés Mosquera, Denis Cuervo y Lilia Torres 
 **Trazabilidad:** Mantiene SDD. Ningún código sin spec aprobada. HU ↔ Caso de Uso ↔ RF.
 
 > Este índice mapea los casos de uso extraídos del documento oficial a Historias de Usuario y Requisitos Funcionales. Se usa para trazabilidad HU ↔ CU ↔ RF y para generar escenarios BDD.

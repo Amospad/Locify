@@ -31,21 +31,21 @@ title: Flujo 6 - Onboarding KYB (Crítico)
 
 ```mermaid
 flowchart TD
-    A([Inicio - Operador nuevo]) --> B{¿Cuenta activa?}
-    B -->|No| C[Registro operador (CU-P-02, CU-P-03)]
-    C --> D[Cargar documentos (CU-P-04)]
-    D --> E[Registrar pólizas (CU-P-05)]
-    E --> F[Crear sede (CU-P-06)]
-    F --> G[Capacidad y características (CU-P-07, CU-P-08)]
-    G --> H[Cargar fotos (CU-P-09)]
-    H --> I{¿Validar? (CU-P-10)}
+    A(["Inicio - Operador nuevo"]) --> B{"¿Cuenta activa?"}
+    B -->|No| C["Registro operador (CU-P-02, CU-P-03)"]
+    C --> D["Cargar documentos (CU-P-04)"]
+    D --> E["Registrar pólizas (CU-P-05)"]
+    E --> F["Crear sede (CU-P-06)"]
+    F --> G["Capacidad y características (CU-P-07, CU-P-08)"]
+    G --> H["Cargar fotos (CU-P-09)"]
+    H --> I{"¿Validar? (CU-P-10)"}
     I -->|No válido| J[Mostrar errores y corregir]
     J --> I
-    I -->|Válido| K[Enviar para revisión (CU-P-11)]
-    B -->|Sí| L[Acceso denegado hasta aprobación (CU-P-01)]
+    I -->|Válido| K["Enviar para revisión (CU-P-11)"]
+    B -->|Sí| L["Acceso denegado hasta aprobación (CU-P-01)"]
     K --> M[Admin revisa documentos]
-    M --> N{¿Cumple normas?}
-    N -->|Sí| O[Admin aprueba (CU-P-01)]
+    M --> N{"¿Cumple normas?"}
+    N -->|Sí| O["Admin aprueba (CU-P-01)"]
     O --> P[Sede visible en mapa]
     P --> Q([Fin])
     N -->|No| R[Admin rechaza con motivo]

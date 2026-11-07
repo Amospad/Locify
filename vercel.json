@@ -1,0 +1,5 @@
+{
+  "installCommand": "pnpm install --filter docs... --no-frozen-lockfile",
+  "buildCommand": "cd docs && pnpm run build",
+  "outputDirectory": "docs/build"
+}

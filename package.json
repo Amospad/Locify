@@ -2,6 +2,7 @@
   "name": "locify-monorepo",
   "version": "0.1.0",
   "private": true,
+  "node": "26.x",
   "description": "Ecosistema digital de gestión de parqueaderos urbanos",
   "workspaces": [
     "services/*",

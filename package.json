@@ -1,11 +1,11 @@
 {
   "name": "locify-monorepo",
   "version": "0.1.0",
-  "engines": {
-  "node": "26.15.1"
-},
   "private": true,
-  "node": "26.x",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": "26.x"
+  },
   "description": "Ecosistema digital de gestión de parqueaderos urbanos",
   "workspaces": [
     "services/*",
@@ -13,7 +13,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "docker compose up --build"
+    "dev": "docker compose up --build",
+    "prebuild": "node -v"
   },
   "keywords": [
     "parking",
